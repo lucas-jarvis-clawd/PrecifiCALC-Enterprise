@@ -8,42 +8,40 @@ export default function Propostas() {
   const [empresa, setEmpresa] = useState({
     nome: '',
     cnpj: '',
-    contato: '',
+    responsavel: '',
+    telefone: '',
     email: '',
-    regime: 'simples',
-    funcionarios: 5,
+    segmento: 'comercio',
   });
 
-  const [escritorio, setEscritorio] = useState({
-    nome: 'Seu Escritorio Contabil',
-    cnpj: '00.000.000/0001-00',
-    responsavel: 'Contador Responsavel',
-    crc: 'CRC-SP 000000/O',
-    telefone: '(11) 99999-9999',
-    email: 'contato@escritorio.com.br',
+  const [cliente, setCliente] = useState({
+    nome: '',
+    cnpj: '',
+    contato: '',
+    email: '',
   });
 
   const [itens, setItens] = useState([
-    { id: 1, servico: 'Escrituracao Contabil Mensal', descricao: 'Classificacao contabil, conciliacao e balancetes mensais', valor: 1200, tipo: 'mensal' },
-    { id: 2, servico: 'Escrituracao Fiscal', descricao: 'Apuracao de impostos, SPED Fiscal e EFD-Contribuicoes', valor: 1500, tipo: 'mensal' },
-    { id: 3, servico: 'Folha de Pagamento', descricao: 'Processamento mensal para ate 5 funcionarios', valor: 800, tipo: 'mensal' },
+    { id: 1, produto: 'Produto/Servico A', descricao: 'Descricao detalhada do item', quantidade: 10, valorUnitario: 250, tipo: 'produto' },
+    { id: 2, produto: 'Produto/Servico B', descricao: 'Descricao detalhada do item', quantidade: 5, valorUnitario: 500, tipo: 'produto' },
+    { id: 3, produto: 'Servico de instalacao', descricao: 'Instalacao e configuracao', quantidade: 1, valorUnitario: 1500, tipo: 'servico' },
   ]);
 
   const [desconto, setDesconto] = useState(0);
   const [validade, setValidade] = useState(15);
+  const [condicaoPagamento, setCondicaoPagamento] = useState('30dias');
   const [observacoes, setObservacoes] = useState(
-    'Valores sujeitos a reajuste anual conforme INPC.\nServicos adicionais serao cotados separadamente.\nPagamento ate o dia 10 de cada mes.'
+    'Valores sujeitos a alteracao sem aviso previo.\nFrete nao incluso, cotado separadamente.\nGarantia conforme especificacoes de cada produto.'
   );
 
   const previewRef = useRef(null);
 
-  const totalMensal = itens.filter(i => i.tipo === 'mensal').reduce((s, i) => s + i.valor, 0);
-  const totalPontual = itens.filter(i => i.tipo !== 'mensal').reduce((s, i) => s + i.valor, 0);
-  const descontoValor = totalMensal * (desconto / 100);
-  const totalComDesconto = totalMensal - descontoValor;
+  const subtotal = itens.reduce((s, i) => s + (i.quantidade * i.valorUnitario), 0);
+  const descontoValor = subtotal * (desconto / 100);
+  const totalFinal = subtotal - descontoValor;
 
   function addItem() {
-    setItens([...itens, { id: Date.now(), servico: '', descricao: '', valor: 0, tipo: 'mensal' }]);
+    setItens([...itens, { id: Date.now(), produto: '', descricao: '', quantidade: 1, valorUnitario: 0, tipo: 'produto' }]);
   }
 
   function removeItem(id) {
@@ -61,7 +59,7 @@ export default function Propostas() {
     win.document.write(`
       <html>
         <head>
-          <title>Proposta - ${empresa.nome}</title>
+          <title>Proposta Comercial - ${cliente.nome}</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1a1a2e; background: white; padding: 40px; font-size: 14px; line-height: 1.6; }
@@ -101,35 +99,40 @@ export default function Propostas() {
   const dataFormatada = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   const validadeDate = new Date(hoje.getTime() + validade * 24 * 60 * 60 * 1000);
   const validadeFormatada = validadeDate.toLocaleDateString('pt-BR');
+  const condPagLabel = { 'avista': 'A vista', '30dias': '30 dias', '30_60': '30/60 dias', '30_60_90': '30/60/90 dias' };
 
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="border-b border-surface-700 pb-4">
         <h1 className="text-xl font-semibold text-white flex items-center gap-2">
           <FileText className="text-brand-400" size={22} />
-          Gerador de Propostas
+          Gerador de Propostas Comerciais
         </h1>
-        <p className="text-surface-400 text-sm mt-1">Monte propostas comerciais profissionais para seus clientes</p>
+        <p className="text-surface-400 text-sm mt-1">Crie propostas comerciais de produtos e servicos para enviar aos clientes</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Dados do Escritorio */}
+        {/* Dados da Empresa */}
         <Card>
           <CardHeader>
             <h2 className="text-white font-medium text-sm flex items-center gap-2">
-              <Building size={16} className="text-brand-400" /> Dados do Escritorio
+              <Building size={16} className="text-brand-400" /> Dados da Empresa
             </h2>
           </CardHeader>
           <CardBody className="space-y-3">
-            <InputField type="text" label="Nome do Escritorio" value={escritorio.nome} onChange={(v) => setEscritorio({ ...escritorio, nome: v })} />
+            <InputField type="text" label="Razao Social" value={empresa.nome} onChange={(v) => setEmpresa({ ...empresa, nome: v })} placeholder="Nome da empresa" />
             <div className="grid grid-cols-2 gap-3">
-              <InputField type="text" label="CNPJ" value={escritorio.cnpj} onChange={(v) => setEscritorio({ ...escritorio, cnpj: v })} />
-              <InputField type="text" label="CRC" value={escritorio.crc} onChange={(v) => setEscritorio({ ...escritorio, crc: v })} />
+              <InputField type="text" label="CNPJ" value={empresa.cnpj} onChange={(v) => setEmpresa({ ...empresa, cnpj: v })} placeholder="00.000.000/0001-00" />
+              <SelectField label="Segmento" value={empresa.segmento} onChange={(v) => setEmpresa({ ...empresa, segmento: v })} options={[
+                { value: 'comercio', label: 'Comercio' },
+                { value: 'industria', label: 'Industria' },
+                { value: 'servicos', label: 'Servicos' },
+              ]} />
             </div>
-            <InputField type="text" label="Responsavel" value={escritorio.responsavel} onChange={(v) => setEscritorio({ ...escritorio, responsavel: v })} />
+            <InputField type="text" label="Responsavel" value={empresa.responsavel} onChange={(v) => setEmpresa({ ...empresa, responsavel: v })} placeholder="Nome do responsavel" />
             <div className="grid grid-cols-2 gap-3">
-              <InputField type="text" label="Telefone" value={escritorio.telefone} onChange={(v) => setEscritorio({ ...escritorio, telefone: v })} />
-              <InputField type="text" label="E-mail" value={escritorio.email} onChange={(v) => setEscritorio({ ...escritorio, email: v })} />
+              <InputField type="text" label="Telefone" value={empresa.telefone} onChange={(v) => setEmpresa({ ...empresa, telefone: v })} />
+              <InputField type="text" label="E-mail" value={empresa.email} onChange={(v) => setEmpresa({ ...empresa, email: v })} />
             </div>
           </CardBody>
         </Card>
@@ -138,48 +141,35 @@ export default function Propostas() {
         <Card>
           <CardHeader>
             <h2 className="text-white font-medium text-sm flex items-center gap-2">
-              <User size={16} className="text-blue-400" /> Dados do Cliente
+              <User size={16} className="text-blue-400" /> Destinatario da Proposta
             </h2>
           </CardHeader>
           <CardBody className="space-y-3">
-            <InputField type="text" label="Razao Social" value={empresa.nome} onChange={(v) => setEmpresa({ ...empresa, nome: v })} placeholder="Nome da empresa" />
-            <div className="grid grid-cols-2 gap-3">
-              <InputField type="text" label="CNPJ" value={empresa.cnpj} onChange={(v) => setEmpresa({ ...empresa, cnpj: v })} placeholder="00.000.000/0001-00" />
-              <SelectField label="Regime Tributario" value={empresa.regime} onChange={(v) => setEmpresa({ ...empresa, regime: v })} options={[
-                { value: 'mei', label: 'MEI' },
-                { value: 'simples', label: 'Simples Nacional' },
-                { value: 'presumido', label: 'Lucro Presumido' },
-                { value: 'real', label: 'Lucro Real' },
-              ]} />
-            </div>
-            <InputField type="text" label="Contato" value={empresa.contato} onChange={(v) => setEmpresa({ ...empresa, contato: v })} placeholder="Nome do contato" />
-            <div className="grid grid-cols-2 gap-3">
-              <InputField type="text" label="E-mail" value={empresa.email} onChange={(v) => setEmpresa({ ...empresa, email: v })} placeholder="email@empresa.com" />
-              <InputField label="Funcionarios" value={empresa.funcionarios} onChange={(v) => setEmpresa({ ...empresa, funcionarios: v })} min={0} />
-            </div>
+            <InputField type="text" label="Razao Social" value={cliente.nome} onChange={(v) => setCliente({ ...cliente, nome: v })} placeholder="Nome do cliente" />
+            <InputField type="text" label="CNPJ / CPF" value={cliente.cnpj} onChange={(v) => setCliente({ ...cliente, cnpj: v })} placeholder="00.000.000/0001-00" />
+            <InputField type="text" label="Contato" value={cliente.contato} onChange={(v) => setCliente({ ...cliente, contato: v })} placeholder="Nome do contato" />
+            <InputField type="text" label="E-mail" value={cliente.email} onChange={(v) => setCliente({ ...cliente, email: v })} placeholder="email@cliente.com" />
           </CardBody>
         </Card>
       </div>
 
-      {/* Servicos */}
+      {/* Itens da Proposta */}
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <h2 className="text-white font-medium text-sm">Servicos da Proposta</h2>
-          <button
-            onClick={addItem}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600/10 text-brand-400 border border-brand-600/20 rounded-md text-xs font-medium hover:bg-brand-600/20 transition-colors"
-          >
-            <Plus size={14} /> Adicionar
+          <h2 className="text-white font-medium text-sm">Itens da Proposta</h2>
+          <button onClick={addItem} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600/10 text-brand-400 border border-brand-600/20 rounded-md text-xs font-medium hover:bg-brand-600/20 transition-colors">
+            <Plus size={14} /> Adicionar Item
           </button>
         </CardHeader>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-surface-700">
-                <th className="text-left px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Servico</th>
+                <th className="text-left px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Produto/Servico</th>
                 <th className="text-left px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Descricao</th>
-                <th className="text-center px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Tipo</th>
-                <th className="text-right px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Valor</th>
+                <th className="text-center px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Qtd</th>
+                <th className="text-right px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Valor Unit.</th>
+                <th className="text-right px-4 py-3 text-surface-400 font-medium text-xs uppercase tracking-wider">Subtotal</th>
                 <th className="w-10"></th>
               </tr>
             </thead>
@@ -187,42 +177,23 @@ export default function Propostas() {
               {itens.map(item => (
                 <tr key={item.id} className="hover:bg-surface-900/50">
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
-                      value={item.servico}
-                      onChange={(e) => updateItem(item.id, 'servico', e.target.value)}
-                      className="w-full bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-brand-500"
-                      placeholder="Nome do servico"
-                    />
+                    <input type="text" value={item.produto} onChange={(e) => updateItem(item.id, 'produto', e.target.value)}
+                      className="w-full bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Nome do item" />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
-                      value={item.descricao}
-                      onChange={(e) => updateItem(item.id, 'descricao', e.target.value)}
-                      className="w-full bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-brand-500"
-                      placeholder="Descricao breve"
-                    />
+                    <input type="text" value={item.descricao} onChange={(e) => updateItem(item.id, 'descricao', e.target.value)}
+                      className="w-full bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Descricao" />
                   </td>
                   <td className="px-4 py-2">
-                    <select
-                      value={item.tipo}
-                      onChange={(e) => updateItem(item.id, 'tipo', e.target.value)}
-                      className="bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-brand-500"
-                    >
-                      <option value="mensal">Mensal</option>
-                      <option value="pontual">Pontual</option>
-                      <option value="avulso">Avulso</option>
-                    </select>
+                    <input type="number" value={item.quantidade} onChange={(e) => updateItem(item.id, 'quantidade', parseInt(e.target.value) || 0)}
+                      className="w-16 bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white text-center font-mono focus:outline-none focus:border-brand-500" min={1} />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      value={item.valor}
-                      onChange={(e) => updateItem(item.id, 'valor', parseFloat(e.target.value) || 0)}
-                      className="w-28 bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white text-right font-mono focus:outline-none focus:border-brand-500"
-                      step={50}
-                    />
+                    <input type="number" value={item.valorUnitario} onChange={(e) => updateItem(item.id, 'valorUnitario', parseFloat(e.target.value) || 0)}
+                      className="w-28 bg-surface-900 border border-surface-600 rounded px-2 py-1.5 text-sm text-white text-right font-mono focus:outline-none focus:border-brand-500" step={10} />
+                  </td>
+                  <td className="px-4 py-2 text-right font-mono text-surface-300 text-sm">
+                    {formatCurrency(item.quantidade * item.valorUnitario)}
                   </td>
                   <td className="px-4 py-2">
                     <button onClick={() => removeItem(item.id)} className="p-1 text-surface-500 hover:text-red-400 rounded transition-colors">
@@ -236,15 +207,21 @@ export default function Propostas() {
         </div>
 
         <CardBody>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <InputField label="Desconto (%)" value={desconto} onChange={setDesconto} suffix="%" min={0} max={30} step={1} />
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <InputField label="Desconto (%)" value={desconto} onChange={setDesconto} suffix="%" min={0} max={50} step={1} />
             <InputField label="Validade (dias)" value={validade} onChange={setValidade} suffix="dias" min={5} max={90} step={5} />
+            <SelectField label="Condicao de Pagamento" value={condicaoPagamento} onChange={setCondicaoPagamento} options={[
+              { value: 'avista', label: 'A vista' },
+              { value: '30dias', label: '30 dias' },
+              { value: '30_60', label: '30/60 dias' },
+              { value: '30_60_90', label: '30/60/90 dias' },
+            ]} />
             <div>
               <label className="block text-xs font-medium text-surface-400 mb-1.5">Resumo</label>
               <div className="bg-surface-900 rounded-md p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Mensal</span>
-                  <span className="text-surface-200 font-mono">{formatCurrency(totalMensal)}</span>
+                  <span className="text-surface-400">Subtotal</span>
+                  <span className="text-surface-200 font-mono">{formatCurrency(subtotal)}</span>
                 </div>
                 {desconto > 0 && (
                   <div className="flex justify-between">
@@ -253,37 +230,24 @@ export default function Propostas() {
                   </div>
                 )}
                 <div className="flex justify-between font-semibold border-t border-surface-700 pt-1">
-                  <span className="text-brand-400">Total Mensal</span>
-                  <span className="text-brand-400 font-mono">{formatCurrency(totalComDesconto)}</span>
+                  <span className="text-brand-400">Total</span>
+                  <span className="text-brand-400 font-mono">{formatCurrency(totalFinal)}</span>
                 </div>
-                {totalPontual > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-surface-400">Pontuais</span>
-                    <span className="text-surface-200 font-mono">{formatCurrency(totalPontual)}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           <div className="mt-4">
             <label className="block text-xs font-medium text-surface-400 mb-1.5">Observacoes</label>
-            <textarea
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              rows={3}
-              className="w-full bg-surface-900 border border-surface-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
-            />
+            <textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={3}
+              className="w-full bg-surface-900 border border-surface-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" />
           </div>
         </CardBody>
       </Card>
 
-      {/* Botao Gerar */}
       <div className="flex justify-end">
-        <button
-          onClick={printProposta}
-          className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-md font-medium hover:bg-brand-700 transition-colors"
-        >
+        <button onClick={printProposta}
+          className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-md font-medium hover:bg-brand-700 transition-colors">
           <Download size={16} /> Gerar PDF / Imprimir
         </button>
       </div>
@@ -293,9 +257,9 @@ export default function Propostas() {
         <div ref={previewRef}>
           <div className="header">
             <div className="logo-area">
-              <h1>{escritorio.nome}</h1>
-              <p>CNPJ: {escritorio.cnpj} | {escritorio.crc}</p>
-              <p>{escritorio.telefone} | {escritorio.email}</p>
+              <h1>{empresa.nome || 'Empresa'}</h1>
+              <p>CNPJ: {empresa.cnpj || '_______________'}</p>
+              <p>{empresa.telefone} | {empresa.email}</p>
             </div>
             <div className="meta">
               <p><strong>PROPOSTA COMERCIAL</strong></p>
@@ -305,66 +269,74 @@ export default function Propostas() {
           </div>
 
           <div className="section">
-            <div className="section-title">Dados do Cliente</div>
+            <div className="section-title">Destinatario</div>
             <div className="info-grid">
-              <div className="info-item"><span>Razao Social: </span><strong>{empresa.nome || '_______________'}</strong></div>
-              <div className="info-item"><span>CNPJ: </span><strong>{empresa.cnpj || '_______________'}</strong></div>
-              <div className="info-item"><span>Contato: </span><strong>{empresa.contato || '_______________'}</strong></div>
-              <div className="info-item"><span>E-mail: </span><strong>{empresa.email || '_______________'}</strong></div>
-              <div className="info-item"><span>Regime: </span><strong>{empresa.regime === 'simples' ? 'Simples Nacional' : empresa.regime === 'presumido' ? 'Lucro Presumido' : empresa.regime === 'real' ? 'Lucro Real' : 'MEI'}</strong></div>
-              <div className="info-item"><span>Funcionarios: </span><strong>{empresa.funcionarios}</strong></div>
+              <div className="info-item"><span>Razao Social: </span><strong>{cliente.nome || '_______________'}</strong></div>
+              <div className="info-item"><span>CNPJ/CPF: </span><strong>{cliente.cnpj || '_______________'}</strong></div>
+              <div className="info-item"><span>Contato: </span><strong>{cliente.contato || '_______________'}</strong></div>
+              <div className="info-item"><span>E-mail: </span><strong>{cliente.email || '_______________'}</strong></div>
             </div>
           </div>
 
           <div className="section">
-            <div className="section-title">Servicos Propostos</div>
+            <div className="section-title">Itens da Proposta</div>
             <table>
               <thead>
                 <tr>
-                  <th>Servico</th>
+                  <th>Item</th>
                   <th>Descricao</th>
-                  <th>Periodicidade</th>
-                  <th style={{ textAlign: 'right' }}>Valor</th>
+                  <th style={{ textAlign: 'center' }}>Qtd</th>
+                  <th style={{ textAlign: 'right' }}>Valor Unit.</th>
+                  <th style={{ textAlign: 'right' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {itens.map(item => (
                   <tr key={item.id}>
-                    <td><strong>{item.servico}</strong></td>
+                    <td><strong>{item.produto}</strong></td>
                     <td>{item.descricao}</td>
-                    <td>{item.tipo === 'mensal' ? 'Mensal' : item.tipo === 'pontual' ? 'Pontual' : 'Avulso'}</td>
-                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.valor)}</td>
+                    <td style={{ textAlign: 'center' }}>{item.quantidade}</td>
+                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.valorUnitario)}</td>
+                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.quantidade * item.valorUnitario)}</td>
                   </tr>
                 ))}
                 {desconto > 0 && (
                   <tr>
-                    <td colSpan={3}><em>Desconto especial ({desconto}%)</em></td>
+                    <td colSpan={4}><em>Desconto ({desconto}%)</em></td>
                     <td style={{ textAlign: 'right', color: '#dc2626' }}>-{formatCurrency(descontoValor)}</td>
                   </tr>
                 )}
                 <tr className="total-row">
-                  <td colSpan={3}><strong>TOTAL MENSAL</strong></td>
-                  <td style={{ textAlign: 'right' }}><strong>{formatCurrency(totalComDesconto)}</strong></td>
+                  <td colSpan={4}><strong>TOTAL</strong></td>
+                  <td style={{ textAlign: 'right' }}><strong>{formatCurrency(totalFinal)}</strong></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
+          <div className="section">
+            <div className="section-title">Condicoes Comerciais</div>
+            <div className="info-grid">
+              <div className="info-item"><span>Pagamento: </span><strong>{condPagLabel[condicaoPagamento]}</strong></div>
+              <div className="info-item"><span>Validade: </span><strong>{validade} dias ({validadeFormatada})</strong></div>
+            </div>
+          </div>
+
           {observacoes && (
             <div className="section">
-              <div className="section-title">Condicoes e Observacoes</div>
+              <div className="section-title">Observacoes</div>
               <div className="obs">{observacoes}</div>
             </div>
           )}
 
           <div className="signature">
             <div className="sig-line">
-              <p><strong>{escritorio.responsavel}</strong></p>
-              <p>{escritorio.nome}</p>
+              <p><strong>{empresa.responsavel || 'Responsavel'}</strong></p>
+              <p>{empresa.nome || 'Empresa'}</p>
             </div>
             <div className="sig-line">
-              <p><strong>{empresa.contato || 'Cliente'}</strong></p>
-              <p>{empresa.nome || 'Empresa'}</p>
+              <p><strong>{cliente.contato || 'Cliente'}</strong></p>
+              <p>{cliente.nome || 'Cliente'}</p>
             </div>
           </div>
 

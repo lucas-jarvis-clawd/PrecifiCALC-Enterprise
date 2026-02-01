@@ -25,7 +25,7 @@ export default function Dashboard({ onNavigate }) {
       id: 'custos',
       icon: Wallet,
       title: 'Custos Operacionais',
-      desc: 'Gerencie custos fixos e variaveis do escritorio com categorizacao e analise detalhada.',
+      desc: 'Mapeie custos fixos e variaveis do negocio para formar preco e analisar viabilidade.',
     },
     {
       id: 'precificacao',
@@ -43,7 +43,7 @@ export default function Dashboard({ onNavigate }) {
       id: 'propostas',
       icon: FileText,
       title: 'Gerador de Propostas',
-      desc: 'Monte propostas comerciais profissionais com detalhamento completo para seus clientes.',
+      desc: 'Crie propostas comerciais de produtos e servicos com detalhamento e impressao em PDF.',
     },
   ];
 
@@ -53,7 +53,7 @@ export default function Dashboard({ onNavigate }) {
       <div className="border-b border-surface-700 pb-6">
         <h1 className="text-2xl font-semibold text-white">PrecifiCALC Enterprise</h1>
         <p className="text-surface-400 mt-1">
-          Plataforma de precificacao e analise tributaria para consultoria contabil
+          Plataforma de precificacao, analise tributaria e gestao financeira empresarial
         </p>
       </div>
 

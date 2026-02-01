@@ -4,11 +4,11 @@ import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 
 export default function Configuracoes() {
   const [config, setConfig] = useState({
-    nomeEmpresa: 'Consultoria Contabil Ltda',
+    nomeEmpresa: 'Minha Empresa Ltda',
     cnpj: '12.345.678/0001-90',
     endereco: 'Rua das Flores, 123 - Centro',
     telefone: '(11) 99999-9999',
-    email: 'contato@consultoria.com.br',
+    email: 'contato@empresa.com.br',
     moeda: 'BRL',
     timezone: 'America/Sao_Paulo',
     formatoData: 'dd/MM/yyyy',

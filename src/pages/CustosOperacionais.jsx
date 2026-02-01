@@ -2,39 +2,56 @@ import { useState } from 'react';
 import { Wallet, Plus, Trash2, Edit3, Save, X } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField from '../components/InputField';
-import { formatCurrency, custosDefaultContabilidade } from '../data/taxData';
+import { formatCurrency } from '../data/taxData';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const CATEGORY_COLORS = {
   'Infraestrutura': '#3b82f6',
-  'Tecnologia': '#6366f1',
   'Operacional': '#8b5cf6',
   'Comercial': '#f59e0b',
-  'Regulatorio': '#ef4444',
-  'Pessoal': '#06b6d4',
+  'Administrativo': '#06b6d4',
   'Mao de Obra': '#ec4899',
+  'Logistica': '#f97316',
+  'Marketing': '#10b981',
   'Outro': '#6b7280',
 };
 
+const defaultCustosFixos = [
+  { nome: 'Aluguel do ponto comercial', valor: 3500, categoria: 'Infraestrutura' },
+  { nome: 'Energia eletrica', valor: 800, categoria: 'Infraestrutura' },
+  { nome: 'Internet e telefone', valor: 350, categoria: 'Infraestrutura' },
+  { nome: 'Seguro empresarial', valor: 400, categoria: 'Administrativo' },
+  { nome: 'Contabilidade', valor: 900, categoria: 'Administrativo' },
+  { nome: 'Software e licencas', valor: 500, categoria: 'Operacional' },
+  { nome: 'Marketing mensal', valor: 1200, categoria: 'Marketing' },
+];
+
+const defaultCustosVariaveis = [
+  { nome: 'Materia-prima / CMV', valor: 45, categoria: 'Operacional' },
+  { nome: 'Embalagem', valor: 5, categoria: 'Logistica' },
+  { nome: 'Frete de entrega', valor: 12, categoria: 'Logistica' },
+  { nome: 'Comissao de venda', valor: 8, categoria: 'Comercial' },
+];
+
 export default function CustosOperacionais() {
   const [custosFixos, setCustosFixos] = useState(
-    (custosDefaultContabilidade.fixos || []).map((c, i) => ({ ...c, id: `f${i}` }))
+    defaultCustosFixos.map((c, i) => ({ ...c, id: `f${i}` }))
   );
   const [custosVariaveis, setCustosVariaveis] = useState(
-    (custosDefaultContabilidade.variavelPorCliente || []).map((c, i) => ({ ...c, id: `v${i}` }))
+    defaultCustosVariaveis.map((c, i) => ({ ...c, id: `v${i}` }))
   );
-  const [numClientes, setNumClientes] = useState(50);
-  const [numFuncionarios, setNumFuncionarios] = useState(5);
-  const [salarioMedio, setSalarioMedio] = useState(3500);
-  const [proLabore, setProLabore] = useState(8000);
+  const [quantidadeMensal, setQuantidadeMensal] = useState(500);
+  const [numFuncionarios, setNumFuncionarios] = useState(8);
+  const [salarioMedio, setSalarioMedio] = useState(2500);
+  const [proLabore, setProLabore] = useState(10000);
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState({});
 
   const totalFixos = custosFixos.reduce((sum, c) => sum + c.valor, 0);
-  const totalVariaveis = custosVariaveis.reduce((sum, c) => sum + c.valor, 0) * numClientes;
+  const totalVariaveis = custosVariaveis.reduce((sum, c) => sum + c.valor, 0) * quantidadeMensal;
   const custoFolha = (numFuncionarios * salarioMedio * 1.7) + proLabore;
   const totalGeral = totalFixos + totalVariaveis + custoFolha;
-  const custoPorCliente = numClientes > 0 ? totalGeral / numClientes : 0;
+  const custoPorUnidade = quantidadeMensal > 0 ? totalGeral / quantidadeMensal : 0;
 
   const pieData = [
     { name: 'Custos Fixos', value: totalFixos },
@@ -75,28 +92,28 @@ export default function CustosOperacionais() {
           <Wallet className="text-brand-400" size={22} />
           Custos Operacionais
         </h1>
-        <p className="text-surface-400 text-sm mt-1">Gerencie todos os custos do escritorio contabil</p>
+        <p className="text-surface-400 text-sm mt-1">Mapeie todos os custos do negocio para formar preco e analisar viabilidade</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Wallet} label="Total Mensal" value={formatCurrency(totalGeral)} color="brand" />
-        <StatCard icon={Wallet} label="Custo por Cliente" value={formatCurrency(custoPorCliente)} subvalue={`${numClientes} clientes`} color="blue" />
+        <StatCard icon={Wallet} label="Custo Total Mensal" value={formatCurrency(totalGeral)} color="brand" />
+        <StatCard icon={Wallet} label="Custo por Unidade" value={formatCurrency(custoPorUnidade)} subvalue={`${quantidadeMensal} un./mes`} color="blue" />
         <StatCard icon={Wallet} label="Custos Fixos" value={formatCurrency(totalFixos)} color="purple" />
         <StatCard icon={Wallet} label="Folha + Encargos" value={formatCurrency(custoFolha)} color="amber" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
-          <CardHeader><h2 className="text-white font-medium text-sm">Parametros</h2></CardHeader>
+          <CardHeader><h2 className="text-white font-medium text-sm">Parametros do Negocio</h2></CardHeader>
           <CardBody className="space-y-3">
-            <InputField label="Numero de Clientes" value={numClientes} onChange={setNumClientes} min={1} step={1} />
-            <InputField label="Funcionarios CLT" value={numFuncionarios} onChange={setNumFuncionarios} min={0} step={1} />
-            <InputField label="Salario Medio CLT" value={salarioMedio} onChange={setSalarioMedio} prefix="R$" step={500} help="Custo total aprox. 1.7x" />
-            <InputField label="Pro-Labore" value={proLabore} onChange={setProLabore} prefix="R$" step={1000} />
+            <InputField label="Quantidade Vendida/Mes" value={quantidadeMensal} onChange={setQuantidadeMensal} min={1} step={10} help="Unidades vendidas ou servicos prestados" />
+            <InputField label="Funcionarios (CLT)" value={numFuncionarios} onChange={setNumFuncionarios} min={0} step={1} />
+            <InputField label="Salario Medio" value={salarioMedio} onChange={setSalarioMedio} prefix="R$" step={500} help="Custo total aprox. 1.7x com encargos" />
+            <InputField label="Pro-Labore do Socio" value={proLabore} onChange={setProLabore} prefix="R$" step={1000} />
             <div className="pt-3 border-t border-surface-700 space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-surface-400">CLT Total</span><span className="text-surface-200">{formatCurrency(numFuncionarios * salarioMedio * 1.7)}</span></div>
-              <div className="flex justify-between"><span className="text-surface-400">+ Pro-Labore</span><span className="text-surface-200">{formatCurrency(proLabore)}</span></div>
-              <div className="flex justify-between font-medium"><span className="text-surface-300">= Folha Total</span><span className="text-brand-400">{formatCurrency(custoFolha)}</span></div>
+              <div className="flex justify-between"><span className="text-surface-400">CLT Total</span><span className="text-surface-200 font-mono">{formatCurrency(numFuncionarios * salarioMedio * 1.7)}</span></div>
+              <div className="flex justify-between"><span className="text-surface-400">+ Pro-Labore</span><span className="text-surface-200 font-mono">{formatCurrency(proLabore)}</span></div>
+              <div className="flex justify-between font-medium"><span className="text-surface-300">= Folha Total</span><span className="text-brand-400 font-mono">{formatCurrency(custoFolha)}</span></div>
             </div>
           </CardBody>
         </Card>
@@ -136,12 +153,12 @@ export default function CustosOperacionais() {
         </Card>
       </div>
 
-      {/* Fixed Costs */}
+      {/* Custos Fixos */}
       <Card>
         <CardHeader className="flex items-center justify-between">
           <div>
             <h2 className="text-white font-medium text-sm">Custos Fixos Mensais</h2>
-            <p className="text-surface-500 text-xs mt-0.5">Independem do numero de clientes</p>
+            <p className="text-surface-500 text-xs mt-0.5">Custos que independem do volume de vendas</p>
           </div>
           <button onClick={() => addCusto('f')} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600/10 text-brand-400 border border-brand-600/20 rounded-md text-xs font-medium hover:bg-brand-600/20 transition-colors">
             <Plus size={14} /> Adicionar
@@ -215,12 +232,12 @@ export default function CustosOperacionais() {
         </div>
       </Card>
 
-      {/* Variable Costs */}
+      {/* Custos Variaveis */}
       <Card>
         <CardHeader className="flex items-center justify-between">
           <div>
-            <h2 className="text-white font-medium text-sm">Custos Variaveis por Cliente</h2>
-            <p className="text-surface-500 text-xs mt-0.5">Custos que aumentam com cada novo cliente</p>
+            <h2 className="text-white font-medium text-sm">Custos Variaveis por Unidade</h2>
+            <p className="text-surface-500 text-xs mt-0.5">Custos que variam conforme o volume de producao/vendas</p>
           </div>
           <button onClick={() => addCusto('v')} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-xs font-medium hover:bg-blue-600/20 transition-colors">
             <Plus size={14} /> Adicionar
@@ -232,8 +249,8 @@ export default function CustosOperacionais() {
               <tr className="border-b border-surface-700">
                 <th className="text-left px-5 py-2.5">Custo</th>
                 <th className="text-left px-5 py-2.5">Categoria</th>
-                <th className="text-right px-5 py-2.5">Valor/Cliente</th>
-                <th className="text-right px-5 py-2.5">Total ({numClientes})</th>
+                <th className="text-right px-5 py-2.5">Valor/Unidade</th>
+                <th className="text-right px-5 py-2.5">Total ({quantidadeMensal} un.)</th>
                 <th className="text-right px-5 py-2.5 w-16">Acoes</th>
               </tr>
             </thead>
@@ -248,7 +265,7 @@ export default function CustosOperacionais() {
                     }}>{custo.categoria}</span>
                   </td>
                   <td className="px-5 py-2.5 text-right font-mono text-surface-200">{formatCurrency(custo.valor)}</td>
-                  <td className="px-5 py-2.5 text-right font-mono text-surface-300">{formatCurrency(custo.valor * numClientes)}</td>
+                  <td className="px-5 py-2.5 text-right font-mono text-surface-300">{formatCurrency(custo.valor * quantidadeMensal)}</td>
                   <td className="px-5 py-2.5 text-right">
                     <button onClick={() => removeCusto(custo.id, 'v')} className="p-1 text-surface-500 hover:text-red-400 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 size={13} />
@@ -268,26 +285,26 @@ export default function CustosOperacionais() {
         </div>
       </Card>
 
-      {/* Grand Total */}
+      {/* Resumo Geral */}
       <Card className="border-brand-600/20">
         <CardBody>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-surface-900 rounded-md">
               <p className="text-surface-500 text-xs mb-1">Custos Fixos</p>
-              <p className="text-lg font-semibold text-surface-200">{formatCurrency(totalFixos)}</p>
+              <p className="text-lg font-semibold text-surface-200 font-mono">{formatCurrency(totalFixos)}</p>
             </div>
             <div className="text-center p-3 bg-surface-900 rounded-md">
               <p className="text-surface-500 text-xs mb-1">Custos Variaveis</p>
-              <p className="text-lg font-semibold text-surface-200">{formatCurrency(totalVariaveis)}</p>
+              <p className="text-lg font-semibold text-surface-200 font-mono">{formatCurrency(totalVariaveis)}</p>
             </div>
             <div className="text-center p-3 bg-surface-900 rounded-md">
               <p className="text-surface-500 text-xs mb-1">Folha + Pro-labore</p>
-              <p className="text-lg font-semibold text-surface-200">{formatCurrency(custoFolha)}</p>
+              <p className="text-lg font-semibold text-surface-200 font-mono">{formatCurrency(custoFolha)}</p>
             </div>
             <div className="text-center p-3 bg-brand-600/10 border border-brand-600/20 rounded-md">
-              <p className="text-brand-400 text-xs mb-1 font-medium">TOTAL MENSAL</p>
-              <p className="text-xl font-bold text-brand-400">{formatCurrency(totalGeral)}</p>
-              <p className="text-xs text-surface-500 mt-0.5">{formatCurrency(custoPorCliente)}/cliente</p>
+              <p className="text-brand-400 text-xs mb-1 font-medium">CUSTO TOTAL MENSAL</p>
+              <p className="text-xl font-bold text-brand-400 font-mono">{formatCurrency(totalGeral)}</p>
+              <p className="text-xs text-surface-500 mt-0.5">{formatCurrency(custoPorUnidade)}/unidade</p>
             </div>
           </div>
         </CardBody>
