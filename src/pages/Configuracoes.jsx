@@ -17,7 +17,7 @@ export default function Configuracoes() {
     alertaEmail: true,
     backupAutomatico: true,
     frequenciaBackup: 'diario',
-    tema: 'dark',
+    tema: 'light',
     receitaFederalAPI: false,
     emailSMTP: false,
     whatsappAPI: false,
@@ -27,10 +27,10 @@ export default function Configuracoes() {
   });
 
   const [alertas] = useState([
-    { id: 1, tipo: 'info', titulo: 'Atualizacao Disponivel', descricao: 'Nova versao do sistema com melhorias na performance', data: '2026-02-01', ativo: true },
-    { id: 2, tipo: 'warning', titulo: 'Backup Pendente', descricao: 'Ultimo backup foi ha 3 dias. Recomendamos backup imediato.', data: '2026-01-30', ativo: true },
-    { id: 3, tipo: 'error', titulo: 'Limite do Simples Nacional', descricao: 'Cliente Joao Silva esta proximo do limite (R$ 4.2M de R$ 4.8M)', data: '2026-01-29', ativo: true },
-    { id: 4, tipo: 'success', titulo: 'Configuracao Salva', descricao: 'Suas preferencias foram atualizadas com sucesso', data: '2026-01-28', ativo: false },
+    { id: 1, tipo: 'info', titulo: 'Atualização Disponível', descricao: 'Nova versão do sistema com melhorias na performance', data: '2026-02-01', ativo: true },
+    { id: 2, tipo: 'warning', titulo: 'Backup Pendente', descricao: 'Último backup foi há 3 dias. Recomendamos backup imediato.', data: '2026-01-30', ativo: true },
+    { id: 3, tipo: 'error', titulo: 'Limite do Simples Nacional', descricao: 'Cliente João Silva está próximo do limite (R$ 4.2M de R$ 4.8M)', data: '2026-01-29', ativo: true },
+    { id: 4, tipo: 'success', titulo: 'Configuração Salva', descricao: 'Suas preferências foram atualizadas com sucesso', data: '2026-01-28', ativo: false },
   ]);
 
   const getAlertaIcon = (tipo) => {
@@ -43,40 +43,40 @@ export default function Configuracoes() {
 
   const getAlertaColor = (tipo) => {
     switch (tipo) {
-      case 'error': return 'text-red-400 bg-red-600/10 border-red-600/20';
-      case 'warning': return 'text-amber-400 bg-amber-600/10 border-amber-600/20';
-      case 'success': return 'text-emerald-400 bg-emerald-600/10 border-emerald-600/20';
-      default: return 'text-blue-400 bg-blue-600/10 border-blue-600/20';
+      case 'error': return 'text-red-700 bg-red-50 border-red-200';
+      case 'warning': return 'text-amber-700 bg-amber-50 border-amber-200';
+      case 'success': return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+      default: return 'text-blue-700 bg-blue-50 border-blue-200';
     }
   };
 
-  const salvarConfiguracoes = () => alert('Configuracoes salvas com sucesso!');
-  const exportarDados = () => alert('Exportacao iniciada! Voce recebera um email quando estiver pronto.');
-  const importarDados = () => alert('Funcionalidade de importacao em desenvolvimento');
+  const salvarConfiguracoes = () => alert('Configurações salvas com sucesso!');
+  const exportarDados = () => alert('Exportação iniciada! Você receberá um e-mail quando estiver pronto.');
+  const importarDados = () => alert('Funcionalidade de importação em desenvolvimento');
   const resetarSistema = () => {
-    if (window.confirm('Tem certeza? Esta acao ira resetar todas as configuracoes para o padrao.')) {
+    if (window.confirm('Tem certeza? Esta ação irá resetar todas as configurações para o padrão.')) {
       alert('Sistema resetado com sucesso!');
     }
   };
 
-  const inputClass = "w-full px-3 py-2 bg-surface-900 border border-surface-600 rounded-md text-sm text-white focus:outline-none focus:border-brand-500";
-  const labelClass = "block text-xs font-medium text-surface-400 mb-1.5";
+  const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500";
+  const labelClass = "block text-xs font-medium text-slate-600 mb-1.5";
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-surface-700 pb-4">
-        <h1 className="text-xl font-semibold text-white flex items-center gap-2">
-          <Settings className="text-brand-400" size={22} />
-          Configuracoes
+      <div className="border-b border-slate-200 pb-4">
+        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+          <Settings className="text-brand-600" size={22} />
+          Configurações
         </h1>
-        <p className="text-surface-400 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
+        <p className="text-slate-500 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={AlertTriangle} label="Alertas Ativos" value="3" subvalue="Requerem atencao" color="red" />
-        <StatCard icon={Shield} label="Seguranca" value="85%" subvalue="Score de seguranca" color="green" />
-        <StatCard icon={Database} label="Dados" value="2.3 GB" subvalue="Espaco utilizado" color="blue" />
+        <StatCard icon={AlertTriangle} label="Alertas Ativos" value="3" subvalue="Requerem atenção" color="red" />
+        <StatCard icon={Shield} label="Segurança" value="85%" subvalue="Score de segurança" color="green" />
+        <StatCard icon={Database} label="Dados" value="2.3 GB" subvalue="Espaço utilizado" color="blue" />
         <StatCard icon={Zap} label="Performance" value="98%" subvalue="Sistema otimizado" color="purple" />
       </div>
 
@@ -84,7 +84,7 @@ export default function Configuracoes() {
         <div className="xl:col-span-2 space-y-6">
           {/* Dados da Empresa */}
           <Card>
-            <CardHeader><h2 className="text-white font-medium text-sm">Dados da Empresa</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Dados da Empresa</h2></CardHeader>
             <CardBody>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -96,7 +96,7 @@ export default function Configuracoes() {
                   <input type="text" value={config.cnpj} onChange={(e) => setConfig({ ...config, cnpj: e.target.value })} className={inputClass} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className={labelClass}>Endereco</label>
+                  <label className={labelClass}>Endereço</label>
                   <input type="text" value={config.endereco} onChange={(e) => setConfig({ ...config, endereco: e.target.value })} className={inputClass} />
                 </div>
                 <div>
@@ -104,7 +104,7 @@ export default function Configuracoes() {
                   <input type="text" value={config.telefone} onChange={(e) => setConfig({ ...config, telefone: e.target.value })} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className={labelClass}>E-mail</label>
                   <input type="email" value={config.email} onChange={(e) => setConfig({ ...config, email: e.target.value })} className={inputClass} />
                 </div>
               </div>
@@ -113,21 +113,13 @@ export default function Configuracoes() {
 
           {/* Sistema */}
           <Card>
-            <CardHeader><h2 className="text-white font-medium text-sm">Configuracoes do Sistema</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Configurações do Sistema</h2></CardHeader>
             <CardBody>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Tema</label>
-                  <select value={config.tema} onChange={(e) => setConfig({ ...config, tema: e.target.value })} className={inputClass}>
-                    <option value="dark">Escuro</option>
-                    <option value="light">Claro</option>
-                    <option value="auto">Automatico</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Fuso Horario</label>
+                  <label className={labelClass}>Fuso Horário</label>
                   <select value={config.timezone} onChange={(e) => setConfig({ ...config, timezone: e.target.value })} className={inputClass}>
-                    <option value="America/Sao_Paulo">Brasilia (UTC-3)</option>
+                    <option value="America/Sao_Paulo">Brasília (UTC-3)</option>
                     <option value="America/Manaus">Manaus (UTC-4)</option>
                     <option value="America/Rio_Branco">Acre (UTC-5)</option>
                   </select>
@@ -148,22 +140,22 @@ export default function Configuracoes() {
             </CardBody>
           </Card>
 
-          {/* Integracoes */}
+          {/* Integrações */}
           <Card>
             <CardHeader>
-              <h2 className="text-white font-medium text-sm">Integracoes</h2>
-              <p className="text-surface-500 text-xs mt-0.5">Configure integracoes com servicos externos</p>
+              <h2 className="text-slate-800 font-medium text-sm">Integrações</h2>
+              <p className="text-slate-400 text-xs mt-0.5">Configure integrações com serviços externos</p>
             </CardHeader>
             <CardBody className="space-y-4">
               {[
-                { key: 'receitaFederalAPI', label: 'API Receita Federal', desc: 'Consulta automatica de dados tributarios' },
-                { key: 'emailSMTP', label: 'Email SMTP', desc: 'Envio automatico de relatorios por email' },
+                { key: 'receitaFederalAPI', label: 'API Receita Federal', desc: 'Consulta automática de dados tributários' },
+                { key: 'emailSMTP', label: 'E-mail SMTP', desc: 'Envio automático de relatórios por e-mail' },
                 { key: 'whatsappAPI', label: 'WhatsApp Business API', desc: 'Envio de propostas via WhatsApp' },
               ].map(item => (
                 <div key={item.key} className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-white text-sm font-medium">{item.label}</h3>
-                    <p className="text-surface-400 text-xs">{item.desc}</p>
+                    <h3 className="text-slate-800 text-sm font-medium">{item.label}</h3>
+                    <p className="text-slate-500 text-xs">{item.desc}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -172,7 +164,7 @@ export default function Configuracoes() {
                       onChange={(e) => setConfig({ ...config, [item.key]: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-10 h-5 bg-surface-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                    <div className="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
                   </label>
                 </div>
               ))}
@@ -185,11 +177,11 @@ export default function Configuracoes() {
           {/* Alertas */}
           <Card>
             <CardHeader>
-              <h2 className="text-white font-medium text-sm flex items-center gap-2">
+              <h2 className="text-slate-800 font-medium text-sm flex items-center gap-2">
                 <Bell size={14} /> Alertas Ativos
               </h2>
             </CardHeader>
-            <div className="divide-y divide-surface-700/50">
+            <div className="divide-y divide-slate-100">
               {alertas.filter(a => a.ativo).map((alerta) => {
                 const Icon = getAlertaIcon(alerta.tipo);
                 return (
@@ -211,15 +203,15 @@ export default function Configuracoes() {
           {/* Backup */}
           <Card>
             <CardHeader>
-              <h2 className="text-white font-medium text-sm flex items-center gap-2">
-                <Database size={14} /> Backup e Seguranca
+              <h2 className="text-slate-800 font-medium text-sm flex items-center gap-2">
+                <Database size={14} /> Backup e Segurança
               </h2>
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-white text-sm font-medium">Backup Automatico</h3>
-                  <p className="text-surface-400 text-xs">Backup diario dos dados</p>
+                  <h3 className="text-slate-800 text-sm font-medium">Backup Automático</h3>
+                  <p className="text-slate-500 text-xs">Backup diário dos dados</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -228,38 +220,38 @@ export default function Configuracoes() {
                     onChange={(e) => setConfig({ ...config, backupAutomatico: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5 bg-surface-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                  <div className="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
                 </label>
               </div>
 
               <div>
-                <label className={labelClass}>Frequencia</label>
+                <label className={labelClass}>Frequência</label>
                 <select value={config.frequenciaBackup} onChange={(e) => setConfig({ ...config, frequenciaBackup: e.target.value })} className={inputClass}>
-                  <option value="diario">Diario</option>
+                  <option value="diario">Diário</option>
                   <option value="semanal">Semanal</option>
                   <option value="mensal">Mensal</option>
                 </select>
               </div>
 
               <div className="pt-2 space-y-2">
-                <button onClick={exportarDados} className="w-full px-4 py-2 bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-sm hover:bg-blue-600/20 transition-colors">
+                <button onClick={exportarDados} className="w-full px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-sm hover:bg-blue-100 transition-colors">
                   Exportar Dados
                 </button>
-                <button onClick={importarDados} className="w-full px-4 py-2 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 rounded-md text-sm hover:bg-emerald-600/20 transition-colors">
+                <button onClick={importarDados} className="w-full px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-sm hover:bg-emerald-100 transition-colors">
                   Importar Dados
                 </button>
               </div>
             </CardBody>
           </Card>
 
-          {/* Acoes */}
+          {/* Ações */}
           <Card>
-            <CardHeader><h2 className="text-white font-medium text-sm">Acoes do Sistema</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Ações do Sistema</h2></CardHeader>
             <CardBody className="space-y-2">
               <button onClick={salvarConfiguracoes} className="w-full px-4 py-2 bg-brand-600 text-white rounded-md text-sm font-medium hover:bg-brand-700 transition-colors">
-                Salvar Configuracoes
+                Salvar Configurações
               </button>
-              <button onClick={resetarSistema} className="w-full px-4 py-2 bg-red-600/10 text-red-400 border border-red-600/20 rounded-md text-sm hover:bg-red-600/20 transition-colors">
+              <button onClick={resetarSistema} className="w-full px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm hover:bg-red-100 transition-colors">
                 Resetar Sistema
               </button>
             </CardBody>

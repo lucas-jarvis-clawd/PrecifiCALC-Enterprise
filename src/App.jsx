@@ -13,15 +13,15 @@ import Configuracoes from './pages/Configuracoes';
 
 const pages = {
   dashboard: { component: Dashboard, title: 'Dashboard' },
-  simulador: { component: SimuladorTributario, title: 'Simulador Tributario' },
+  simulador: { component: SimuladorTributario, title: 'Simulador Tributário' },
   custos: { component: CustosOperacionais, title: 'Custos Operacionais' },
-  precificacao: { component: Precificacao, title: 'Precificacao' },
+  precificacao: { component: Precificacao, title: 'Precificação' },
   comparativo: { component: ComparativoRegimes, title: 'Comparativo de Regimes' },
-  viabilidade: { component: AnaliseViabilidade, title: 'Analise de Viabilidade' },
-  equilibrio: { component: PontoEquilibrio, title: 'Ponto de Equilibrio' },
-  propostas: { component: Propostas, title: 'Gerador de Propostas' },
-  relatorios: { component: Relatorios, title: 'Relatorios' },
-  configuracoes: { component: Configuracoes, title: 'Configuracoes' },
+  viabilidade: { component: AnaliseViabilidade, title: 'Análise de Viabilidade' },
+  equilibrio: { component: PontoEquilibrio, title: 'Ponto de Equilíbrio' },
+  propostas: { component: Propostas, title: 'Propostas' },
+  relatorios: { component: Relatorios, title: 'Relatórios' },
+  configuracoes: { component: Configuracoes, title: 'Configurações' },
 };
 
 export default function App() {
@@ -31,7 +31,7 @@ export default function App() {
   const PageComponent = pages[currentPage]?.component || Dashboard;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-900">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar
         currentPage={currentPage}
         onNavigate={setCurrentPage}

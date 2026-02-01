@@ -15,33 +15,33 @@ import {
 
 const menuItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { id: 'simulador', icon: Calculator, label: 'Simulador Tributario' },
+  { id: 'simulador', icon: Calculator, label: 'Simulador Tributário' },
   { id: 'comparativo', icon: BarChart3, label: 'Comparativo de Regimes' },
-  { id: 'viabilidade', icon: Target, label: 'Analise de Viabilidade' },
+  { id: 'viabilidade', icon: Target, label: 'Análise de Viabilidade' },
   { id: 'custos', icon: Wallet, label: 'Custos Operacionais' },
-  { id: 'precificacao', icon: Tags, label: 'Precificacao' },
-  { id: 'equilibrio', icon: Scale, label: 'Ponto de Equilibrio' },
+  { id: 'precificacao', icon: Tags, label: 'Precificação' },
+  { id: 'equilibrio', icon: Scale, label: 'Ponto de Equilíbrio' },
   { id: 'propostas', icon: FileText, label: 'Propostas' },
-  { id: 'relatorios', icon: FileDown, label: 'Relatorios' },
-  { id: 'configuracoes', icon: Settings, label: 'Configuracoes' },
+  { id: 'relatorios', icon: FileDown, label: 'Relatórios' },
+  { id: 'configuracoes', icon: Settings, label: 'Configurações' },
 ];
 
 export default function Sidebar({ currentPage, onNavigate, isOpen, onToggle }) {
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-surface-950 border-r border-surface-700 z-50 transition-all duration-200 flex flex-col ${
+      className={`fixed top-0 left-0 h-full bg-navy-950 z-50 transition-all duration-200 flex flex-col ${
         isOpen ? 'w-60' : 'w-16'
       }`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 h-14 border-b border-surface-700">
+      <div className="flex items-center gap-3 px-4 h-14 border-b border-white/10">
         <div className="w-8 h-8 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0">
           <span className="text-white font-bold text-sm">P</span>
         </div>
         {isOpen && (
           <div>
             <h1 className="text-sm font-semibold text-white tracking-tight">PrecifiCALC</h1>
-            <p className="text-[10px] text-surface-500 -mt-0.5">Enterprise</p>
+            <p className="text-[10px] text-slate-400 -mt-0.5">Enterprise</p>
           </div>
         )}
       </div>
@@ -57,16 +57,14 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onToggle }) {
               onClick={() => onNavigate(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                 isActive
-                  ? 'bg-brand-600/15 text-brand-400'
-                  : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800'
+                  ? 'bg-brand-600/20 text-brand-300'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
               title={!isOpen ? item.label : undefined}
             >
               <Icon
                 size={18}
-                className={`flex-shrink-0 ${
-                  isActive ? 'text-brand-400' : 'text-surface-500'
-                }`}
+                className={`flex-shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}`}
               />
               {isOpen && (
                 <span className="text-sm font-medium truncate">{item.label}</span>
@@ -79,7 +77,7 @@ export default function Sidebar({ currentPage, onNavigate, isOpen, onToggle }) {
       {/* Toggle */}
       <button
         onClick={onToggle}
-        className="flex items-center justify-center h-10 border-t border-surface-700 text-surface-500 hover:text-surface-300 transition-colors"
+        className="flex items-center justify-center h-10 border-t border-white/10 text-slate-500 hover:text-white transition-colors"
       >
         {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
