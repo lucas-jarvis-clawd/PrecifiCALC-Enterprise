@@ -14,13 +14,13 @@ export default function InputField({
   disabled = false,
 }) {
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-1 ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-dark-300">{label}</label>
+        <label className="block text-sm font-medium text-surface-300">{label}</label>
       )}
       <div className="relative flex items-center">
         {prefix && (
-          <span className="absolute left-3 text-dark-500 text-sm pointer-events-none">
+          <span className="absolute left-3 text-surface-500 text-sm pointer-events-none">
             {prefix}
           </span>
         )}
@@ -36,34 +36,34 @@ export default function InputField({
           step={step}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full bg-dark-900/60 border border-dark-600/50 rounded-lg px-3 py-2.5 text-sm text-dark-100 
-            placeholder-dark-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 
-            transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+          className={`w-full bg-surface-900 border border-surface-600 rounded-md px-3 py-2 text-sm text-surface-100
+            placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30
+            transition-colors disabled:opacity-50 disabled:cursor-not-allowed
             ${prefix ? 'pl-10' : ''} ${suffix ? 'pr-12' : ''}`}
         />
         {suffix && (
-          <span className="absolute right-3 text-dark-500 text-sm pointer-events-none">
+          <span className="absolute right-3 text-surface-500 text-sm pointer-events-none">
             {suffix}
           </span>
         )}
       </div>
-      {help && <p className="text-xs text-dark-500">{help}</p>}
+      {help && <p className="text-xs text-surface-500">{help}</p>}
     </div>
   );
 }
 
 export function SelectField({ label, value, onChange, options, help, className = '' }) {
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-1 ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-dark-300">{label}</label>
+        <label className="block text-sm font-medium text-surface-300">{label}</label>
       )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-dark-900/60 border border-dark-600/50 rounded-lg px-3 py-2.5 text-sm text-dark-100 
-          focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 
-          transition-all duration-200 cursor-pointer"
+        className="w-full bg-surface-900 border border-surface-600 rounded-md px-3 py-2 text-sm text-surface-100
+          focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30
+          transition-colors cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -71,7 +71,7 @@ export function SelectField({ label, value, onChange, options, help, className =
           </option>
         ))}
       </select>
-      {help && <p className="text-xs text-dark-500">{help}</p>}
+      {help && <p className="text-xs text-surface-500">{help}</p>}
     </div>
   );
 }

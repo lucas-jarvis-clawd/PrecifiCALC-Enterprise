@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Calculator, Info, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Calculator, AlertTriangle } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import {
@@ -22,6 +22,8 @@ export default function SimuladorTributario() {
   const [issAliquota, setIssAliquota] = useState(5);
   const [despesasDedutiveis, setDespesasDedutiveis] = useState(20000);
   const [creditosPisCofins, setCreditosPisCofins] = useState(10000);
+  // Despesas operacionais (para todos os regimes)
+  const [despesasOperacionais, setDespesasOperacionais] = useState(15000);
 
   const resultado = useMemo(() => {
     const receitaAnual = receitaMensal * 12;
@@ -39,29 +41,35 @@ export default function SimuladorTributario() {
     }
   }, [regime, receitaMensal, anexo, atividadeMEI, tipoAtividade, issAliquota, despesasDedutiveis, creditosPisCofins]);
 
+  const impostoMensal = resultado?.data && !resultado.data.excedeLimite
+    ? (resultado.tipo === 'mei' ? resultado.data.dasFixo : resultado.data.valorMensal || resultado.data.totalMensal || 0)
+    : 0;
+
+  const lucroLiquido = receitaMensal - impostoMensal - despesasOperacionais;
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <Calculator className="text-primary-400" size={28} />
-          Simulador Tributário
+      <div className="border-b border-surface-700 pb-4">
+        <h1 className="text-xl font-semibold text-white flex items-center gap-2">
+          <Calculator className="text-brand-400" size={22} />
+          Simulador Tributario
         </h1>
-        <p className="text-dark-400 mt-1">Calcule a carga tributária completa em qualquer regime brasileiro</p>
+        <p className="text-surface-400 text-sm mt-1">Calcule a carga tributaria completa em qualquer regime brasileiro</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Input Panel */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <h2 className="text-white font-semibold">Parâmetros</h2>
+            <h2 className="text-white font-medium text-sm">Parametros</h2>
           </CardHeader>
-          <CardBody className="space-y-5">
+          <CardBody className="space-y-4">
             <SelectField
-              label="Regime Tributário"
+              label="Regime Tributario"
               value={regime}
               onChange={setRegime}
               options={[
-                { value: 'mei', label: 'MEI - Microempreendedor Individual' },
+                { value: 'mei', label: 'MEI' },
                 { value: 'simples', label: 'Simples Nacional' },
                 { value: 'presumido', label: 'Lucro Presumido' },
                 { value: 'real', label: 'Lucro Real' },
@@ -78,17 +86,27 @@ export default function SimuladorTributario() {
               help={`Anual: ${formatCurrency(receitaMensal * 12)}`}
             />
 
+            <InputField
+              label="Despesas Operacionais (mensal)"
+              value={despesasOperacionais}
+              onChange={setDespesasOperacionais}
+              prefix="R$"
+              step={1000}
+              min={0}
+              help="Aluguel, folha, insumos, etc."
+            />
+
             {regime === 'mei' && (
               <SelectField
                 label="Tipo de Atividade"
                 value={atividadeMEI}
                 onChange={setAtividadeMEI}
                 options={[
-                  { value: 'comercio', label: 'Comércio / Indústria' },
-                  { value: 'servicos', label: 'Prestação de Serviços' },
-                  { value: 'misto', label: 'Comércio + Serviços' },
+                  { value: 'comercio', label: 'Comercio / Industria' },
+                  { value: 'servicos', label: 'Prestacao de Servicos' },
+                  { value: 'misto', label: 'Comercio + Servicos' },
                 ]}
-                help={`DAS fixo: ${formatCurrency(mei.atividades[atividadeMEI]?.das || 0)}/mês`}
+                help={`DAS fixo: ${formatCurrency(mei.atividades[atividadeMEI]?.das || 0)}/mes`}
               />
             )}
 
@@ -112,23 +130,23 @@ export default function SimuladorTributario() {
                   value={tipoAtividade}
                   onChange={setTipoAtividade}
                   options={[
-                    { value: 'servicos', label: 'Serviços em Geral' },
-                    { value: 'comercio', label: 'Comércio' },
-                    { value: 'industria', label: 'Indústria' },
+                    { value: 'servicos', label: 'Servicos em Geral' },
+                    { value: 'comercio', label: 'Comercio' },
+                    { value: 'industria', label: 'Industria' },
                     { value: 'transporteCarga', label: 'Transporte de Carga' },
                     { value: 'transportePassageiros', label: 'Transporte de Passageiros' },
-                    { value: 'servHospitalares', label: 'Serviços Hospitalares' },
+                    { value: 'servHospitalares', label: 'Servicos Hospitalares' },
                   ]}
                 />
                 <InputField
-                  label="Alíquota ISS"
+                  label="Aliquota ISS"
                   value={issAliquota}
                   onChange={setIssAliquota}
                   suffix="%"
                   min={2}
                   max={5}
                   step={0.5}
-                  help="Varia de 2% a 5% conforme município"
+                  help="Varia de 2% a 5% conforme municipio"
                 />
               </>
             )}
@@ -136,162 +154,159 @@ export default function SimuladorTributario() {
             {regime === 'real' && (
               <>
                 <InputField
-                  label="Despesas Dedutíveis (mensal)"
+                  label="Despesas Dedutiveis (mensal)"
                   value={despesasDedutiveis}
                   onChange={setDespesasDedutiveis}
                   prefix="R$"
                   step={1000}
-                  help="Folha, aluguel, insumos, etc."
+                  help="Despesas dedutiveis para IRPJ/CSLL"
                 />
                 <InputField
-                  label="Base de Créditos PIS/COFINS"
+                  label="Base de Creditos PIS/COFINS"
                   value={creditosPisCofins}
                   onChange={setCreditosPisCofins}
                   prefix="R$"
                   step={1000}
-                  help="Compras que geram crédito"
+                  help="Compras que geram credito"
                 />
               </>
-            )}
-
-            {/* Quick Info */}
-            {regime === 'simples' && simplesNacional.anexos[anexo]?.observacao && (
-              <div className="flex gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <Info size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-amber-300/80">{simplesNacional.anexos[anexo].observacao}</p>
-              </div>
             )}
           </CardBody>
         </Card>
 
         {/* Results Panel */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {resultado?.data && !resultado.data.excedeLimite && (
             <>
               {/* Summary Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <StatCard
                   icon={Calculator}
                   label="Imposto Mensal"
-                  value={formatCurrency(
-                    resultado.tipo === 'mei' ? resultado.data.dasFixo : resultado.data.valorMensal || resultado.data.totalMensal
-                  )}
-                  color="primary"
+                  value={formatCurrency(impostoMensal)}
+                  color="red"
                 />
                 <StatCard
                   icon={Calculator}
                   label="Imposto Anual"
-                  value={formatCurrency(
-                    resultado.tipo === 'mei' ? resultado.data.dasAnual : resultado.data.valorAnual || resultado.data.totalAnual
-                  )}
+                  value={formatCurrency(impostoMensal * 12)}
+                  color="amber"
+                />
+                <StatCard
+                  icon={Calculator}
+                  label="Aliquota Efetiva"
+                  value={formatPercent(resultado.data.aliquotaEfetiva)}
                   color="blue"
                 />
                 <StatCard
                   icon={Calculator}
-                  label="Alíquota Efetiva"
-                  value={formatPercent(resultado.data.aliquotaEfetiva)}
-                  color={resultado.data.aliquotaEfetiva < 0.1 ? 'primary' : resultado.data.aliquotaEfetiva < 0.2 ? 'amber' : 'rose'}
+                  label="Lucro Liquido"
+                  value={formatCurrency(lucroLiquido)}
+                  subvalue={`${((lucroLiquido / receitaMensal) * 100).toFixed(1)}% da receita`}
+                  color={lucroLiquido > 0 ? 'green' : 'red'}
                 />
               </div>
 
               {/* Detail Breakdown */}
               <Card>
                 <CardHeader>
-                  <h2 className="text-white font-semibold">Detalhamento da Carga Tributária</h2>
+                  <h2 className="text-white font-medium text-sm">Detalhamento da Carga Tributaria</h2>
                 </CardHeader>
                 <CardBody>
                   {resultado.tipo === 'mei' && (
-                    <div className="space-y-3">
-                      <DetailRow label="DAS Mensal Fixo" value={formatCurrency(resultado.data.dasFixo)} color="primary" />
-                      <DetailRow label="INSS (5% do salário mínimo)" value={formatCurrency(mei.das.inss)} />
-                      <DetailRow label="ISS (se serviços)" value={formatCurrency(mei.das.issServicos)} />
-                      <DetailRow label="ICMS (se comércio)" value={formatCurrency(mei.das.icmsComercio)} />
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <DetailRow label="Receita Líquida Mensal" value={formatCurrency(receitaMensal - resultado.data.dasFixo)} color="primary" bold />
-                      </div>
+                    <div className="space-y-2">
+                      <Row label="DAS Mensal Fixo" value={formatCurrency(resultado.data.dasFixo)} highlight />
+                      <Row label="INSS (5% do salario minimo)" value={formatCurrency(mei.das.inss)} />
+                      <Row label="ISS (se servicos)" value={formatCurrency(mei.das.issServicos)} />
+                      <Row label="ICMS (se comercio)" value={formatCurrency(mei.das.icmsComercio)} />
+                      <Divider />
+                      <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
+                      <Row label="= Lucro Liquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
                   )}
 
                   {resultado.tipo === 'simples' && (
-                    <div className="space-y-3">
-                      <DetailRow label={`Faixa ${resultado.data.faixa}ª do ${simplesNacional.anexos[anexo].nome}`} value="" />
-                      <DetailRow label="Alíquota Nominal" value={formatPercent(resultado.data.aliquotaNominal)} />
-                      <DetailRow label="Dedução" value={formatCurrency(resultado.data.deducao)} />
-                      <DetailRow label="Alíquota Efetiva" value={formatPercent(resultado.data.aliquotaEfetiva)} color="primary" bold />
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <DetailRow label="DAS Mensal" value={formatCurrency(resultado.data.valorMensal)} color="primary" bold />
-                        <DetailRow label="Receita Líquida Mensal" value={formatCurrency(resultado.data.receitaMensal - resultado.data.valorMensal)} />
-                      </div>
-                      
-                      {/* Distribuição por imposto */}
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <p className="text-sm text-dark-400 mb-3">Distribuição aproximada do DAS:</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(simplesNacional.anexos[anexo].distribuicao).map(([imposto, pct]) => (
-                            <div key={imposto} className="flex justify-between text-sm">
-                              <span className="text-dark-400">{imposto}</span>
-                              <span className="text-dark-300">{formatCurrency(resultado.data.valorMensal * pct)}</span>
-                            </div>
-                          ))}
-                        </div>
+                    <div className="space-y-2">
+                      <Row label={`Faixa ${resultado.data.faixa} - ${simplesNacional.anexos[anexo].nome}`} value="" />
+                      <Row label="Aliquota Nominal" value={formatPercent(resultado.data.aliquotaNominal)} />
+                      <Row label="Deducao" value={formatCurrency(resultado.data.deducao)} />
+                      <Row label="Aliquota Efetiva" value={formatPercent(resultado.data.aliquotaEfetiva)} highlight />
+                      <Divider />
+                      <Row label="DAS Mensal" value={formatCurrency(resultado.data.valorMensal)} highlight />
+                      <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
+                      <Row label="= Lucro Liquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
+                      <Divider />
+                      <p className="text-xs text-surface-500 mb-2">Distribuicao aproximada do DAS:</p>
+                      <div className="grid grid-cols-2 gap-1">
+                        {Object.entries(simplesNacional.anexos[anexo].distribuicao).map(([imposto, pct]) => (
+                          <div key={imposto} className="flex justify-between text-xs">
+                            <span className="text-surface-500">{imposto}</span>
+                            <span className="text-surface-300 font-mono">{formatCurrency(resultado.data.valorMensal * pct)}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
 
                   {resultado.tipo === 'presumido' && (
-                    <div className="space-y-3">
-                      <DetailRow label="IRPJ" value={formatCurrency(resultado.data.irpj.valorMensal)} sub={`Base: ${formatCurrency(resultado.data.irpj.baseTrimestral / 3)}/mês`} />
-                      <DetailRow label="CSLL" value={formatCurrency(resultado.data.csll.valorMensal)} sub={`Base: ${formatCurrency(resultado.data.csll.baseTrimestral / 3)}/mês`} />
-                      <DetailRow label="PIS (0,65% cumulativo)" value={formatCurrency(resultado.data.pis.valorMensal)} />
-                      <DetailRow label="COFINS (3,00% cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} />
-                      <DetailRow label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <DetailRow label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} color="primary" bold />
-                        <DetailRow label="Receita Líquida Mensal" value={formatCurrency(receitaMensal - resultado.data.totalMensal)} />
-                      </div>
+                    <div className="space-y-2">
+                      <Row label="IRPJ" value={formatCurrency(resultado.data.irpj.valorMensal)} sub={`Base: ${formatCurrency(resultado.data.irpj.baseTrimestral / 3)}/mes`} />
+                      <Row label="CSLL" value={formatCurrency(resultado.data.csll.valorMensal)} sub={`Base: ${formatCurrency(resultado.data.csll.baseTrimestral / 3)}/mes`} />
+                      <Row label="PIS (0,65% cumulativo)" value={formatCurrency(resultado.data.pis.valorMensal)} />
+                      <Row label="COFINS (3,00% cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} />
+                      <Row label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
+                      <Divider />
+                      <Row label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
+                      <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
+                      <Row label="= Lucro Liquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
                   )}
 
                   {resultado.tipo === 'real' && (
-                    <div className="space-y-3">
-                      <DetailRow label="Receita Bruta Mensal" value={formatCurrency(receitaMensal)} />
-                      <DetailRow label="(-) Despesas Dedutíveis" value={formatCurrency(despesasDedutiveis)} color="rose" />
-                      <DetailRow label="= Lucro Tributável" value={formatCurrency(resultado.data.lucroMensal)} color="primary" bold />
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <DetailRow label="IRPJ (15% + adicional 10%)" value={formatCurrency(resultado.data.irpj.valorMensal)} />
-                        <DetailRow label="CSLL (9%)" value={formatCurrency(resultado.data.csll.valorMensal)} />
-                        <DetailRow label="PIS (1,65% não-cumulativo)" value={formatCurrency(resultado.data.pis.valorMensal)} sub={`Créditos: ${formatCurrency(resultado.data.pis.creditos)}`} />
-                        <DetailRow label="COFINS (7,60% não-cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} sub={`Créditos: ${formatCurrency(resultado.data.cofins.creditos)}`} />
-                        <DetailRow label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
-                      </div>
-                      <div className="border-t border-dark-700/30 pt-3 mt-3">
-                        <DetailRow label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} color="primary" bold />
-                      </div>
+                    <div className="space-y-2">
+                      <Row label="Receita Bruta Mensal" value={formatCurrency(receitaMensal)} />
+                      <Row label="(-) Despesas Dedutiveis" value={formatCurrency(despesasDedutiveis)} negative />
+                      <Row label="= Lucro Tributavel" value={formatCurrency(resultado.data.lucroMensal)} highlight />
+                      <Divider />
+                      <Row label="IRPJ (15% + adicional 10%)" value={formatCurrency(resultado.data.irpj.valorMensal)} />
+                      <Row label="CSLL (9%)" value={formatCurrency(resultado.data.csll.valorMensal)} />
+                      <Row label="PIS (1,65% nao-cumulativo)" value={formatCurrency(resultado.data.pis.valorMensal)} sub={`Creditos: ${formatCurrency(resultado.data.pis.creditos)}`} />
+                      <Row label="COFINS (7,60% nao-cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} sub={`Creditos: ${formatCurrency(resultado.data.cofins.creditos)}`} />
+                      <Row label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
+                      <Divider />
+                      <Row label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
+                      <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
+                      <Row label="= Lucro Liquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
                   )}
                 </CardBody>
               </Card>
 
-              {/* Visual Bar */}
+              {/* Composicao Visual */}
               <Card>
                 <CardBody>
-                  <h3 className="text-sm text-dark-400 mb-3">Composição da Receita</h3>
-                  <div className="flex rounded-lg overflow-hidden h-8">
+                  <p className="text-xs text-surface-500 mb-2">Composicao da Receita</p>
+                  <div className="flex rounded-md overflow-hidden h-6 bg-surface-700">
                     <div
-                      className="bg-gradient-to-r from-rose-500 to-rose-600 flex items-center justify-center text-xs text-white font-medium"
-                      style={{ width: `${(resultado.data.aliquotaEfetiva * 100)}%` }}
+                      className="bg-red-500/80 flex items-center justify-center text-[10px] text-white font-medium"
+                      style={{ width: `${Math.min((resultado.data.aliquotaEfetiva || 0) * 100, 100)}%` }}
                     >
                       {resultado.data.aliquotaEfetiva > 0.05 && `${(resultado.data.aliquotaEfetiva * 100).toFixed(1)}%`}
                     </div>
                     <div
-                      className="bg-gradient-to-r from-primary-500 to-primary-600 flex items-center justify-center text-xs text-white font-medium flex-1"
+                      className="bg-amber-500/80 flex items-center justify-center text-[10px] text-white font-medium"
+                      style={{ width: `${Math.min((despesasOperacionais / receitaMensal) * 100, 100 - (resultado.data.aliquotaEfetiva || 0) * 100)}%` }}
                     >
-                      {((1 - resultado.data.aliquotaEfetiva) * 100).toFixed(1)}% Líquido
+                      {(despesasOperacionais / receitaMensal) > 0.05 && `${((despesasOperacionais / receitaMensal) * 100).toFixed(1)}%`}
+                    </div>
+                    <div className="bg-emerald-500/80 flex items-center justify-center text-[10px] text-white font-medium flex-1">
+                      {((lucroLiquido / receitaMensal) * 100).toFixed(1)}%
                     </div>
                   </div>
-                  <div className="flex justify-between mt-2 text-xs text-dark-500">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500 rounded-full" /> Impostos</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-primary-500 rounded-full" /> Receita Líquida</span>
+                  <div className="flex gap-4 mt-2 text-xs text-surface-500">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500/80 rounded-sm" /> Impostos</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-500/80 rounded-sm" /> Despesas</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500/80 rounded-sm" /> Lucro</span>
                   </div>
                 </CardBody>
               </Card>
@@ -299,15 +314,15 @@ export default function SimuladorTributario() {
           )}
 
           {resultado?.data?.excedeLimite && (
-            <Card className="border-rose-500/30">
-              <CardBody className="flex items-center gap-4 py-8">
-                <AlertTriangle className="text-rose-400" size={40} />
+            <Card>
+              <CardBody className="flex items-start gap-3 py-6">
+                <AlertTriangle className="text-amber-400 flex-shrink-0" size={24} />
                 <div>
-                  <h3 className="text-rose-400 font-bold text-lg">Limite Excedido</h3>
-                  <p className="text-dark-400 mt-1">
+                  <h3 className="text-amber-400 font-medium">Limite Excedido</h3>
+                  <p className="text-surface-400 text-sm mt-1">
                     {regime === 'mei'
-                      ? `A receita anual de ${formatCurrency(receitaMensal * 12)} excede o limite do MEI (${formatCurrency(mei.limiteAnual)}). Considere Simples Nacional.`
-                      : `A receita anual de ${formatCurrency(receitaMensal * 12)} excede o limite do Simples Nacional (${formatCurrency(simplesNacional.limiteAnual)}). Considere Lucro Presumido ou Real.`}
+                      ? `Receita anual de ${formatCurrency(receitaMensal * 12)} excede o limite do MEI (${formatCurrency(mei.limiteAnual)}). Considere o Simples Nacional.`
+                      : `Receita anual de ${formatCurrency(receitaMensal * 12)} excede o limite do Simples Nacional (${formatCurrency(simplesNacional.limiteAnual)}). Considere Lucro Presumido ou Real.`}
                   </p>
                 </div>
               </CardBody>
@@ -319,22 +334,20 @@ export default function SimuladorTributario() {
   );
 }
 
-function DetailRow({ label, value, sub, color, bold }) {
-  const colorClasses = {
-    primary: 'text-primary-400',
-    rose: 'text-rose-400',
-    blue: 'text-blue-400',
-  };
-
+function Row({ label, value, sub, highlight, negative }) {
   return (
     <div>
       <div className="flex justify-between items-center">
-        <span className={`text-sm ${bold ? 'text-dark-200 font-semibold' : 'text-dark-400'}`}>{label}</span>
-        <span className={`text-sm font-mono ${bold ? 'font-bold' : 'font-medium'} ${colorClasses[color] || 'text-dark-200'}`}>
+        <span className={`text-sm ${highlight ? 'text-white font-medium' : negative ? 'text-red-400/80' : 'text-surface-400'}`}>{label}</span>
+        <span className={`text-sm font-mono ${highlight ? 'text-white font-semibold' : negative ? 'text-red-400/80' : 'text-surface-300'}`}>
           {value}
         </span>
       </div>
-      {sub && <p className="text-xs text-dark-500 text-right">{sub}</p>}
+      {sub && <p className="text-xs text-surface-500 text-right">{sub}</p>}
     </div>
   );
+}
+
+function Divider() {
+  return <div className="border-t border-surface-700 my-2" />;
 }

@@ -571,12 +571,12 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
   const issMensal = receitaMensal * issAliquota;
 
   // CPRB (se aplicável - substitui contrib. patronal)
-  let cprb = 0;
-  if (temCPRB && cprb.atividades[tipoAtividade]) {
-    cprb = receitaMensal * cprb.atividades[tipoAtividade].aliquota;
+  let cprbValor = 0;
+  if (temCPRB && cprb.atividades && cprb.atividades[tipoAtividade]) {
+    cprbValor = receitaMensal * cprb.atividades[tipoAtividade].aliquota;
   }
 
-  const totalMensal = (irpjTrimestral / 3) + (csllTrimestral / 3) + pisMensal + cofinsMensal + issMensal + cprb;
+  const totalMensal = (irpjTrimestral / 3) + (csllTrimestral / 3) + pisMensal + cofinsMensal + issMensal + cprbValor;
 
   return {
     regime: 'Lucro Presumido',
@@ -597,7 +597,7 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
     pis: { valorMensal: pisMensal },
     cofins: { valorMensal: cofinsMensal },
     iss: { aliquota: issAliquota, valorMensal: issMensal },
-    cprb: { valorMensal: cprb },
+    cprb: { valorMensal: cprbValor },
     totalMensal,
     totalAnual: totalMensal * 12,
     aliquotaEfetiva: totalMensal / receitaMensal,
@@ -683,18 +683,18 @@ export const lucroReal = {
   ]
 };
 
-export function calcLucroReal(receitaMensal, despesasDedutiveis, adicoesLalur = 0, exclusoesLalur = 0, creditosPisCofins = 0, issAliquota = 0.05, tipoAtividade = 'geral') {
+export function calcLucroReal(receitaMensal, despesasDedutiveis, creditosPisCofins = 0, issAliquota = 0.05, adicoesLalur = 0, exclusoesLalur = 0, tipoAtividade = 'geral') {
   const lucroContabil = receitaMensal - despesasDedutiveis;
-  const lucroReal = lucroContabil + adicoesLalur - exclusoesLalur;
-  const lucroTrimestral = lucroReal * 3;
+  const lucroTributavel = lucroContabil + adicoesLalur - exclusoesLalur;
+  const lucroTrimestral = lucroTributavel * 3;
 
-  // IRPJ sobre lucro real
+  // IRPJ sobre lucro tributável
   let irpjTrimestral = Math.max(0, lucroTrimestral * lucroReal.irpj.aliquota);
   if (lucroTrimestral > lucroReal.irpj.limiteAdicionalTrimestral) {
     irpjTrimestral += (lucroTrimestral - lucroReal.irpj.limiteAdicionalTrimestral) * lucroReal.irpj.adicional;
   }
 
-  // CSLL sobre lucro real - verifica alíquota especial
+  // CSLL - verifica alíquota especial
   let aliquotaCSLL = lucroReal.csll.aliquota;
   if (lucroReal.csll.aliquotasEspeciais[tipoAtividade]) {
     aliquotaCSLL = lucroReal.csll.aliquotasEspeciais[tipoAtividade];
@@ -720,39 +720,39 @@ export function calcLucroReal(receitaMensal, despesasDedutiveis, adicoesLalur = 
     lucroContabil,
     adicoesLalur,
     exclusoesLalur,
-    lucroReal,
+    lucroMensal: lucroTributavel,
     lucroTrimestral,
-    irpj: { 
+    irpj: {
       baseTrimestral: lucroTrimestral,
-      valorTrimestral: irpjTrimestral, 
+      valorTrimestral: irpjTrimestral,
       valorMensal: irpjTrimestral / 3,
       temAdicional: lucroTrimestral > lucroReal.irpj.limiteAdicionalTrimestral
     },
-    csll: { 
+    csll: {
       baseTrimestral: lucroTrimestral,
-      valorTrimestral: csllTrimestral, 
+      valorTrimestral: csllTrimestral,
       valorMensal: csllTrimestral / 3,
       aliquotaUtilizada: aliquotaCSLL
     },
-    pis: { 
-      bruto: pisBruto, 
-      creditos: creditoPis, 
-      valorMensal: pisMensal 
+    pis: {
+      bruto: pisBruto,
+      creditos: creditoPis,
+      valorMensal: pisMensal
     },
-    cofins: { 
-      bruto: cofinsBruto, 
-      creditos: creditoCofins, 
-      valorMensal: cofinsMensal 
+    cofins: {
+      bruto: cofinsBruto,
+      creditos: creditoCofins,
+      valorMensal: cofinsMensal
     },
-    iss: { 
-      aliquota: issAliquota, 
-      valorMensal: issMensal 
+    iss: {
+      aliquota: issAliquota,
+      valorMensal: issMensal
     },
     totalMensal,
     totalAnual: totalMensal * 12,
     aliquotaEfetiva: receitaMensal > 0 ? totalMensal / receitaMensal : 0,
     receitaMensal,
-    observacoes: lucroReal < 0 ? 'Prejuízo fiscal - pode compensar em exercícios futuros' : null
+    observacoes: lucroTributavel < 0 ? 'Prejuízo fiscal - pode compensar em exercícios futuros' : null
   };
 }
 
@@ -1254,9 +1254,10 @@ export function determinarAnexoSimples(tipoAtividade, fatorR = null, receitaCome
 // ==============================================
 
 // Mantém compatibilidade com código existente
-export const custosDefaultContabilidade = custosOperacionais.escritorioContabil.fixos.concat(
-  custosOperacionais.escritorioContabil.variavelPorCliente
-);
+export const custosDefaultContabilidade = {
+  fixos: custosOperacionais.escritorioContabil.fixos,
+  variavelPorCliente: custosOperacionais.escritorioContabil.variavelPorCliente,
+};
 
 export const servicosContabeis = [
   { id: 'abertura', nome: 'Abertura de Empresa', tipo: 'pontual', horasEstimadas: 12, complexidade: 'media' },
@@ -1310,6 +1311,3 @@ export const sistemaAlertas = {
   }
 };
 
-console.log('✅ TaxData 2.0 carregado - Base tributária completa e atualizada');
-console.log('📊 Inclui: MEI, Simples, Presumido, Real, CPRB, IRRF, ST, ISS e muito mais');
-console.log('🎯 Auditoria realizada por especialista tributário sênior');

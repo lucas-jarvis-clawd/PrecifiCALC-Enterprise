@@ -1,88 +1,41 @@
 import { useState } from 'react';
-import { Settings, Bell, Shield, Database, Mail, Palette, Globe, Zap, AlertTriangle, CheckCircle, Info } from 'lucide-react';
-import { Card, CardBody, StatCard } from '../components/Card';
+import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 
 export default function Configuracoes() {
   const [config, setConfig] = useState({
-    // Dados da empresa
-    nomeEmpresa: 'Consultoria Contábil Ltda',
+    nomeEmpresa: 'Consultoria Contabil Ltda',
     cnpj: '12.345.678/0001-90',
     endereco: 'Rua das Flores, 123 - Centro',
     telefone: '(11) 99999-9999',
     email: 'contato@consultoria.com.br',
-    
-    // Configurações sistema
     moeda: 'BRL',
     timezone: 'America/Sao_Paulo',
     formatoData: 'dd/MM/yyyy',
     casasDecimais: 2,
-    
-    // Alertas
     alertasAtivos: true,
     alertaEmail: true,
-    alertaDesktop: false,
-    alertaLimiteReceita: 80, // % do limite para alertar
-    
-    // Backup
     backupAutomatico: true,
     frequenciaBackup: 'diario',
-    manterBackups: 30,
-    
-    // Aparência
     tema: 'dark',
-    corPrimaria: '#10b981',
-    logoEmpresa: null,
-    
-    // Integrações
     receitaFederalAPI: false,
     emailSMTP: false,
     whatsappAPI: false,
-    
-    // Segurança
     autenticacao2FA: false,
-    sessaoExpira: 480, // minutos
-    logAuditoria: true
+    sessaoExpira: 480,
+    logAuditoria: true,
   });
 
   const [alertas] = useState([
-    {
-      id: 1,
-      tipo: 'info',
-      titulo: 'Atualização Disponível',
-      descricao: 'Nova versão do sistema com melhorias na performance',
-      data: '2026-02-01',
-      ativo: true
-    },
-    {
-      id: 2,
-      tipo: 'warning',
-      titulo: 'Backup Pendente',
-      descricao: 'Último backup foi há 3 dias. Recomendamos backup imediato.',
-      data: '2026-01-30',
-      ativo: true
-    },
-    {
-      id: 3,
-      tipo: 'error',
-      titulo: 'Limite do Simples Nacional',
-      descricao: 'Cliente João Silva está próximo do limite (R$ 4.2M de R$ 4.8M)',
-      data: '2026-01-29',
-      ativo: true
-    },
-    {
-      id: 4,
-      tipo: 'success',
-      titulo: 'Configuração Salva',
-      descricao: 'Suas preferências foram atualizadas com sucesso',
-      data: '2026-01-28',
-      ativo: false
-    }
+    { id: 1, tipo: 'info', titulo: 'Atualizacao Disponivel', descricao: 'Nova versao do sistema com melhorias na performance', data: '2026-02-01', ativo: true },
+    { id: 2, tipo: 'warning', titulo: 'Backup Pendente', descricao: 'Ultimo backup foi ha 3 dias. Recomendamos backup imediato.', data: '2026-01-30', ativo: true },
+    { id: 3, tipo: 'error', titulo: 'Limite do Simples Nacional', descricao: 'Cliente Joao Silva esta proximo do limite (R$ 4.2M de R$ 4.8M)', data: '2026-01-29', ativo: true },
+    { id: 4, tipo: 'success', titulo: 'Configuracao Salva', descricao: 'Suas preferencias foram atualizadas com sucesso', data: '2026-01-28', ativo: false },
   ]);
 
   const getAlertaIcon = (tipo) => {
     switch (tipo) {
-      case 'error': return AlertTriangle;
-      case 'warning': return AlertTriangle;
+      case 'error': case 'warning': return AlertTriangle;
       case 'success': return CheckCircle;
       default: return Info;
     }
@@ -90,295 +43,163 @@ export default function Configuracoes() {
 
   const getAlertaColor = (tipo) => {
     switch (tipo) {
-      case 'error': return 'text-red-400 bg-red-400/10 border-red-400/20';
-      case 'warning': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-      case 'success': return 'text-green-400 bg-green-400/10 border-green-400/20';
-      default: return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      case 'error': return 'text-red-400 bg-red-600/10 border-red-600/20';
+      case 'warning': return 'text-amber-400 bg-amber-600/10 border-amber-600/20';
+      case 'success': return 'text-emerald-400 bg-emerald-600/10 border-emerald-600/20';
+      default: return 'text-blue-400 bg-blue-600/10 border-blue-600/20';
     }
   };
 
-  const salvarConfiguracoes = () => {
-    alert('Configurações salvas com sucesso!');
-  };
-
-  const exportarDados = () => {
-    alert('Exportação iniciada! Você receberá um email quando estiver pronto.');
-  };
-
-  const importarDados = () => {
-    alert('Funcionalidade de importação em desenvolvimento');
-  };
-
+  const salvarConfiguracoes = () => alert('Configuracoes salvas com sucesso!');
+  const exportarDados = () => alert('Exportacao iniciada! Voce recebera um email quando estiver pronto.');
+  const importarDados = () => alert('Funcionalidade de importacao em desenvolvimento');
   const resetarSistema = () => {
-    if (window.confirm('Tem certeza? Esta ação irá resetar todas as configurações para o padrão.')) {
+    if (window.confirm('Tem certeza? Esta acao ira resetar todas as configuracoes para o padrao.')) {
       alert('Sistema resetado com sucesso!');
     }
   };
 
+  const inputClass = "w-full px-3 py-2 bg-surface-900 border border-surface-600 rounded-md text-sm text-white focus:outline-none focus:border-brand-500";
+  const labelClass = "block text-xs font-medium text-surface-400 mb-1.5";
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center">
-          <Settings size={16} className="text-white" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-white">Configurações</h1>
-          <p className="text-dark-400">Personalize o sistema conforme suas necessidades</p>
-        </div>
+      <div className="border-b border-surface-700 pb-4">
+        <h1 className="text-xl font-semibold text-white flex items-center gap-2">
+          <Settings className="text-brand-400" size={22} />
+          Configuracoes
+        </h1>
+        <p className="text-surface-400 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={AlertTriangle}
-          label="Alertas Ativos"
-          value="3"
-          subvalue="Requerem atenção"
-          color="red"
-        />
-        <StatCard
-          icon={Shield}
-          label="Segurança"
-          value="85%"
-          subvalue="Score de segurança"
-          color="green"
-        />
-        <StatCard
-          icon={Database}
-          label="Dados"
-          value="2.3 GB"
-          subvalue="Espaço utilizado"
-          color="blue"
-        />
-        <StatCard
-          icon={Zap}
-          label="Performance"
-          value="98%"
-          subvalue="Sistema otimizado"
-          color="purple"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard icon={AlertTriangle} label="Alertas Ativos" value="3" subvalue="Requerem atencao" color="red" />
+        <StatCard icon={Shield} label="Seguranca" value="85%" subvalue="Score de seguranca" color="green" />
+        <StatCard icon={Database} label="Dados" value="2.3 GB" subvalue="Espaco utilizado" color="blue" />
+        <StatCard icon={Zap} label="Performance" value="98%" subvalue="Sistema otimizado" color="purple" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Configurações Principais */}
         <div className="xl:col-span-2 space-y-6">
           {/* Dados da Empresa */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white">Dados da Empresa</h2>
-            </div>
-            <CardBody className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Nome da Empresa
-                </label>
-                <input
-                  type="text"
-                  value={config.nomeEmpresa}
-                  onChange={(e) => setConfig({ ...config, nomeEmpresa: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  CNPJ
-                </label>
-                <input
-                  type="text"
-                  value={config.cnpj}
-                  onChange={(e) => setConfig({ ...config, cnpj: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
-              </div>
-              
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Endereço
-                </label>
-                <input
-                  type="text"
-                  value={config.endereco}
-                  onChange={(e) => setConfig({ ...config, endereco: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Telefone
-                </label>
-                <input
-                  type="text"
-                  value={config.telefone}
-                  onChange={(e) => setConfig({ ...config, telefone: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={config.email}
-                  onChange={(e) => setConfig({ ...config, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
+            <CardHeader><h2 className="text-white font-medium text-sm">Dados da Empresa</h2></CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Nome da Empresa</label>
+                  <input type="text" value={config.nomeEmpresa} onChange={(e) => setConfig({ ...config, nomeEmpresa: e.target.value })} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>CNPJ</label>
+                  <input type="text" value={config.cnpj} onChange={(e) => setConfig({ ...config, cnpj: e.target.value })} className={inputClass} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Endereco</label>
+                  <input type="text" value={config.endereco} onChange={(e) => setConfig({ ...config, endereco: e.target.value })} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Telefone</label>
+                  <input type="text" value={config.telefone} onChange={(e) => setConfig({ ...config, telefone: e.target.value })} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Email</label>
+                  <input type="email" value={config.email} onChange={(e) => setConfig({ ...config, email: e.target.value })} className={inputClass} />
+                </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Configurações do Sistema */}
+          {/* Sistema */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white">Configurações do Sistema</h2>
-            </div>
-            <CardBody className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Tema
-                </label>
-                <select
-                  value={config.tema}
-                  onChange={(e) => setConfig({ ...config, tema: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                >
-                  <option value="dark">Escuro</option>
-                  <option value="light">Claro</option>
-                  <option value="auto">Automático</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Fuso Horário
-                </label>
-                <select
-                  value={config.timezone}
-                  onChange={(e) => setConfig({ ...config, timezone: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                >
-                  <option value="America/Sao_Paulo">Brasília (UTC-3)</option>
-                  <option value="America/Manaus">Manaus (UTC-4)</option>
-                  <option value="America/Rio_Branco">Acre (UTC-5)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Formato de Data
-                </label>
-                <select
-                  value={config.formatoData}
-                  onChange={(e) => setConfig({ ...config, formatoData: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                >
-                  <option value="dd/MM/yyyy">DD/MM/AAAA</option>
-                  <option value="MM/dd/yyyy">MM/DD/AAAA</option>
-                  <option value="yyyy-MM-dd">AAAA-MM-DD</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Casas Decimais
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="4"
-                  value={config.casasDecimais}
-                  onChange={(e) => setConfig({ ...config, casasDecimais: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                />
+            <CardHeader><h2 className="text-white font-medium text-sm">Configuracoes do Sistema</h2></CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Tema</label>
+                  <select value={config.tema} onChange={(e) => setConfig({ ...config, tema: e.target.value })} className={inputClass}>
+                    <option value="dark">Escuro</option>
+                    <option value="light">Claro</option>
+                    <option value="auto">Automatico</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Fuso Horario</label>
+                  <select value={config.timezone} onChange={(e) => setConfig({ ...config, timezone: e.target.value })} className={inputClass}>
+                    <option value="America/Sao_Paulo">Brasilia (UTC-3)</option>
+                    <option value="America/Manaus">Manaus (UTC-4)</option>
+                    <option value="America/Rio_Branco">Acre (UTC-5)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Formato de Data</label>
+                  <select value={config.formatoData} onChange={(e) => setConfig({ ...config, formatoData: e.target.value })} className={inputClass}>
+                    <option value="dd/MM/yyyy">DD/MM/AAAA</option>
+                    <option value="MM/dd/yyyy">MM/DD/AAAA</option>
+                    <option value="yyyy-MM-dd">AAAA-MM-DD</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Casas Decimais</label>
+                  <input type="number" min="0" max="4" value={config.casasDecimais} onChange={(e) => setConfig({ ...config, casasDecimais: parseInt(e.target.value) })} className={inputClass} />
+                </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Integrações */}
+          {/* Integracoes */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white">Integrações</h2>
-              <p className="text-dark-400 text-sm">Configure integrações com serviços externos</p>
-            </div>
+            <CardHeader>
+              <h2 className="text-white font-medium text-sm">Integracoes</h2>
+              <p className="text-surface-500 text-xs mt-0.5">Configure integracoes com servicos externos</p>
+            </CardHeader>
             <CardBody className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">API Receita Federal</h3>
-                  <p className="text-dark-400 text-sm">Consulta automática de dados tributários</p>
+              {[
+                { key: 'receitaFederalAPI', label: 'API Receita Federal', desc: 'Consulta automatica de dados tributarios' },
+                { key: 'emailSMTP', label: 'Email SMTP', desc: 'Envio automatico de relatorios por email' },
+                { key: 'whatsappAPI', label: 'WhatsApp Business API', desc: 'Envio de propostas via WhatsApp' },
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white text-sm font-medium">{item.label}</h3>
+                    <p className="text-surface-400 text-xs">{item.desc}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={config[item.key]}
+                      onChange={(e) => setConfig({ ...config, [item.key]: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-10 h-5 bg-surface-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                  </label>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config.receitaFederalAPI}
-                    onChange={(e) => setConfig({ ...config, receitaFederalAPI: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">Email SMTP</h3>
-                  <p className="text-dark-400 text-sm">Envio automático de relatórios por email</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config.emailSMTP}
-                    onChange={(e) => setConfig({ ...config, emailSMTP: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">WhatsApp Business API</h3>
-                  <p className="text-dark-400 text-sm">Envio de propostas via WhatsApp</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config.whatsappAPI}
-                    onChange={(e) => setConfig({ ...config, whatsappAPI: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-                </label>
-              </div>
+              ))}
             </CardBody>
           </Card>
         </div>
 
-        {/* Alertas e Backup */}
+        {/* Coluna lateral */}
         <div className="space-y-6">
           {/* Alertas */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white flex items-center gap-2">
-                <Bell size={16} />
-                Alertas Ativos
+            <CardHeader>
+              <h2 className="text-white font-medium text-sm flex items-center gap-2">
+                <Bell size={14} /> Alertas Ativos
               </h2>
-            </div>
-            <div className="divide-y divide-dark-700/20">
+            </CardHeader>
+            <div className="divide-y divide-surface-700/50">
               {alertas.filter(a => a.ativo).map((alerta) => {
                 const Icon = getAlertaIcon(alerta.tipo);
                 return (
                   <div key={alerta.id} className="p-4">
-                    <div className={`flex items-start gap-3 p-3 rounded-lg border ${getAlertaColor(alerta.tipo)}`}>
-                      <Icon size={16} className="flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-medium mb-1">{alerta.titulo}</h4>
-                        <p className="text-sm opacity-80">{alerta.descricao}</p>
-                        <p className="text-xs opacity-60 mt-2">
-                          {new Date(alerta.data).toLocaleDateString('pt-BR')}
-                        </p>
+                    <div className={`flex items-start gap-3 p-3 rounded-md border ${getAlertaColor(alerta.tipo)}`}>
+                      <Icon size={14} className="flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium mb-0.5">{alerta.titulo}</h4>
+                        <p className="text-xs opacity-80">{alerta.descricao}</p>
+                        <p className="text-xs opacity-60 mt-1">{new Date(alerta.data).toLocaleDateString('pt-BR')}</p>
                       </div>
                     </div>
                   </div>
@@ -387,19 +208,18 @@ export default function Configuracoes() {
             </div>
           </Card>
 
-          {/* Configurações de Backup */}
+          {/* Backup */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white flex items-center gap-2">
-                <Database size={16} />
-                Backup e Segurança
+            <CardHeader>
+              <h2 className="text-white font-medium text-sm flex items-center gap-2">
+                <Database size={14} /> Backup e Seguranca
               </h2>
-            </div>
+            </CardHeader>
             <CardBody className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-white font-medium">Backup Automático</h3>
-                  <p className="text-dark-400 text-sm">Backup diário dos dados</p>
+                  <h3 className="text-white text-sm font-medium">Backup Automatico</h3>
+                  <p className="text-surface-400 text-xs">Backup diario dos dados</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -408,59 +228,38 @@ export default function Configuracoes() {
                     onChange={(e) => setConfig({ ...config, backupAutomatico: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                  <div className="w-10 h-5 bg-surface-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Frequência do Backup
-                </label>
-                <select
-                  value={config.frequenciaBackup}
-                  onChange={(e) => setConfig({ ...config, frequenciaBackup: e.target.value })}
-                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white"
-                >
-                  <option value="diario">Diário</option>
+                <label className={labelClass}>Frequencia</label>
+                <select value={config.frequenciaBackup} onChange={(e) => setConfig({ ...config, frequenciaBackup: e.target.value })} className={inputClass}>
+                  <option value="diario">Diario</option>
                   <option value="semanal">Semanal</option>
                   <option value="mensal">Mensal</option>
                 </select>
               </div>
 
-              <div className="pt-4 space-y-2">
-                <button
-                  onClick={exportarDados}
-                  className="w-full px-4 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors"
-                >
+              <div className="pt-2 space-y-2">
+                <button onClick={exportarDados} className="w-full px-4 py-2 bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-sm hover:bg-blue-600/20 transition-colors">
                   Exportar Dados
                 </button>
-                <button
-                  onClick={importarDados}
-                  className="w-full px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors"
-                >
+                <button onClick={importarDados} className="w-full px-4 py-2 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 rounded-md text-sm hover:bg-emerald-600/20 transition-colors">
                   Importar Dados
                 </button>
               </div>
             </CardBody>
           </Card>
 
-          {/* Ações */}
+          {/* Acoes */}
           <Card>
-            <div className="px-6 py-4 border-b border-dark-700/30">
-              <h2 className="font-semibold text-white">Ações do Sistema</h2>
-            </div>
-            <CardBody className="space-y-3">
-              <button
-                onClick={salvarConfiguracoes}
-                className="w-full px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all"
-              >
-                Salvar Configurações
+            <CardHeader><h2 className="text-white font-medium text-sm">Acoes do Sistema</h2></CardHeader>
+            <CardBody className="space-y-2">
+              <button onClick={salvarConfiguracoes} className="w-full px-4 py-2 bg-brand-600 text-white rounded-md text-sm font-medium hover:bg-brand-700 transition-colors">
+                Salvar Configuracoes
               </button>
-              
-              <button
-                onClick={resetarSistema}
-                className="w-full px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors"
-              >
+              <button onClick={resetarSistema} className="w-full px-4 py-2 bg-red-600/10 text-red-400 border border-red-600/20 rounded-md text-sm hover:bg-red-600/20 transition-colors">
                 Resetar Sistema
               </button>
             </CardBody>
