@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FileText, Download, Plus, Trash2, Building, User } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
@@ -35,6 +35,30 @@ export default function Propostas() {
   );
 
   const previewRef = useRef(null);
+
+  // Load saved data from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('precificalc_propostas');
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.empresa) setEmpresa(d.empresa);
+        if (d.cliente) setCliente(d.cliente);
+        if (d.itens && d.itens.length > 0) setItens(d.itens);
+        if (d.desconto !== undefined) setDesconto(d.desconto);
+        if (d.validade !== undefined) setValidade(d.validade);
+        if (d.condicaoPagamento) setCondicaoPagamento(d.condicaoPagamento);
+        if (d.observacoes !== undefined) setObservacoes(d.observacoes);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('precificalc_propostas', JSON.stringify({
+      empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes,
+    }));
+  }, [empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes]);
 
   const subtotal = itens.reduce((s, i) => s + (i.quantidade * i.valorUnitario), 0);
   const descontoValor = subtotal * (desconto / 100);

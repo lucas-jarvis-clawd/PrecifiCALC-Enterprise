@@ -1311,3 +1311,65 @@ export const sistemaAlertas = {
   }
 };
 
+// ===== NOVAS FUNÇÕES DE APOIO =====
+
+export function calcEncargos(rat = 0.02) {
+  const inssPatronal = 0.20;
+  const terceiros = 0.058;
+  const fgts = 0.08;
+  const diretos = inssPatronal + rat + terceiros + fgts;
+  const provisao13 = 1 / 12;
+  const provisaoFerias = (1 / 12) * (4 / 3);
+  const provisoes = provisao13 + provisaoFerias;
+  const encargosProvisoes = diretos * provisoes;
+  return {
+    inssPatronal, rat, terceiros, fgts,
+    subtotalDiretos: diretos,
+    provisao13, provisaoFerias,
+    subtotalProvisoes: provisoes,
+    encargosProvisoes,
+    total: diretos + provisoes + encargosProvisoes,
+    multiplicador: 1 + diretos + provisoes + encargosProvisoes,
+    detalhamento: [
+      { nome: 'INSS Patronal', percentual: inssPatronal },
+      { nome: 'RAT/GILRAT', percentual: rat },
+      { nome: 'Terceiros (Sistema S)', percentual: terceiros },
+      { nome: 'FGTS', percentual: fgts },
+      { nome: 'Provisão 13º Salário', percentual: provisao13 },
+      { nome: 'Provisão Férias + 1/3', percentual: provisaoFerias },
+      { nome: 'Encargos s/ Provisões', percentual: encargosProvisoes },
+    ],
+  };
+}
+
+export function calcCPPAnexoIV(folhaMensal) {
+  return folhaMensal * 0.20;
+}
+
+export function calcFatorR(folha12Meses, rbt12) {
+  if (!rbt12 || rbt12 <= 0) return 0;
+  return folha12Meses / rbt12;
+}
+
+export function getAnexoPorFatorR(fatorR, anexoOriginal) {
+  if (anexoOriginal === 'V' && fatorR >= 0.28) return 'III';
+  return anexoOriginal;
+}
+
+export function checkSublimiteSimples(rbt12) {
+  const sublimiteISSICMS = 3600000;
+  const limiteSimples = 4800000;
+  return {
+    dentroSimples: rbt12 <= limiteSimples,
+    dentroSublimite: rbt12 <= sublimiteISSICMS,
+    rbt12,
+    sublimiteISSICMS,
+    limiteSimples,
+    mensagem: rbt12 > limiteSimples
+      ? 'Receita excede o limite do Simples Nacional (R$ 4.800.000)'
+      : rbt12 > sublimiteISSICMS
+        ? 'Receita excede o sublimite (R$ 3.600.000). ISS/ICMS recolhidos separadamente.'
+        : null,
+  };
+}
+

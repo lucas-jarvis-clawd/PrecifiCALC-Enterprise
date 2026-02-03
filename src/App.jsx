@@ -10,6 +10,9 @@ import AnaliseViabilidade from './pages/AnaliseViabilidade';
 import PontoEquilibrio from './pages/PontoEquilibrio';
 import Relatorios from './pages/Relatorios';
 import Configuracoes from './pages/Configuracoes';
+import DRE from './pages/DRE';
+import CalendarioFiscal from './pages/CalendarioFiscal';
+import Enquadramento from './pages/Enquadramento';
 
 const pages = {
   dashboard: { component: Dashboard, title: 'Dashboard' },
@@ -20,6 +23,9 @@ const pages = {
   viabilidade: { component: AnaliseViabilidade, title: 'Análise de Viabilidade' },
   equilibrio: { component: PontoEquilibrio, title: 'Ponto de Equilíbrio' },
   propostas: { component: Propostas, title: 'Propostas' },
+  dre: { component: DRE, title: 'DRE' },
+  calendario: { component: CalendarioFiscal, title: 'Calendário Fiscal' },
+  enquadramento: { component: Enquadramento, title: 'Enquadramento' },
   relatorios: { component: Relatorios, title: 'Relatórios' },
   configuracoes: { component: Configuracoes, title: 'Configurações' },
 };

@@ -11,6 +11,9 @@ import {
   FileDown,
   Settings,
   Scale,
+  FileSpreadsheet,
+  CalendarDays,
+  UserCheck,
 } from 'lucide-react';
 
 const menuItems = [
@@ -21,6 +24,9 @@ const menuItems = [
   { id: 'custos', icon: Wallet, label: 'Custos Operacionais' },
   { id: 'precificacao', icon: Tags, label: 'Precificação' },
   { id: 'equilibrio', icon: Scale, label: 'Ponto de Equilíbrio' },
+  { id: 'dre', icon: FileSpreadsheet, label: 'DRE' },
+  { id: 'calendario', icon: CalendarDays, label: 'Calendário Fiscal' },
+  { id: 'enquadramento', icon: UserCheck, label: 'Enquadramento' },
   { id: 'propostas', icon: FileText, label: 'Propostas' },
   { id: 'relatorios', icon: FileDown, label: 'Relatórios' },
   { id: 'configuracoes', icon: Settings, label: 'Configurações' },

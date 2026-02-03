@@ -1,19 +1,88 @@
-import { useState } from 'react';
-import { Target, Calculator, DollarSign, Clock, AlertCircle, CheckCircle } from 'lucide-react';
-import { Card, CardBody, StatCard } from '../components/Card';
+import { useState, useEffect } from 'react';
+import { Target, Calculator, DollarSign, Clock, AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { calcMEI, calcSimplesTax, calcLucroPresumido, calcLucroReal, formatCurrency, formatPercent } from '../data/taxData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 
 const COLORS = ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981'];
+
+// Fallback helper functions for CPP, Fator R, sublimite
+const _calcCPP = (folha) => folha * 0.20;
+const _calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
+const _getAnexoFR = (fr, anexo) => (anexo === 'V' && fr >= 0.28) ? 'III' : anexo;
+const _checkSublimite = (rbt12) => ({
+  dentroSimples: rbt12 <= 4800000,
+  dentroSublimite: rbt12 <= 3600000,
+  mensagem: rbt12 > 4800000 ? 'Excede limite Simples (R$ 4.8M)' : rbt12 > 3600000 ? 'Excede sublimite (R$ 3.6M). ISS/ICMS separados.' : null,
+});
+
+// Seasonality multipliers
+const sazonal = {
+  nenhuma: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  comercio: [0.8, 0.7, 0.8, 0.85, 0.9, 0.85, 0.8, 0.85, 0.9, 0.95, 1.2, 1.5],
+  servicos: [0.9, 0.95, 1, 1, 1, 1, 1, 1, 1, 1, 0.95, 0.9],
+  educacao: [0.7, 1.3, 1.2, 1, 1, 0.8, 0.7, 1.3, 1.1, 1, 0.9, 0.7],
+};
+
+// Viability thresholds by segment
+const thresholds = {
+  comercio: { excelente: 10, boa: 5 },
+  industria: { excelente: 15, boa: 8 },
+  servicos: { excelente: 25, boa: 15 },
+};
+
+const LS_KEY = 'precificalc_viabilidade';
 
 export default function AnaliseViabilidade() {
   const [dados, setDados] = useState({
     investimentoInicial: '', receitaMensal: '', custoFixoMensal: '', custoVariavelPercent: '',
     atividade: 'servicos', regime: 'simples', anexo: 'III', rbt12: '',
     issAliquota: '5', despesasDedutiveis: '', creditosPisCofins: '',
+    folhaMensal: '20000',
   });
   const [resultado, setResultado] = useState(null);
+  const [taxaCrescimento, setTaxaCrescimento] = useState(3);
+  const [tipoSazonalidade, setTipoSazonalidade] = useState('nenhuma');
+  const [taxaDesconto, setTaxaDesconto] = useState(12);
+  const [segmento, setSegmento] = useState('servicos');
+
+  // localStorage persistence - load
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LS_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.dados) setDados(data.dados);
+        if (data.taxaCrescimento !== undefined) setTaxaCrescimento(data.taxaCrescimento);
+        if (data.tipoSazonalidade !== undefined) setTipoSazonalidade(data.tipoSazonalidade);
+        if (data.taxaDesconto !== undefined) setTaxaDesconto(data.taxaDesconto);
+        if (data.segmento !== undefined) setSegmento(data.segmento);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // localStorage persistence - save
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        dados, taxaCrescimento, tipoSazonalidade, taxaDesconto, segmento,
+      }));
+    } catch { /* ignore */ }
+  }, [dados, taxaCrescimento, tipoSazonalidade, taxaDesconto, segmento]);
+
+  // Fator R e Anexo Efetivo
+  const folhaMensal = parseFloat(dados.folhaMensal) || 0;
+  const rbt12Num = parseFloat(dados.rbt12) || 0;
+  const fatorR = dados.regime === 'simples' ? _calcFatorR(folhaMensal * 12, rbt12Num) : 0;
+  const anexoEfetivo = dados.regime === 'simples' ? _getAnexoFR(fatorR, dados.anexo) : dados.anexo;
+  const migrouAnexo = dados.regime === 'simples' && dados.anexo === 'V' && anexoEfetivo === 'III';
+
+  // CPP para Anexo IV
+  const cppAnexoIV = (dados.regime === 'simples' && anexoEfetivo === 'IV') ? _calcCPP(folhaMensal) : 0;
+
+  // Sublimite check
+  const sublimite = dados.regime === 'simples' ? _checkSublimite(rbt12Num) : null;
 
   const calcularViabilidade = () => {
     const receita = parseFloat(dados.receitaMensal) || 0;
@@ -27,10 +96,13 @@ export default function AnaliseViabilidade() {
 
     switch (dados.regime) {
       case 'mei': { const r = calcMEI(receita, dados.atividade); impostos = r && !r.excedeLimite ? r.dasFixo : 0; break; }
-      case 'simples': { const r = calcSimplesTax(receitaAnual, dados.anexo); impostos = r && !r.excedeLimite ? r.valorMensal : 0; break; }
+      case 'simples': { const r = calcSimplesTax(receitaAnual, anexoEfetivo); impostos = r && !r.excedeLimite ? r.valorMensal : 0; break; }
       case 'presumido': { const r = calcLucroPresumido(receita, dados.atividade, (parseFloat(dados.issAliquota) || 5) / 100); impostos = r && !r.erro ? r.totalMensal : 0; break; }
       case 'real': { const r = calcLucroReal(receita, parseFloat(dados.despesasDedutiveis) || custoFixo, parseFloat(dados.creditosPisCofins) || 0, (parseFloat(dados.issAliquota) || 5) / 100); impostos = r && !r.erro ? r.totalMensal : 0; break; }
     }
+
+    // Add CPP for Anexo IV
+    impostos += cppAnexoIV;
 
     const custoTotal = custoFixo + custoVariavel + impostos;
     const lucroMensal = receita - custoTotal;
@@ -40,19 +112,54 @@ export default function AnaliseViabilidade() {
     const margemContribuicao = 1 - ((parseFloat(dados.custoVariavelPercent) || 0) / 100) - aliquotaEfetiva;
     const pontoEquilibrio = margemContribuicao > 0 ? custoFixo / margemContribuicao : 0;
 
-    const projecao = Array.from({ length: 12 }, (_, i) => ({ mes: `M${i + 1}`, lucro: lucroMensal, acumulado: lucroMensal * (i + 1) - investimento }));
+    // Improved 12-month projection with compound growth + seasonality
+    const sazonalMults = sazonal[tipoSazonalidade] || sazonal.nenhuma;
+    const projecao = Array.from({ length: 12 }, (_, i) => {
+      const mult = sazonalMults[i];
+      const crescimento = Math.pow(1 + taxaCrescimento / 100, i);
+      const receitaMes = receita * crescimento * mult;
+      const custoMes = custoTotal * crescimento * mult;
+      const impostoMes = receitaMes * aliquotaEfetiva;
+      const lucroMes = receitaMes - custoMes - impostoMes;
+      const fatorDesconto = Math.pow(1 + (taxaDesconto / 100 / 12), -(i + 1));
+      const lucroDescontado = lucroMes * fatorDesconto;
+      return { mes: `M${i + 1}`, receita: receitaMes, custo: custoMes, lucro: lucroMes, lucroDescontado, acumulado: 0 };
+    });
+
+    // Calculate cumulative
+    let acum = -investimento;
+    projecao.forEach(p => { acum += p.lucroDescontado; p.acumulado = acum; });
+
+    // VPL (Net Present Value)
+    const vpl = projecao.reduce((sum, p) => sum + p.lucroDescontado, 0) - investimento;
+
     const distribuicao = [
       { name: 'Custos Fixos', value: custoFixo, color: COLORS[0] },
-      { name: 'Custos Variáveis', value: custoVariavel, color: COLORS[1] },
+      { name: 'Custos Variaveis', value: custoVariavel, color: COLORS[1] },
       { name: 'Impostos', value: impostos, color: COLORS[2] },
       { name: 'Lucro', value: Math.max(0, lucroMensal), color: COLORS[3] },
     ];
 
-    setResultado({ lucroMensal, margemLucro, payback, pontoEquilibrio, impostos, aliquotaEfetiva, custoTotal, projecao, distribuicao,
-      viabilidade: margemLucro > 20 ? 'excelente' : margemLucro > 10 ? 'boa' : margemLucro > 0 ? 'limitada' : 'inviavel' });
+    // Viability based on segment thresholds
+    const segThreshold = thresholds[segmento] || thresholds.servicos;
+    let viabilidade;
+    if (margemLucro >= segThreshold.excelente) {
+      viabilidade = 'excelente';
+    } else if (margemLucro >= segThreshold.boa) {
+      viabilidade = 'boa';
+    } else if (margemLucro > 0) {
+      viabilidade = 'limitada';
+    } else {
+      viabilidade = 'inviavel';
+    }
+
+    setResultado({
+      lucroMensal, margemLucro, payback, pontoEquilibrio, impostos, aliquotaEfetiva, custoTotal,
+      projecao, distribuicao, viabilidade, vpl,
+    });
   };
 
-  const viabTexto = { excelente: 'Excelente', boa: 'Boa', limitada: 'Limitada', inviavel: 'Inviável' };
+  const viabTexto = { excelente: 'Excelente', boa: 'Boa', limitada: 'Limitada', inviavel: 'Inviavel' };
   const viabColor = { excelente: 'green', boa: 'blue', limitada: 'amber', inviavel: 'red' };
   const update = (field, value) => setDados({ ...dados, [field]: value });
   const tt = { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,.1)' };
@@ -62,46 +169,110 @@ export default function AnaliseViabilidade() {
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
           <Target className="text-brand-600" size={22} />
-          Análise de Viabilidade
+          Analise de Viabilidade
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Avalie a viabilidade do negócio com cálculos tributários reais</p>
+        <p className="text-slate-500 text-sm mt-1">Avalie a viabilidade do negocio com calculos tributarios reais</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <Card>
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-medium text-slate-800 text-sm">Dados do Negócio</h2>
-          </div>
+          <CardHeader>
+            <h2 className="font-medium text-slate-800 text-sm">Dados do Negocio</h2>
+          </CardHeader>
           <CardBody className="space-y-3">
             <InputField label="Investimento Inicial" value={dados.investimentoInicial} onChange={(v) => update('investimentoInicial', v)} prefix="R$" step={5000} placeholder="50000" />
             <InputField label="Receita Mensal Esperada" value={dados.receitaMensal} onChange={(v) => update('receitaMensal', v)} prefix="R$" step={5000} placeholder="30000" />
             <InputField label="Custo Fixo Mensal" value={dados.custoFixoMensal} onChange={(v) => update('custoFixoMensal', v)} prefix="R$" step={1000} placeholder="8000" />
-            <InputField label="Custo Variável (% receita)" value={dados.custoVariavelPercent} onChange={(v) => update('custoVariavelPercent', v)} suffix="%" step={5} placeholder="20" />
+            <InputField label="Custo Variavel (% receita)" value={dados.custoVariavelPercent} onChange={(v) => update('custoVariavelPercent', v)} suffix="%" step={5} placeholder="20" />
             <SelectField label="Atividade" value={dados.atividade} onChange={(v) => update('atividade', v)} options={[
-              { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
+              { value: 'servicos', label: 'Servicos' }, { value: 'comercio', label: 'Comercio' }, { value: 'industria', label: 'Industria' },
             ]} />
-            <SelectField label="Regime Tributário" value={dados.regime} onChange={(v) => update('regime', v)} options={[
+            <SelectField label="Regime Tributario" value={dados.regime} onChange={(v) => update('regime', v)} options={[
               { value: 'mei', label: 'MEI' }, { value: 'simples', label: 'Simples Nacional' },
               { value: 'presumido', label: 'Lucro Presumido' }, { value: 'real', label: 'Lucro Real' },
             ]} />
             {dados.regime === 'simples' && (
               <>
-                <InputField label="RBT12 (Receita 12 meses)" value={dados.rbt12} onChange={(v) => update('rbt12', v)} prefix="R$" step={10000} placeholder="360000" help="Receita bruta dos últimos 12 meses" />
+                <InputField label="RBT12 (Receita 12 meses)" value={dados.rbt12} onChange={(v) => update('rbt12', v)} prefix="R$" step={10000} placeholder="360000" help="Receita bruta dos ultimos 12 meses" />
                 <SelectField label="Anexo" value={dados.anexo} onChange={(v) => update('anexo', v)} options={[
                   { value: 'I', label: 'Anexo I' }, { value: 'II', label: 'Anexo II' },
                   { value: 'III', label: 'Anexo III' }, { value: 'IV', label: 'Anexo IV' }, { value: 'V', label: 'Anexo V' },
                 ]} />
+                <InputField label="Folha de Pagamento Mensal" value={dados.folhaMensal} onChange={(v) => update('folhaMensal', v)} prefix="R$" step={1000} placeholder="20000" />
               </>
             )}
             {(dados.regime === 'presumido' || dados.regime === 'real') && (
-              <InputField label="Alíquota ISS (%)" value={dados.issAliquota} onChange={(v) => update('issAliquota', v)} suffix="%" min={2} max={5} step={0.5} />
+              <InputField label="Aliquota ISS (%)" value={dados.issAliquota} onChange={(v) => update('issAliquota', v)} suffix="%" min={2} max={5} step={0.5} />
             )}
             {dados.regime === 'real' && (
               <>
-                <InputField label="Despesas Dedutíveis" value={dados.despesasDedutiveis} onChange={(v) => update('despesasDedutiveis', v)} prefix="R$" step={1000} />
-                <InputField label="Créditos PIS/COFINS" value={dados.creditosPisCofins} onChange={(v) => update('creditosPisCofins', v)} prefix="R$" step={1000} />
+                <InputField label="Despesas Dedutiveis" value={dados.despesasDedutiveis} onChange={(v) => update('despesasDedutiveis', v)} prefix="R$" step={1000} />
+                <InputField label="Creditos PIS/COFINS" value={dados.creditosPisCofins} onChange={(v) => update('creditosPisCofins', v)} prefix="R$" step={1000} />
               </>
             )}
+
+            {/* Fator R display */}
+            {dados.regime === 'simples' && (
+              <div className="p-3 bg-slate-50 rounded-md space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Fator R</span>
+                  <span className={`text-xs font-medium ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
+                    {(fatorR * 100).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Anexo Efetivo</span>
+                  <span className="text-xs font-medium text-slate-700">Anexo {anexoEfetivo}</span>
+                </div>
+                {migrouAnexo && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Info size={12} className="text-emerald-600 flex-shrink-0" />
+                    <p className="text-xs text-emerald-600">Fator R &ge; 28% - migrado do Anexo V para III (aliquota menor)</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CPP Anexo IV warning */}
+            {dados.regime === 'simples' && anexoEfetivo === 'IV' && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
+                  <p className="text-xs text-amber-700 font-medium">Anexo IV - CPP nao inclusa no DAS</p>
+                </div>
+                <p className="text-xs text-amber-600 mt-1">
+                  CPP separada (20% da folha): <span className="font-medium">{formatCurrency(cppAnexoIV)}/mes</span>
+                </p>
+              </div>
+            )}
+
+            {/* Sublimite warning */}
+            {sublimite && sublimite.mensagem && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={14} className="text-red-600 flex-shrink-0" />
+                  <p className="text-xs text-red-700 font-medium">{sublimite.mensagem}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-slate-200 pt-3">
+              <p className="text-xs font-medium text-slate-500 mb-2">Parametros de Projecao</p>
+              <InputField label="Taxa de Crescimento Mensal (%)" value={taxaCrescimento} onChange={setTaxaCrescimento} suffix="%" step={0.5} min={0} max={20} />
+              <SelectField label="Sazonalidade" value={tipoSazonalidade} onChange={setTipoSazonalidade} className="mt-3" options={[
+                { value: 'nenhuma', label: 'Nenhuma' },
+                { value: 'comercio', label: 'Comercio (pico em dez)' },
+                { value: 'servicos', label: 'Servicos (estavel)' },
+                { value: 'educacao', label: 'Educacao (picos fev/ago)' },
+              ]} />
+              <InputField label="Taxa de Desconto Anual (%)" value={taxaDesconto} onChange={setTaxaDesconto} suffix="%" step={1} min={0} max={50} className="mt-3" help="Para calculo do VPL" />
+              <SelectField label="Segmento" value={segmento} onChange={setSegmento} className="mt-3" options={[
+                { value: 'servicos', label: 'Servicos' },
+                { value: 'comercio', label: 'Comercio' },
+                { value: 'industria', label: 'Industria' },
+              ]} />
+            </div>
+
             <button onClick={calcularViabilidade} className="w-full px-4 py-2.5 bg-brand-600 text-white rounded-md font-medium hover:bg-brand-700 transition-colors text-sm">
               Analisar Viabilidade
             </button>
@@ -115,38 +286,57 @@ export default function AnaliseViabilidade() {
                 <StatCard icon={resultado.viabilidade === 'inviavel' || resultado.viabilidade === 'limitada' ? AlertCircle : CheckCircle} label="Viabilidade" value={viabTexto[resultado.viabilidade]} color={viabColor[resultado.viabilidade]} />
                 <StatCard icon={DollarSign} label="Lucro Mensal" value={formatCurrency(resultado.lucroMensal)} subvalue={`${resultado.margemLucro.toFixed(1)}% margem`} color={resultado.lucroMensal > 0 ? 'green' : 'red'} />
                 <StatCard icon={Clock} label="Payback" value={resultado.payback > 0 ? `${resultado.payback.toFixed(1)} meses` : 'N/A'} color="blue" />
-                <StatCard icon={Target} label="Ponto de Equilíbrio" value={formatCurrency(resultado.pontoEquilibrio)} subvalue="Receita mínima" color="amber" />
+                <StatCard icon={Target} label="Ponto de Equilibrio" value={formatCurrency(resultado.pontoEquilibrio)} subvalue="Receita minima" color="amber" />
               </div>
 
               <Card>
                 <CardBody>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                     <div><p className="text-slate-400 text-xs">Impostos Mensais</p><p className="text-slate-800 font-medium">{formatCurrency(resultado.impostos)}</p></div>
-                    <div><p className="text-slate-400 text-xs">Alíquota Efetiva</p><p className="text-slate-800 font-medium">{formatPercent(resultado.aliquotaEfetiva)}</p></div>
+                    <div><p className="text-slate-400 text-xs">Aliquota Efetiva</p><p className="text-slate-800 font-medium">{formatPercent(resultado.aliquotaEfetiva)}</p></div>
                     <div><p className="text-slate-400 text-xs">Custos Totais</p><p className="text-slate-800 font-medium">{formatCurrency(resultado.custoTotal)}</p></div>
-                    <div><p className="text-slate-400 text-xs">Lucro Anual</p><p className={`font-medium ${resultado.lucroMensal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(resultado.lucroMensal * 12)}</p></div>
+                    <div><p className="text-slate-400 text-xs">VPL (12 meses)</p><p className={`font-medium ${resultado.vpl > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(resultado.vpl)}</p></div>
+                    <div><p className="text-slate-400 text-xs">Lucro Anual Est.</p><p className={`font-medium ${resultado.lucroMensal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(resultado.lucroMensal * 12)}</p></div>
+                  </div>
+                </CardBody>
+              </Card>
+
+              {/* Segment threshold info */}
+              <Card>
+                <CardBody>
+                  <div className="flex items-start gap-2">
+                    <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-slate-500">
+                      <p className="font-medium text-slate-700 mb-1">Criterios de viabilidade para {segmento}</p>
+                      <p>Excelente: margem &ge; {(thresholds[segmento] || thresholds.servicos).excelente}% | Boa: margem &ge; {(thresholds[segmento] || thresholds.servicos).boa}% | Limitada: margem &gt; 0% | Inviavel: margem &le; 0%</p>
+                    </div>
                   </div>
                 </CardBody>
               </Card>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <Card>
-                  <div className="px-5 py-3 border-b border-slate-100"><h3 className="font-medium text-slate-800 text-sm">Projeção 12 Meses</h3></div>
+                  <CardHeader><h3 className="font-medium text-slate-800 text-sm">Projecao 12 Meses</h3></CardHeader>
                   <CardBody>
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={240}>
                       <LineChart data={resultado.projecao}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis dataKey="mes" tick={{ fill: '#64748b', fontSize: 11 }} />
                         <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tt} formatter={(v) => formatCurrency(v)} />
+                        <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="3 3" />
                         <Line type="monotone" dataKey="lucro" stroke="#10b981" strokeWidth={2} name="Lucro Mensal" dot={false} />
-                        <Line type="monotone" dataKey="acumulado" stroke="#3b82f6" strokeWidth={2} name="Acumulado" dot={false} />
+                        <Line type="monotone" dataKey="acumulado" stroke="#3b82f6" strokeWidth={2} name="Acumulado (VPL)" dot={false} />
+                        <Line type="monotone" dataKey="receita" stroke="#8b5cf6" strokeWidth={1} strokeDasharray="4 4" name="Receita" dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
+                    {tipoSazonalidade !== 'nenhuma' && (
+                      <p className="text-xs text-slate-400 mt-2">Sazonalidade aplicada: {tipoSazonalidade}</p>
+                    )}
                   </CardBody>
                 </Card>
                 <Card>
-                  <div className="px-5 py-3 border-b border-slate-100"><h3 className="font-medium text-slate-800 text-sm">Distribuição de Custos</h3></div>
+                  <CardHeader><h3 className="font-medium text-slate-800 text-sm">Distribuicao de Custos</h3></CardHeader>
                   <CardBody>
                     <ResponsiveContainer width="100%" height={180}>
                       <PieChart>

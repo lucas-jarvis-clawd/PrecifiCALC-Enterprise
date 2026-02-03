@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Wallet, Plus, Trash2, Edit3, Save, X } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField from '../components/InputField';
-import { formatCurrency } from '../data/taxData';
+import { formatCurrency, calcEncargos } from '../data/taxData';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const CATEGORY_COLORS = {
@@ -35,12 +35,16 @@ export default function CustosOperacionais() {
   const [numFuncionarios, setNumFuncionarios] = useState(8);
   const [salarioMedio, setSalarioMedio] = useState(2500);
   const [proLabore, setProLabore] = useState(10000);
+  const [ratPercent, setRatPercent] = useState(2);
+  const [issAliquota, setIssAliquota] = useState(5);
+  const [showEncargos, setShowEncargos] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState({});
 
   const totalFixos = custosFixos.reduce((sum, c) => sum + c.valor, 0);
   const totalVariaveis = custosVariaveis.reduce((sum, c) => sum + c.valor, 0) * quantidadeMensal;
-  const custoFolha = (numFuncionarios * salarioMedio * 1.7) + proLabore;
+  const encargos = calcEncargos(ratPercent / 100);
+  const custoFolha = (numFuncionarios * salarioMedio * encargos.multiplicador) + proLabore;
   const totalGeral = totalFixos + totalVariaveis + custoFolha;
   const custoPorUnidade = quantidadeMensal > 0 ? totalGeral / quantidadeMensal : 0;
   const custoVariavelUnitario = custosVariaveis.reduce((sum, c) => sum + c.valor, 0);
@@ -51,8 +55,13 @@ export default function CustosOperacionais() {
       totalFixos, totalVariaveis, custoFolha, totalGeral, custoPorUnidade,
       quantidadeMensal, custoVariavelUnitario,
       despesasFixas: totalFixos + custoFolha,
+      issAliquota,
+      ratPercent,
+      multiplicadorEncargos: encargos.multiplicador,
+      folhaMensal: custoFolha,
+      numFuncionarios, salarioMedio, proLabore,
     }));
-  }, [totalFixos, totalVariaveis, custoFolha, totalGeral, custoPorUnidade, quantidadeMensal, custoVariavelUnitario]);
+  }, [totalFixos, totalVariaveis, custoFolha, totalGeral, custoPorUnidade, quantidadeMensal, custoVariavelUnitario, issAliquota, ratPercent, encargos.multiplicador, numFuncionarios, salarioMedio, proLabore]);
 
   const pieData = [
     { name: 'Custos Fixos', value: totalFixos },
@@ -105,12 +114,31 @@ export default function CustosOperacionais() {
           <CardBody className="space-y-3">
             <InputField label="Quantidade Vendida/Mês" value={quantidadeMensal} onChange={setQuantidadeMensal} min={1} step={10} help="Unidades vendidas ou serviços prestados" />
             <InputField label="Funcionários (CLT)" value={numFuncionarios} onChange={setNumFuncionarios} min={0} step={1} />
-            <InputField label="Salário Médio" value={salarioMedio} onChange={setSalarioMedio} prefix="R$" step={500} help="Custo total aprox. 1.7x com encargos" />
+            <InputField label="Salário Médio" value={salarioMedio} onChange={setSalarioMedio} prefix="R$" step={500} help={`Custo total aprox. ${encargos.multiplicador.toFixed(2)}x com encargos`} />
             <InputField label="Pró-Labore do Sócio" value={proLabore} onChange={setProLabore} prefix="R$" step={1000} />
+            <InputField label="Alíquota ISS do Município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia por município (2% a 5%)" />
+            <InputField label="RAT/GILRAT (%)" value={ratPercent} onChange={setRatPercent} suffix="%" min={1} max={3} step={0.5} help="Risco de acidente (1-3%)" />
             <div className="pt-3 border-t border-slate-200 space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">CLT Total</span><span className="text-slate-700 font-mono">{formatCurrency(numFuncionarios * salarioMedio * 1.7)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">CLT Total ({encargos.multiplicador.toFixed(2)}x)</span><span className="text-slate-700 font-mono">{formatCurrency(numFuncionarios * salarioMedio * encargos.multiplicador)}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">+ Pró-Labore</span><span className="text-slate-700 font-mono">{formatCurrency(proLabore)}</span></div>
               <div className="flex justify-between font-medium"><span className="text-slate-700">= Folha Total</span><span className="text-brand-600 font-mono">{formatCurrency(custoFolha)}</span></div>
+              <button onClick={() => setShowEncargos(!showEncargos)} className="text-xs text-brand-600 hover:text-brand-700 mt-2 flex items-center gap-1">
+                {showEncargos ? '\u25BC' : '\u25B6'} Detalhamento de Encargos (multiplicador: {encargos.multiplicador.toFixed(2)}x)
+              </button>
+              {showEncargos && (
+                <div className="mt-2 text-xs space-y-1">
+                  {encargos.detalhamento.map((item, i) => (
+                    <div key={i} className="flex justify-between">
+                      <span className="text-slate-500">{item.nome}</span>
+                      <span className="text-slate-700 font-mono">{(item.percentual * 100).toFixed(2)}% = {formatCurrency(salarioMedio * item.percentual)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between font-medium border-t border-slate-200 pt-1">
+                    <span className="text-slate-700">Total Encargos</span>
+                    <span className="text-brand-600 font-mono">{(encargos.total * 100).toFixed(2)}%</span>
+                  </div>
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>

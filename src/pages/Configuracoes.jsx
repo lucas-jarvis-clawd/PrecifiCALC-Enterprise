@@ -1,6 +1,19 @@
-import { useState } from 'react';
-import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info, Download, Upload, Trash2 } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
+
+function calcStorageSize() {
+  let total = 0;
+  let count = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('precificalc_')) {
+      total += (localStorage.getItem(key) || '').length * 2; // UTF-16
+      count++;
+    }
+  }
+  return { size: (total / 1024).toFixed(1) + ' KB', count };
+}
 
 export default function Configuracoes() {
   const [config, setConfig] = useState({
@@ -17,18 +30,25 @@ export default function Configuracoes() {
     alertaEmail: true,
     backupAutomatico: true,
     frequenciaBackup: 'diario',
-    tema: 'light',
-    receitaFederalAPI: false,
-    emailSMTP: false,
-    whatsappAPI: false,
-    autenticacao2FA: false,
-    sessaoExpira: 480,
-    logAuditoria: true,
   });
+
+  const [storageInfo, setStorageInfo] = useState({ size: '0 KB', count: 0 });
+
+  useEffect(() => {
+    setStorageInfo(calcStorageSize());
+    // Load saved config from localStorage
+    try {
+      const saved = localStorage.getItem('precificalc_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setConfig(prev => ({ ...prev, ...parsed }));
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const [alertas] = useState([
     { id: 1, tipo: 'info', titulo: 'Atualização Disponível', descricao: 'Nova versão do sistema com melhorias na performance', data: '2026-02-01', ativo: true },
-    { id: 2, tipo: 'warning', titulo: 'Backup Pendente', descricao: 'Último backup foi há 3 dias. Recomendamos backup imediato.', data: '2026-01-30', ativo: true },
+    { id: 2, tipo: 'warning', titulo: 'Backup Pendente', descricao: 'Recomendamos exportar seus dados regularmente.', data: '2026-01-30', ativo: true },
     { id: 3, tipo: 'error', titulo: 'Limite do Simples Nacional', descricao: 'Cliente João Silva está próximo do limite (R$ 4.2M de R$ 4.8M)', data: '2026-01-29', ativo: true },
     { id: 4, tipo: 'success', titulo: 'Configuração Salva', descricao: 'Suas preferências foram atualizadas com sucesso', data: '2026-01-28', ativo: false },
   ]);
@@ -50,14 +70,78 @@ export default function Configuracoes() {
     }
   };
 
-  const salvarConfiguracoes = () => alert('Configurações salvas com sucesso!');
-  const exportarDados = () => alert('Exportação iniciada! Você receberá um e-mail quando estiver pronto.');
-  const importarDados = () => alert('Funcionalidade de importação em desenvolvimento');
-  const resetarSistema = () => {
-    if (window.confirm('Tem certeza? Esta ação irá resetar todas as configurações para o padrão.')) {
-      alert('Sistema resetado com sucesso!');
+  function salvarConfiguracoes() {
+    try {
+      localStorage.setItem('precificalc_config', JSON.stringify(config));
+      setStorageInfo(calcStorageSize());
+      alert('Configurações salvas com sucesso!');
+    } catch {
+      alert('Erro ao salvar configurações.');
     }
-  };
+  }
+
+  function exportarDados() {
+    const allData = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('precificalc_')) {
+        try { allData[key] = JSON.parse(localStorage.getItem(key)); } catch { allData[key] = localStorage.getItem(key); }
+      }
+    }
+    if (Object.keys(allData).length === 0) {
+      alert('Nenhum dado encontrado para exportar.');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `precificalc_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function importarDados() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          Object.entries(data).forEach(([key, value]) => {
+            if (key.startsWith('precificalc_')) {
+              localStorage.setItem(key, JSON.stringify(value));
+            }
+          });
+          setStorageInfo(calcStorageSize());
+          alert('Dados importados com sucesso! Recarregue a página para ver os dados atualizados.');
+        } catch {
+          alert('Erro: arquivo inválido.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  function limparDados() {
+    if (window.confirm('Tem certeza? Todos os dados salvos serão apagados permanentemente.')) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.startsWith('precificalc_')) {
+          localStorage.removeItem(key);
+        }
+      }
+      alert('Dados limpos com sucesso. A página será recarregada.');
+      window.location.reload();
+    }
+  }
 
   const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500";
   const labelClass = "block text-xs font-medium text-slate-600 mb-1.5";
@@ -74,9 +158,9 @@ export default function Configuracoes() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={AlertTriangle} label="Alertas Ativos" value="3" subvalue="Requerem atenção" color="red" />
-        <StatCard icon={Shield} label="Segurança" value="85%" subvalue="Score de segurança" color="green" />
-        <StatCard icon={Database} label="Dados" value="2.3 GB" subvalue="Espaço utilizado" color="blue" />
+        <StatCard icon={AlertTriangle} label="Alertas Ativos" value={String(alertas.filter(a => a.ativo).length)} subvalue="Requerem atenção" color="red" />
+        <StatCard icon={Shield} label="Segurança" value="100%" subvalue="Dados locais" color="green" />
+        <StatCard icon={Database} label="Dados" value={storageInfo.size} subvalue={`${storageInfo.count} registro${storageInfo.count !== 1 ? 's' : ''}`} color="blue" />
         <StatCard icon={Zap} label="Performance" value="98%" subvalue="Sistema otimizado" color="purple" />
       </div>
 
@@ -139,37 +223,6 @@ export default function Configuracoes() {
               </div>
             </CardBody>
           </Card>
-
-          {/* Integrações */}
-          <Card>
-            <CardHeader>
-              <h2 className="text-slate-800 font-medium text-sm">Integrações</h2>
-              <p className="text-slate-400 text-xs mt-0.5">Configure integrações com serviços externos</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              {[
-                { key: 'receitaFederalAPI', label: 'API Receita Federal', desc: 'Consulta automática de dados tributários' },
-                { key: 'emailSMTP', label: 'E-mail SMTP', desc: 'Envio automático de relatórios por e-mail' },
-                { key: 'whatsappAPI', label: 'WhatsApp Business API', desc: 'Envio de propostas via WhatsApp' },
-              ].map(item => (
-                <div key={item.key} className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-slate-800 text-sm font-medium">{item.label}</h3>
-                    <p className="text-slate-500 text-xs">{item.desc}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config[item.key]}
-                      onChange={(e) => setConfig({ ...config, [item.key]: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
-                  </label>
-                </div>
-              ))}
-            </CardBody>
-          </Card>
         </div>
 
         {/* Coluna lateral */}
@@ -200,45 +253,26 @@ export default function Configuracoes() {
             </div>
           </Card>
 
-          {/* Backup */}
+          {/* Backup e Dados */}
           <Card>
             <CardHeader>
               <h2 className="text-slate-800 font-medium text-sm flex items-center gap-2">
-                <Database size={14} /> Backup e Segurança
+                <Database size={14} /> Backup e Dados
               </h2>
             </CardHeader>
             <CardBody className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-slate-800 text-sm font-medium">Backup Automático</h3>
-                  <p className="text-slate-500 text-xs">Backup diário dos dados</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config.backupAutomatico}
-                    onChange={(e) => setConfig({ ...config, backupAutomatico: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
-                </label>
-              </div>
-
-              <div>
-                <label className={labelClass}>Frequência</label>
-                <select value={config.frequenciaBackup} onChange={(e) => setConfig({ ...config, frequenciaBackup: e.target.value })} className={inputClass}>
-                  <option value="diario">Diário</option>
-                  <option value="semanal">Semanal</option>
-                  <option value="mensal">Mensal</option>
-                </select>
+              <div className="bg-slate-50 rounded-md p-3">
+                <p className="text-xs text-slate-500">Armazenamento local</p>
+                <p className="text-sm font-medium text-slate-800">{storageInfo.size}</p>
+                <p className="text-xs text-slate-400">{storageInfo.count} registro{storageInfo.count !== 1 ? 's' : ''} salvo{storageInfo.count !== 1 ? 's' : ''}</p>
               </div>
 
               <div className="pt-2 space-y-2">
-                <button onClick={exportarDados} className="w-full px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-sm hover:bg-blue-100 transition-colors">
-                  Exportar Dados
+                <button onClick={exportarDados} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-sm hover:bg-blue-100 transition-colors">
+                  <Download size={14} /> Exportar Dados
                 </button>
-                <button onClick={importarDados} className="w-full px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-sm hover:bg-emerald-100 transition-colors">
-                  Importar Dados
+                <button onClick={importarDados} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-sm hover:bg-emerald-100 transition-colors">
+                  <Upload size={14} /> Importar Dados
                 </button>
               </div>
             </CardBody>
@@ -251,8 +285,8 @@ export default function Configuracoes() {
               <button onClick={salvarConfiguracoes} className="w-full px-4 py-2 bg-brand-600 text-white rounded-md text-sm font-medium hover:bg-brand-700 transition-colors">
                 Salvar Configurações
               </button>
-              <button onClick={resetarSistema} className="w-full px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm hover:bg-red-100 transition-colors">
-                Resetar Sistema
+              <button onClick={limparDados} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm hover:bg-red-100 transition-colors">
+                <Trash2 size={14} /> Limpar Todos os Dados
               </button>
             </CardBody>
           </Card>
