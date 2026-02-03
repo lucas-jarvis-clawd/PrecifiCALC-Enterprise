@@ -331,8 +331,8 @@ export default function SimuladorTributario() {
           {resultado?.data && !resultado.data.excedeLimite && !resultado.data.migracao && (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <StatCard icon={Calculator} label="Imposto Mensal" value={formatCurrency(impostoMensal)} color="red" />
-                <StatCard icon={Calculator} label="Imposto Anual" value={formatCurrency(impostoMensal * 12)} color="amber" />
+                <StatCard icon={Calculator} label="Tributo Mensal" value={formatCurrency(impostoMensal)} color="red" />
+                <StatCard icon={Calculator} label="Tributo Anual" value={formatCurrency(impostoMensal * 12)} color="amber" />
                 <StatCard icon={Calculator} label="Alíquota Efetiva" value={formatPercent(impostoMensal / receitaMensalEfetiva)} color="blue" />
                 <StatCard icon={Calculator} label="Lucro Líquido" value={formatCurrency(lucroLiquido)} subvalue={`${((lucroLiquido / receitaMensalEfetiva) * 100).toFixed(1)}% da receita`} color={lucroLiquido > 0 ? 'green' : 'red'} />
               </div>
@@ -416,7 +416,7 @@ export default function SimuladorTributario() {
                       <Row label="COFINS (3,00% cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} />
                       <Row label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
                       <Divider />
-                      <Row label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
+                      <Row label="Total Tributos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
                       <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
                       <Row label="= Lucro Líquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
@@ -439,7 +439,7 @@ export default function SimuladorTributario() {
                       <Row label="COFINS (7,60% não-cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} sub={`Créditos: ${formatCurrency(resultado.data.cofins.creditos)}`} />
                       <Row label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
                       <Divider />
-                      <Row label="Total Impostos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
+                      <Row label="Total Tributos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
                       <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
                       <Row label="= Lucro Líquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
@@ -464,7 +464,7 @@ export default function SimuladorTributario() {
                     </div>
                   </div>
                   <div className="flex gap-4 mt-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-sm" /> Impostos</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-sm" /> Tributos</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-500 rounded-sm" /> Despesas</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-sm" /> Lucro</span>
                   </div>

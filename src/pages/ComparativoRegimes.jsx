@@ -354,14 +354,14 @@ export default function ComparativoRegimes() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Imposto Mensal por Regime</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Tributo Mensal por Regime</h2></CardHeader>
           <CardBody>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={comparativo} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="regime" tick={{ fill: '#64748b', fontSize: 12 }} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Imposto Mensal']} />
+                <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Tributo Mensal']} />
                 <Bar dataKey="impostoMensal" radius={[4, 4, 0, 0]}>
                   {comparativo.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Bar>

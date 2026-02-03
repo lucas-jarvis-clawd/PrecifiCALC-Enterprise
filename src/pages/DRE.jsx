@@ -120,9 +120,9 @@ export default function DRE() {
           <CardBody className="space-y-3">
             <p className="text-xs text-slate-400 font-medium">Receitas</p>
             <InputField label="Receita Bruta" value={receitaBruta} onChange={setReceitaBruta} prefix="R$" />
-            <InputField label="Impostos sobre Vendas" value={impostosSobreVendas} onChange={setImpostosSobreVendas} prefix="R$" />
+            <InputField label="Tributos sobre Vendas" value={impostosSobreVendas} onChange={setImpostosSobreVendas} prefix="R$" />
             <InputField label="Devoluções e Abatimentos" value={devolucoes} onChange={setDevolucoes} prefix="R$" />
-            <p className="text-xs text-slate-400 font-medium pt-2">Custos e Despesas</p>
+            <p className="text-xs text-slate-400 font-medium pt-2">Gastos</p>
             <InputField label="CPV / CSV" value={cpv} onChange={setCpv} prefix="R$" help="Custo dos produtos/serviços vendidos" />
             <InputField label="Despesas Administrativas" value={despAdmin} onChange={setDespAdmin} prefix="R$" />
             <InputField label="Despesas com Pessoal" value={despPessoal} onChange={setDespPessoal} prefix="R$" />
@@ -142,7 +142,7 @@ export default function DRE() {
           </CardHeader>
           <CardBody>
             <DRELine label="Receita Bruta" value={calc.rb} bold />
-            <DRELine label="Impostos sobre Vendas" value={-calc.ded} level={1} />
+            <DRELine label="Tributos sobre Vendas" value={-calc.ded} level={1} />
             <DRELine label="Receita Líquida" value={calc.rl} bold highlight />
             <div className="my-2" />
             <DRELine label="Custo dos Produtos/Serviços (CPV/CSV)" value={-calc.cpv} level={1} />

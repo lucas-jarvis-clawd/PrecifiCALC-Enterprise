@@ -1,24 +1,25 @@
 // ============================================================
 // BANCO DE DADOS TRIBUTÁRIO BRASILEIRO - COMPLETO E ATUALIZADO
-// Versão 2.0 - Atualizado para 2024/2025
+// Versão 3.0 - Atualizado para 2026
 // Auditoria: Especialista Tributário Senior (CRC + 10 anos)
-// Data: 01/02/2025
+// Data: 03/02/2026
+// Atualizado conforme LC 224/2025, Lei 14.973/2024, salário mínimo 2026
 // ============================================================
 
 // ==============================================
-// CONSTANTES E VALORES ATUALIZADOS 2025
+// CONSTANTES E VALORES ATUALIZADOS 2026
 // ==============================================
 
-export const constantesTributarias2025 = {
-  salarioMinimo: 1518.00, // 2025
-  tetoINSS: 7786.02, // 2025
+export const constantesTributarias2026 = {
+  salarioMinimo: 1621.00, // 2026
+  tetoINSS: 8475.55, // 2026
   faixasINSS: [
-    { de: 0, ate: 1518.00, aliquota: 0.075 },
-    { de: 1518.01, ate: 2530.00, aliquota: 0.09 },
-    { de: 2530.01, ate: 3792.00, aliquota: 0.12 },
-    { de: 3792.01, ate: 7786.02, aliquota: 0.14 }
+    { de: 0, ate: 1621.00, aliquota: 0.075 },
+    { de: 1621.01, ate: 2902.84, aliquota: 0.09 },
+    { de: 2902.85, ate: 4354.27, aliquota: 0.12 },
+    { de: 4354.28, ate: 8475.55, aliquota: 0.14 }
   ],
-  valorMeiInss: 75.90, // 5% do salário mínimo 2025
+  valorMeiInss: 81.05, // 5% do salário mínimo 2026 (R$ 1.621)
   limiteMEI: 81000,
   limiteMEICaminhoneiro: 251600,
   limiteSimples: 4800000
@@ -35,29 +36,29 @@ export const mei = {
   limiteMensalCaminhoneiro: 20966.67,
   
   das: {
-    inss: 75.90, // 5% do salário mínimo 2025 (R$ 1.518)
+    inss: 81.05, // 5% do salário mínimo 2026 (R$ 1.621)
     issServicos: 5.00,
     icmsComercio: 1.00,
   },
-  
+
   atividades: {
-    comercio: { 
-      das: 76.90, 
+    comercio: {
+      das: 82.05, // 81.05 + 1.00 ICMS
       descricao: 'Comércio e Indústria (INSS + ICMS)',
       tributos: ['INSS', 'ICMS']
     },
-    servicos: { 
-      das: 80.90, 
+    servicos: {
+      das: 86.05, // 81.05 + 5.00 ISS
       descricao: 'Prestação de Serviços (INSS + ISS)',
       tributos: ['INSS', 'ISS']
     },
-    misto: { 
-      das: 81.90, 
+    misto: {
+      das: 87.05, // 81.05 + 1.00 ICMS + 5.00 ISS
       descricao: 'Comércio + Serviços (INSS + ICMS + ISS)',
       tributos: ['INSS', 'ICMS', 'ISS']
     },
     caminhoneiro: {
-      das: 193.89, // Valor diferenciado para MEI Caminhoneiro
+      das: 195.52, // 12% de R$ 1.621 = R$ 194.52 + R$ 1.00 ICMS
       descricao: 'MEI Caminhoneiro (INSS + ICMS)',
       tributos: ['INSS', 'ICMS'],
       observacao: 'Limite especial de R$ 251.600/ano'
@@ -277,7 +278,7 @@ export function calcSimplesTax(receitaBruta12m, anexo, fatorR = null) {
     receitaMensal,
     valorMensal,
     valorAnual: valorMensal * 12,
-    distribuicaoImpostos: simplesNacional.anexos[anexo].distribuicao,
+    distribuicaoTributos: simplesNacional.anexos[anexo].distribuicao,
     proximaFaixa: faixas[faixas.indexOf(faixa) + 1] || null,
     fatorR
   };
@@ -288,36 +289,57 @@ export function calcSimplesTax(receitaBruta12m, anexo, fatorR = null) {
 // ==============================================
 
 export const cprb = {
-  atividades: {
-    // Lei 12.546/2011 - Desoneração da folha
-    ti: { aliquota: 0.045, descricao: 'Tecnologia da Informação' },
-    call_center: { aliquota: 0.02, descricao: 'Call Center' },
-    projeto_circuito: { aliquota: 0.02, descricao: 'Projeto de circuitos integrados' },
-    industria_calcados: { aliquota: 0.015, descricao: 'Indústria de calçados' },
-    industria_textil: { aliquota: 0.015, descricao: 'Indústria têxtil' },
-    industria_confeccao: { aliquota: 0.015, descricao: 'Indústria de confecção' },
-    industria_couro: { aliquota: 0.015, descricao: 'Indústria de couro' },
-    construcao_naval: { aliquota: 0.02, descricao: 'Construção naval' },
-    construcao_obra: { aliquota: 0.02, descricao: 'Construção de obras' },
-    servicos_ti: { aliquota: 0.045, descricao: 'Serviços de TI' },
-    comunicacao: { aliquota: 0.02, descricao: 'Comunicação' },
-    hoteis: { aliquota: 0.02, descricao: 'Hotéis' }
+  // Lei 12.546/2011 - Desoneração da folha
+  // Lei 14.973/2024 - Reoneração gradual da folha de pagamento:
+  //   2025: 80% CPRB + 5% CPP folha
+  //   2026: 60% CPRB + 10% CPP folha
+  //   2027: 40% CPRB + 15% CPP folha
+  //   2028+: 0% CPRB + 20% CPP folha (extinto)
+
+  reoneracaoGradual: {
+    2025: { fatorCPRB: 0.80, cppFolha: 0.05 },
+    2026: { fatorCPRB: 0.60, cppFolha: 0.10 },
+    2027: { fatorCPRB: 0.40, cppFolha: 0.15 },
+    2028: { fatorCPRB: 0.00, cppFolha: 0.20 },
   },
 
-  calcular(receitaBruta, tipoAtividade) {
+  atividades: {
+    ti: { aliquota: 0.045, efetivo2026: 0.045 * 0.60, descricao: 'Tecnologia da Informação' },
+    call_center: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Call Center' },
+    projeto_circuito: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Projeto de circuitos integrados' },
+    industria_calcados: { aliquota: 0.015, efetivo2026: 0.015 * 0.60, descricao: 'Indústria de calçados' },
+    industria_textil: { aliquota: 0.015, efetivo2026: 0.015 * 0.60, descricao: 'Indústria têxtil' },
+    industria_confeccao: { aliquota: 0.015, efetivo2026: 0.015 * 0.60, descricao: 'Indústria de confecção' },
+    industria_couro: { aliquota: 0.015, efetivo2026: 0.015 * 0.60, descricao: 'Indústria de couro' },
+    construcao_naval: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Construção naval' },
+    construcao_obra: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Construção de obras' },
+    servicos_ti: { aliquota: 0.045, efetivo2026: 0.045 * 0.60, descricao: 'Serviços de TI' },
+    comunicacao: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Comunicação' },
+    hoteis: { aliquota: 0.02, efetivo2026: 0.02 * 0.60, descricao: 'Hotéis' }
+  },
+
+  calcular(receitaBruta, tipoAtividade, folhaMensal = 0) {
     const atividade = this.atividades[tipoAtividade];
     if (!atividade) {
       return { erro: 'Atividade não encontrada para CPRB' };
     }
 
-    const valor = receitaBruta * atividade.aliquota;
-    
+    // Lei 14.973/2024: em 2026, aplica fator de 60% sobre a CPRB + 10% CPP sobre folha
+    const fator2026 = this.reoneracaoGradual[2026];
+    const aliquotaEfetiva = atividade.aliquota * fator2026.fatorCPRB;
+    const valorCPRB = receitaBruta * aliquotaEfetiva;
+    const valorCPPFolha = folhaMensal * fator2026.cppFolha;
+
     return {
       baseCalculo: receitaBruta,
-      aliquota: atividade.aliquota,
-      valor,
+      aliquotaOriginal: atividade.aliquota,
+      aliquotaEfetiva,
+      fatorReoneracao: fator2026.fatorCPRB,
+      valorCPRB,
+      valorCPPFolha,
+      valorTotal: valorCPRB + valorCPPFolha,
       descricao: atividade.descricao,
-      observacao: 'Substitui contribuição patronal sobre folha de pagamento'
+      observacao: 'Lei 14.973/2024: 2026 = 60% CPRB + 10% CPP folha (reoneração gradual)'
     };
   }
 };
@@ -347,7 +369,7 @@ export const irrf = {
   },
 
   pessoaFisica: {
-    // Tabela para pessoa física 2025
+    // Tabela para pessoa física 2026
     faixas: [
       { de: 0, ate: 2112.00, aliquota: 0, deducao: 0 },
       { de: 2112.01, ate: 2826.65, aliquota: 0.075, deducao: 158.40 },
@@ -532,18 +554,26 @@ export const lucroPresumido = {
 };
 
 export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', issAliquota = 0.05, temCPRB = false) {
-  const presuncao = lucroPresumido.presuncao[tipoAtividade] || lucroPresumido.presuncao.servicos;
+  const presuncaoOriginal = lucroPresumido.presuncao[tipoAtividade] || lucroPresumido.presuncao.servicos;
   const receitaTrimestral = receitaMensal * 3;
   const receitaAnual = receitaMensal * 12;
 
   // Verifica limite
   if (receitaAnual > 78000000) {
-    return { 
+    return {
       erro: 'Receita excede limite para Lucro Presumido',
       receitaAnual,
       proximoRegime: 'Lucro Real obrigatório'
     };
   }
+
+  // LC 224/2025: aumento de 10% na presunção para receita anual > R$ 5M
+  const fatorLC224 = receitaAnual > 5000000 ? 1.10 : 1.00;
+  const presuncao = {
+    ...presuncaoOriginal,
+    irpj: presuncaoOriginal.irpj * fatorLC224,
+    csll: presuncaoOriginal.csll * fatorLC224,
+  };
 
   // Base de cálculo
   const baseIRPJ = receitaTrimestral * presuncao.irpj;
@@ -571,9 +601,10 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
   const issMensal = receitaMensal * issAliquota;
 
   // CPRB (se aplicável - substitui contrib. patronal)
+  // Lei 14.973/2024: em 2026, aplica fator de 60% sobre a alíquota CPRB
   let cprbValor = 0;
   if (temCPRB && cprb.atividades && cprb.atividades[tipoAtividade]) {
-    cprbValor = receitaMensal * cprb.atividades[tipoAtividade].aliquota;
+    cprbValor = receitaMensal * cprb.atividades[tipoAtividade].efetivo2026;
   }
 
   const totalMensal = (irpjTrimestral / 3) + (csllTrimestral / 3) + pisMensal + cofinsMensal + issMensal + cprbValor;
@@ -633,8 +664,8 @@ export const lucroReal = {
     isento: ['vendas para exterior', 'vendas para zona franca']
   },
   
-  cofins: { 
-    aliquota: 0.076, // não-cumulativo
+  cofins: {
+    aliquota: 0.0765, // não-cumulativo
     isento: ['vendas para exterior', 'vendas para zona franca']
   },
 
@@ -816,7 +847,7 @@ export const encargosTrabalhistas = {
   
   proLabore: {
     inss: 0.11, // 11% para o sócio
-    tetoInss2025: 908.85, // 11% sobre teto INSS 2025
+    tetoInss2026: 932.31, // 11% sobre teto INSS 2026
     inssPatronal: 0.20, // se Lucro Presumido/Real (20% sobre pró-labore)
     inssPatronalSimples: 0, // No Simples, não há INSS patronal sobre pró-labore
   },

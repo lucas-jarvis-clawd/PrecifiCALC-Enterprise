@@ -256,7 +256,7 @@ export default function PontoEquilibrio() {
                   <p className="text-red-600 font-medium">{formatCurrency(resultado.custoVariavelUnitario)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs">(-) Impostos</p>
+                  <p className="text-slate-400 text-xs">(-) Tributos</p>
                   <p className="text-red-600 font-medium">{formatCurrency(resultado.impostoUnitario)}</p>
                 </div>
                 {cppAnexoIV > 0 && (

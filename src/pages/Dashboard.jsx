@@ -64,7 +64,7 @@ export default function Dashboard({ onNavigate }) {
     { id: 'comparativo', icon: BarChart3, title: 'Comparativo de Regimes', desc: 'Compare lado a lado a carga tributária entre todos os regimes para encontrar o mais vantajoso.' },
     { id: 'viabilidade', icon: Target, title: 'Análise de Viabilidade', desc: 'Avalie a viabilidade do negócio com cálculo de ROI, payback e projeção financeira.' },
     { id: 'custos', icon: Wallet, title: 'Custos Operacionais', desc: 'Mapeie custos fixos e variáveis do negócio para formar preço e analisar viabilidade.' },
-    { id: 'precificacao', icon: Tags, title: 'Precificação', desc: 'Calcule o preço de venda de produtos e serviços considerando custos, impostos e margem.' },
+    { id: 'precificacao', icon: Tags, title: 'Precificação', desc: 'Calcule o preço de venda de produtos e serviços considerando custos, tributos e margem.' },
     { id: 'equilibrio', icon: Scale, title: 'Ponto de Equilíbrio', desc: 'Determine a receita mínima necessária para cobrir todos os custos e começar a lucrar.' },
     { id: 'dre', icon: FileSpreadsheet, title: 'DRE', desc: 'Monte o Demonstrativo de Resultado do Exercício com cálculo automático de margens e EBITDA.' },
     { id: 'calendario', icon: CalendarDays, title: 'Calendário Fiscal', desc: 'Consulte todas as obrigações tributárias e trabalhistas com prazos de vencimento por regime.' },
@@ -101,8 +101,8 @@ export default function Dashboard({ onNavigate }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Calculator} label="Regimes Tributários" value="4" subvalue="MEI, Simples, Presumido, Real" color="brand" />
         <StatCard icon={BarChart3} label="Anexos do Simples" value="5" subvalue="30 faixas de alíquotas" color="blue" />
-        <StatCard icon={Tags} label="Impostos Mapeados" value="12+" subvalue="IRPJ, CSLL, PIS, COFINS, ISS..." color="purple" />
-        <StatCard icon={Scale} label="Base Atualizada" value="2025" subvalue="Legislação vigente" color="green" />
+        <StatCard icon={Tags} label="Tributos Mapeados" value="12+" subvalue="IRPJ, CSLL, PIS, COFINS, ISS..." color="purple" />
+        <StatCard icon={Scale} label="Base Atualizada" value="2026" subvalue="Legislação vigente" color="green" />
       </div>
 
       <div>
@@ -142,7 +142,7 @@ export default function Dashboard({ onNavigate }) {
                 <th className="text-left px-5 py-3">Regime</th>
                 <th className="text-left px-5 py-3">Limite Anual</th>
                 <th className="text-left px-5 py-3">Alíquota</th>
-                <th className="text-left px-5 py-3">Impostos</th>
+                <th className="text-left px-5 py-3">Tributos</th>
                 <th className="text-left px-5 py-3">Indicado Para</th>
               </tr>
             </thead>
@@ -152,28 +152,28 @@ export default function Dashboard({ onNavigate }) {
                 <td className="px-5 py-3">R$ 81.000</td>
                 <td className="px-5 py-3 text-emerald-600 font-medium">~1-2%</td>
                 <td className="px-5 py-3">INSS + ISS/ICMS</td>
-                <td className="px-5 py-3">Autônomos, micronegócios</td>
+                <td className="px-5 py-3">O objetivo é regularizar, testar o negócio ou faturar pouco com custo mínimo.</td>
               </tr>
               <tr className="hover:bg-slate-50">
                 <td className="px-5 py-3 text-slate-800 font-medium">Simples Nacional</td>
                 <td className="px-5 py-3">R$ 4.800.000</td>
                 <td className="px-5 py-3 text-blue-600 font-medium">4% a 33%</td>
-                <td className="px-5 py-3">DAS unificado (8 tributos)</td>
-                <td className="px-5 py-3">PMEs</td>
+                <td className="px-5 py-3">DAS Unificado</td>
+                <td className="px-5 py-3">O foco é simplicidade e previsibilidade, não otimização fiscal máxima.</td>
               </tr>
               <tr className="hover:bg-slate-50">
                 <td className="px-5 py-3 text-slate-800 font-medium">Lucro Presumido</td>
                 <td className="px-5 py-3">R$ 78.000.000</td>
                 <td className="px-5 py-3 text-violet-600 font-medium">~11-17%</td>
                 <td className="px-5 py-3">IRPJ, CSLL, PIS, COFINS, ISS</td>
-                <td className="px-5 py-3">Margens altas, serviços</td>
+                <td className="px-5 py-3">A margem real é maior que a margem presumida pela lei.</td>
               </tr>
               <tr className="hover:bg-slate-50">
                 <td className="px-5 py-3 text-slate-800 font-medium">Lucro Real</td>
                 <td className="px-5 py-3">Sem limite</td>
                 <td className="px-5 py-3 text-amber-600 font-medium">~34% s/ lucro</td>
                 <td className="px-5 py-3">IRPJ, CSLL, PIS, COFINS, ISS</td>
-                <td className="px-5 py-3">Margens baixas, grandes</td>
+                <td className="px-5 py-3">A empresa tem muitos créditos, margem apertada ou oscilações fortes no resultado.</td>
               </tr>
             </tbody>
           </table>

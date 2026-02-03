@@ -177,7 +177,7 @@ export default function Precificacao() {
           <Tags className="text-brand-600" size={22} />
           Precificacao
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Calcule o preco de venda considerando custos, impostos e margem desejada</p>
+        <p className="text-slate-500 text-sm mt-1">Calcule o preco de venda considerando gastos, tributos e margem desejada</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -301,7 +301,7 @@ export default function Precificacao() {
                 <PriceRow label="Custo unitario" value={calculo.custoUnitario} total={calculo.precoVenda} color="bg-red-500" />
                 <PriceRow label="Despesas variaveis" value={calculo.despVariavelUnitario} total={calculo.precoVenda} color="bg-amber-500" />
                 <PriceRow label="Rateio despesas fixas" value={calculo.custoFixoUnitario} total={calculo.precoVenda} color="bg-orange-500" />
-                <PriceRow label="Impostos" value={calculo.impostoUnitario} total={calculo.precoVenda} color="bg-violet-500" />
+                <PriceRow label="Tributos" value={calculo.impostoUnitario} total={calculo.precoVenda} color="bg-violet-500" />
                 {cppAnexoIV > 0 && (
                   <PriceRow label="CPP Anexo IV" value={calculo.cppUnitario} total={calculo.precoVenda} color="bg-rose-500" />
                 )}
@@ -337,7 +337,7 @@ export default function Precificacao() {
                   <p className="text-slate-800 font-medium">{formatCurrency(calculo.custoTotal * quantidadeMensal)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs">Impostos</p>
+                  <p className="text-slate-400 text-xs">Tributos</p>
                   <p className="text-slate-800 font-medium">{formatCurrency(calculo.impostosMensal)}</p>
                 </div>
                 <div>

@@ -136,7 +136,7 @@ export default function AnaliseViabilidade() {
     const distribuicao = [
       { name: 'Custos Fixos', value: custoFixo, color: COLORS[0] },
       { name: 'Custos Variaveis', value: custoVariavel, color: COLORS[1] },
-      { name: 'Impostos', value: impostos, color: COLORS[2] },
+      { name: 'Tributos', value: impostos, color: COLORS[2] },
       { name: 'Lucro', value: Math.max(0, lucroMensal), color: COLORS[3] },
     ];
 
@@ -292,7 +292,7 @@ export default function AnaliseViabilidade() {
               <Card>
                 <CardBody>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                    <div><p className="text-slate-400 text-xs">Impostos Mensais</p><p className="text-slate-800 font-medium">{formatCurrency(resultado.impostos)}</p></div>
+                    <div><p className="text-slate-400 text-xs">Tributos Mensais</p><p className="text-slate-800 font-medium">{formatCurrency(resultado.impostos)}</p></div>
                     <div><p className="text-slate-400 text-xs">Aliquota Efetiva</p><p className="text-slate-800 font-medium">{formatPercent(resultado.aliquotaEfetiva)}</p></div>
                     <div><p className="text-slate-400 text-xs">Custos Totais</p><p className="text-slate-800 font-medium">{formatCurrency(resultado.custoTotal)}</p></div>
                     <div><p className="text-slate-400 text-xs">VPL (12 meses)</p><p className={`font-medium ${resultado.vpl > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(resultado.vpl)}</p></div>
