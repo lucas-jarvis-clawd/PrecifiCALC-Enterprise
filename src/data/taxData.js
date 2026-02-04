@@ -410,24 +410,32 @@ export const irrf = {
   },
 
   calcularPF(rendimento, numDependentes = 0) {
+    // CORREÇÃO: Dedução de dependentes ANTES de encontrar a faixa
+    // Conforme Instrução Normativa RFB nº 1.500/2014 e legislação vigente,
+    // a base de cálculo é apurada após dedução de dependentes, e a faixa
+    // é determinada sobre essa base de cálculo (não sobre o rendimento bruto).
+    const deducaoDependentes = numDependentes * this.pessoaFisica.dependentes;
+    const baseCalculo = Math.max(0, rendimento - deducaoDependentes);
+
+    // Encontra a faixa sobre a BASE DE CÁLCULO (após deduções)
     const faixa = this.pessoaFisica.faixas.find(f => 
-      rendimento >= f.de && rendimento <= f.ate
+      baseCalculo >= f.de && baseCalculo <= f.ate
     );
     
     if (!faixa) return { erro: 'Faixa não encontrada' };
 
-    const deducaoDependentes = numDependentes * this.pessoaFisica.dependentes;
-    const baseCalculo = Math.max(0, rendimento - deducaoDependentes);
     const irDevido = Math.max(0, (baseCalculo * faixa.aliquota) - faixa.deducao);
 
     return {
       rendimento,
       deducaoDependentes,
       baseCalculo,
+      faixaUtilizada: this.pessoaFisica.faixas.indexOf(faixa) + 1,
       aliquota: faixa.aliquota,
       deducaoFaixa: faixa.deducao,
       irDevido,
-      aliquotaEfetiva: baseCalculo > 0 ? irDevido / baseCalculo : 0
+      aliquotaEfetiva: rendimento > 0 ? irDevido / rendimento : 0,
+      aliquotaEfetivaSobreBase: baseCalculo > 0 ? irDevido / baseCalculo : 0
     };
   }
 };

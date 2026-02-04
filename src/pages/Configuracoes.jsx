@@ -26,6 +26,7 @@ export default function Configuracoes() {
     timezone: 'America/Sao_Paulo',
     formatoData: 'dd/MM/yyyy',
     casasDecimais: 2,
+    corMarca: '#4f46e5',
     alertasAtivos: true,
     alertaEmail: true,
     backupAutomatico: true,
@@ -190,6 +191,14 @@ export default function Configuracoes() {
                 <div>
                   <label className={labelClass}>E-mail</label>
                   <input type="email" value={config.email} onChange={(e) => setConfig({ ...config, email: e.target.value })} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Cor da Marca (PDFs/Relatórios)</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={config.corMarca} onChange={(e) => setConfig({ ...config, corMarca: e.target.value })} className="w-10 h-10 rounded-md border border-slate-300 cursor-pointer p-0.5" />
+                    <input type="text" value={config.corMarca} onChange={(e) => setConfig({ ...config, corMarca: e.target.value })} className={`${inputClass} w-28 font-mono`} placeholder="#4f46e5" />
+                    <span className="text-xs text-slate-400">Cor do cabeçalho nos PDFs</span>
+                  </div>
                 </div>
               </div>
             </CardBody>
