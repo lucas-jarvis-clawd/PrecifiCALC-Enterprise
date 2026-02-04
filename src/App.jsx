@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
+import Onboarding from './components/Onboarding';
 import Dashboard from './pages/Dashboard';
 import SimuladorTributario from './pages/SimuladorTributario';
 import CustosOperacionais from './pages/CustosOperacionais';
@@ -33,6 +34,29 @@ const pages = {
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [perfilEmpresa, setPerfilEmpresa] = useState(null);
+
+  useEffect(() => {
+    // Verificar se o onboarding já foi feito
+    const onboarded = localStorage.getItem('precificalc_onboarded');
+    const perfil = localStorage.getItem('precificalc_perfil');
+    
+    if (onboarded === 'true' && perfil) {
+      setIsOnboardingComplete(true);
+      setPerfilEmpresa(JSON.parse(perfil));
+    }
+  }, []);
+
+  const handleOnboardingComplete = (dadosEmpresa) => {
+    setPerfilEmpresa(dadosEmpresa);
+    setIsOnboardingComplete(true);
+  };
+
+  // Se onboarding não foi completado, mostrar a tela de configuração
+  if (!isOnboardingComplete) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   const PageComponent = pages[currentPage]?.component || Dashboard;
 
@@ -46,7 +70,7 @@ export default function App() {
       />
       <main className={`flex-1 overflow-y-auto transition-all duration-200 ${sidebarOpen ? 'ml-60' : 'ml-16'}`}>
         <div className="p-6 max-w-[1400px] mx-auto">
-          <PageComponent onNavigate={setCurrentPage} />
+          <PageComponent onNavigate={setCurrentPage} perfilEmpresa={perfilEmpresa} />
         </div>
       </main>
     </div>

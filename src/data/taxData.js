@@ -3,7 +3,7 @@
 // Versão 3.0 - Atualizado para 2026
 // Auditoria: Especialista Tributário Senior (CRC + 10 anos)
 // Data: 03/02/2026
-// Atualizado conforme LC 224/2025, Lei 14.973/2024, salário mínimo 2026
+// Atualizado conforme Lei 14.973/2024, salário mínimo 2026
 // ============================================================
 
 // ==============================================
@@ -567,13 +567,7 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
     };
   }
 
-  // LC 224/2025: aumento de 10% na presunção para receita anual > R$ 5M
-  const fatorLC224 = receitaAnual > 5000000 ? 1.10 : 1.00;
-  const presuncao = {
-    ...presuncaoOriginal,
-    irpj: presuncaoOriginal.irpj * fatorLC224,
-    csll: presuncaoOriginal.csll * fatorLC224,
-  };
+  const presuncao = presuncaoOriginal;
 
   // Base de cálculo
   const baseIRPJ = receitaTrimestral * presuncao.irpj;
@@ -665,7 +659,7 @@ export const lucroReal = {
   },
   
   cofins: {
-    aliquota: 0.0765, // não-cumulativo
+    aliquota: 0.076, // não-cumulativo (7,6%)
     isento: ['vendas para exterior', 'vendas para zona franca']
   },
 
