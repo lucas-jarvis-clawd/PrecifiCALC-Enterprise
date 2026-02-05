@@ -95,8 +95,9 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 border-2 border-dashed border-slate-300">
         <div className="text-center">
           <span className="text-4xl">💰</span>
-          <h3 className="text-lg font-bold text-slate-600 mt-2">Quanto sobra no seu bolso?</h3>
-          <p className="text-slate-500 text-sm mt-1">
+          <h3 className="text-lg font-bold text-slate-600 mt-2">Lucro Líquido do Empresário</h3>
+          <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra no seu bolso após todos os gastos e impostos)</p>
+          <p className="text-slate-500 text-sm mt-2">
             Use o botão <strong>"Quero Precificar!"</strong> para descobrir
           </p>
         </div>
@@ -120,13 +121,18 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <span className="text-2xl">{isPositive ? '💰' : '⚠️'}</span>
-        <h3 className={`text-sm font-bold uppercase tracking-wider ${
-          isPositive ? 'text-emerald-800' : 'text-red-800'
-        }`}>
-          Quanto sobra no seu bolso
-        </h3>
+        <div>
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${
+            isPositive ? 'text-emerald-800' : 'text-red-800'
+          }`}>
+            Lucro Líquido do Empresário
+          </h3>
+          <p className={`text-[10px] ${isPositive ? 'text-emerald-600' : 'text-red-600'} opacity-70`}>
+            (Quanto sobra no seu bolso após todos os gastos e impostos)
+          </p>
+        </div>
       </div>
 
       {/* Main numbers */}

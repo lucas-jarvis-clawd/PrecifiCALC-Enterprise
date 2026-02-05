@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,33 +16,37 @@ import {
   FileSpreadsheet,
   CalendarDays,
   UserCheck,
+  TrendingUp,
   X,
   Sun,
   Moon,
+  HelpCircle,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProgressBadge } from './ProgressBar';
 
 const menuItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'principal' },
-  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário', section: 'principal' },
-  { path: '/comparativo', icon: BarChart3, label: 'Comparativo', section: 'principal' },
-  { path: '/precificacao', icon: Tags, label: 'Precificação', section: 'principal' },
-  { path: '/custos', icon: Wallet, label: 'Custos', section: 'ferramentas' },
-  { path: '/equilibrio', icon: Scale, label: 'Ponto de Equilíbrio', section: 'ferramentas' },
-  { path: '/viabilidade', icon: Target, label: 'Viabilidade', section: 'ferramentas' },
-  { path: '/dre', icon: FileSpreadsheet, label: 'DRE', section: 'ferramentas' },
-  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento', section: 'extras' },
-  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal', section: 'extras' },
-  { path: '/propostas', icon: FileText, label: 'Propostas', section: 'extras' },
-  { path: '/relatorios', icon: FileDown, label: 'Relatórios', section: 'extras' },
-  { path: '/configuracoes', icon: Settings, label: 'Configurações', section: 'extras' },
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard', shortLabel: 'Dashboard', tooltip: 'Visão geral do seu negócio', section: 'visao_geral' },
+  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário', shortLabel: 'Simulador', tooltip: 'Calcule impostos em cada regime', section: 'visao_geral' },
+  { path: '/comparativo', icon: BarChart3, label: 'Comparativo de Regimes', shortLabel: 'Comparativo', tooltip: 'Compare impostos entre MEI, Simples, Presumido e Real', section: 'visao_geral' },
+  { path: '/precificacao', icon: Tags, label: 'Precificação', shortLabel: 'Precificação', tooltip: 'Calcule o preço ideal de venda', section: 'precificacao' },
+  { path: '/custos', icon: Wallet, label: 'Custos Operacionais', shortLabel: 'Custos', tooltip: 'Gastos fixos e variáveis do negócio', section: 'precificacao' },
+  { path: '/equilibrio', icon: Scale, label: 'Ponto de Equilíbrio', shortLabel: 'Equilíbrio', tooltip: 'Mínimo que precisa vender para não ter prejuízo', section: 'precificacao' },
+  { path: '/projecao', icon: TrendingUp, label: 'Projeção de Crescimento', shortLabel: 'Projeção', tooltip: 'Simule o impacto de crescer no futuro', section: 'analise' },
+  { path: '/viabilidade', icon: Target, label: 'Análise de Viabilidade', shortLabel: 'Viabilidade', tooltip: 'ROI, payback e viabilidade do negócio', section: 'analise' },
+  { path: '/dre', icon: FileSpreadsheet, label: 'DRE (Resultado Mensal)', shortLabel: 'DRE', tooltip: 'Demonstração do Resultado: entradas, saídas e lucro', section: 'analise' },
+  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento Tributário', shortLabel: 'Enquadramento', tooltip: 'Descubra o melhor tipo de empresa pra você', section: 'extras' },
+  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal', shortLabel: 'Calendário', tooltip: 'Datas de impostos e obrigações', section: 'extras' },
+  { path: '/propostas', icon: FileText, label: 'Propostas Comerciais', shortLabel: 'Propostas', tooltip: 'Gere propostas profissionais para clientes', section: 'extras' },
+  { path: '/relatorios', icon: FileDown, label: 'Relatórios', shortLabel: 'Relatórios', tooltip: 'Exporte relatórios e análises', section: 'extras' },
+  { path: '/configuracoes', icon: Settings, label: 'Configurações', shortLabel: 'Config.', tooltip: 'Dados da empresa e preferências', section: 'extras' },
 ];
 
 const sections = {
-  principal: 'Principal',
-  ferramentas: 'Ferramentas',
-  extras: 'Mais',
+  visao_geral: '📊 Visão Geral',
+  precificacao: '🏷️ Preço & Custos',
+  analise: '📈 Análise & Projeção',
+  extras: '⚙️ Ferramentas',
 };
 
 export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobileClose }) {
@@ -112,13 +116,13 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
                       to={item.path}
                       end={item.path === '/'}
                       className={({ isActive }) =>
-                        `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all touch-manipulation ${
+                        `group/nav w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all touch-manipulation ${
                           isActive
                             ? 'bg-brand-500/20 text-brand-300 shadow-sm'
                             : 'text-slate-400 hover:text-white hover:bg-white/5 active:bg-white/10'
                         }`
                       }
-                      title={!isOpen && !isMobile ? item.label : undefined}
+                      title={!isOpen && !isMobile ? item.tooltip || item.label : undefined}
                     >
                       {({ isActive }) => (
                         <>

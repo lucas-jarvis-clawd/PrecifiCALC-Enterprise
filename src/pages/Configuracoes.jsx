@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info, Download, Upload, Trash2 } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info, Download, Upload, Trash2, Sun, Moon, Palette } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
+import ThemeToggle from '../components/ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 function calcStorageSize() {
   let total = 0;
@@ -75,9 +78,9 @@ export default function Configuracoes() {
     try {
       localStorage.setItem('precificalc_config', JSON.stringify(config));
       setStorageInfo(calcStorageSize());
-      alert('Configurações salvas com sucesso!');
+      toast.success('Configurações salvas com sucesso!');
     } catch {
-      alert('Erro ao salvar configurações.');
+      toast.error('Erro ao salvar configurações.');
     }
   }
 
@@ -144,17 +147,20 @@ export default function Configuracoes() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500";
-  const labelClass = "block text-xs font-medium text-slate-600 mb-1.5";
+  const { theme } = useTheme();
+  const toast = useToast();
+
+  const inputClass = "w-full px-3 py-2.5 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors";
+  const labelClass = "block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5";
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <Settings className="text-brand-600" size={22} />
+      <div className="border-b border-slate-200 dark:border-slate-700 pb-4">
+        <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <Settings className="text-brand-600 dark:text-brand-400" size={22} />
           Configurações
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
       </div>
 
       {/* Stats */}
@@ -204,9 +210,27 @@ export default function Configuracoes() {
             </CardBody>
           </Card>
 
+          {/* Aparência */}
+          <Card>
+            <CardHeader>
+              <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+                <Palette size={14} /> Aparência
+              </h2>
+            </CardHeader>
+            <CardBody>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Tema</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Escolha entre modo claro e escuro</p>
+                </div>
+                <ThemeToggle />
+              </div>
+            </CardBody>
+          </Card>
+
           {/* Sistema */}
           <Card>
-            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Configurações do Sistema</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm">Configurações do Sistema</h2></CardHeader>
             <CardBody>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
