@@ -17,35 +17,42 @@ import {
   CalendarDays,
   UserCheck,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { ProgressBadge } from './ProgressBar';
 
 const menuItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário' },
-  { path: '/comparativo', icon: BarChart3, label: 'Comparativo de Regimes' },
-  { path: '/viabilidade', icon: Target, label: 'Análise de Viabilidade' },
-  { path: '/custos', icon: Wallet, label: 'Custos Operacionais' },
-  { path: '/precificacao', icon: Tags, label: 'Precificação' },
-  { path: '/equilibrio', icon: Scale, label: 'Ponto de Equilíbrio' },
-  { path: '/dre', icon: FileSpreadsheet, label: 'DRE' },
-  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal' },
-  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento' },
-  { path: '/propostas', icon: FileText, label: 'Propostas' },
-  { path: '/relatorios', icon: FileDown, label: 'Relatórios' },
-  { path: '/configuracoes', icon: Settings, label: 'Configurações' },
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'principal' },
+  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário', section: 'principal' },
+  { path: '/comparativo', icon: BarChart3, label: 'Comparativo', section: 'principal' },
+  { path: '/precificacao', icon: Tags, label: 'Precificação', section: 'principal' },
+  { path: '/custos', icon: Wallet, label: 'Custos', section: 'ferramentas' },
+  { path: '/equilibrio', icon: Scale, label: 'Ponto de Equilíbrio', section: 'ferramentas' },
+  { path: '/viabilidade', icon: Target, label: 'Viabilidade', section: 'ferramentas' },
+  { path: '/dre', icon: FileSpreadsheet, label: 'DRE', section: 'ferramentas' },
+  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento', section: 'extras' },
+  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal', section: 'extras' },
+  { path: '/propostas', icon: FileText, label: 'Propostas', section: 'extras' },
+  { path: '/relatorios', icon: FileDown, label: 'Relatórios', section: 'extras' },
+  { path: '/configuracoes', icon: Settings, label: 'Configurações', section: 'extras' },
 ];
+
+const sections = {
+  principal: 'Principal',
+  ferramentas: 'Ferramentas',
+  extras: 'Mais',
+};
 
 export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobileClose }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
-  // Close mobile menu on route change
   useEffect(() => {
-    if (isMobile && mobileOpen) {
-      onMobileClose();
-    }
+    if (isMobile && mobileOpen) onMobileClose();
   }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobile && mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -58,86 +65,119 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
   const sidebarContent = (
     <>
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 h-14 border-b border-white/10">
-        <div className="w-8 h-8 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 h-14 border-b border-white/10 flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-500/20">
           <span className="text-white font-bold text-sm">P</span>
         </div>
         {(isOpen || isMobile) && (
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-semibold text-white tracking-tight">PrecifiCALC</h1>
+            <h1 className="text-sm font-bold text-white tracking-tight">PrecifiCALC</h1>
             <p className="text-[10px] text-slate-400 -mt-0.5">Enterprise</p>
           </div>
         )}
         {isMobile && (
           <button
             onClick={onMobileClose}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors touch-manipulation"
           >
             <X size={18} />
           </button>
         )}
       </div>
 
+      {/* Progress Badge */}
+      {(isOpen || isMobile) && (
+        <div className="px-2 pt-2 flex-shrink-0">
+          <ProgressBadge />
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
+      <nav className="flex-1 py-2 px-2 overflow-y-auto">
+        {Object.entries(sections).map(([sectionKey, sectionLabel]) => {
+          const sectionItems = menuItems.filter(item => item.section === sectionKey);
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/'}
-              className={({ isActive }) =>
-                `w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-brand-600/20 text-brand-300'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`
-              }
-              title={!isOpen && !isMobile ? item.label : undefined}
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    size={18}
-                    className={`flex-shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}`}
-                  />
-                  {(isOpen || isMobile) && (
-                    <span className="text-sm font-medium truncate">{item.label}</span>
-                  )}
-                </>
+            <div key={sectionKey} className="mb-2">
+              {(isOpen || isMobile) && (
+                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 py-1.5">
+                  {sectionLabel}
+                </p>
               )}
-            </NavLink>
+              <div className="space-y-0.5">
+                {sectionItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      end={item.path === '/'}
+                      className={({ isActive }) =>
+                        `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all touch-manipulation ${
+                          isActive
+                            ? 'bg-brand-500/20 text-brand-300 shadow-sm'
+                            : 'text-slate-400 hover:text-white hover:bg-white/5 active:bg-white/10'
+                        }`
+                      }
+                      title={!isOpen && !isMobile ? item.label : undefined}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <Icon
+                            size={18}
+                            className={`flex-shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}`}
+                          />
+                          {(isOpen || isMobile) && (
+                            <span className="text-sm font-medium truncate">{item.label}</span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
 
-      {/* Toggle - only on desktop */}
-      {!isMobile && (
+      {/* Footer - Theme toggle + Collapse */}
+      <div className="border-t border-white/10 flex-shrink-0">
+        {/* Theme toggle */}
         <button
-          onClick={onToggle}
-          className="flex items-center justify-center h-10 border-t border-white/10 text-slate-500 hover:text-white transition-colors"
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 transition-colors touch-manipulation"
+          title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
         >
-          {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {(isOpen || isMobile) && (
+            <span className="text-xs font-medium">{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
+          )}
         </button>
-      )}
+
+        {/* Toggle sidebar - desktop only */}
+        {!isMobile && (
+          <button
+            onClick={onToggle}
+            className="flex items-center justify-center h-10 w-full text-slate-500 hover:text-white transition-colors"
+          >
+            {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+        )}
+      </div>
     </>
   );
 
-  // Mobile: overlay sidebar
   if (isMobile) {
     return (
       <>
-        {/* Backdrop */}
         <div
-          className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+          className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
             mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           onClick={onMobileClose}
         />
-        {/* Sidebar drawer */}
         <aside
-          className={`fixed top-0 left-0 h-full w-64 bg-navy-950 z-50 flex flex-col transition-transform duration-300 ease-in-out ${
+          className={`fixed top-0 left-0 h-full w-72 bg-navy-950 z-50 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -147,7 +187,6 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
     );
   }
 
-  // Desktop: fixed sidebar
   return (
     <aside
       className={`fixed top-0 left-0 h-full bg-navy-950 z-50 transition-all duration-200 flex flex-col ${

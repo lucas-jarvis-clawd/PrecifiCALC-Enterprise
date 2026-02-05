@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Calculator, BarChart3, Wallet, Tags, FileText, Target, Scale, ArrowRight, FileSpreadsheet, CalendarDays, UserCheck, AlertTriangle } from 'lucide-react';
-import { Card, CardBody, StatCard } from '../components/Card';
+import {
+  Tags, BarChart3, Wallet, Target, Scale, ArrowRight, TrendingUp,
+  AlertTriangle, Zap, DollarSign, Clock, ShoppingBag, Calculator,
+} from 'lucide-react';
+import { Card, CardBody } from '../components/Card';
 import { formatCurrency } from '../data/taxData';
+import QuantoSobraCard from '../components/QuantoSobraCard';
+import WizardPrecificar from '../components/WizardPrecificar';
 
 function useLimitAlerts() {
   const [alerts, setAlerts] = useState([]);
   useEffect(() => {
     try {
       const result = [];
-      // Check simulador data
       const sim = localStorage.getItem('precificalc_simulador');
       if (sim) {
         const d = JSON.parse(sim);
@@ -18,23 +22,18 @@ function useLimitAlerts() {
         if (regime === 'mei' && receitaAnual > 65000) {
           result.push({
             tipo: 'warning',
-            msg: `Receita anual estimada de ${formatCurrency(receitaAnual)} está próxima do limite MEI (R$ 81.000). Considere migrar para o Simples Nacional.`,
+            msg: `Seu faturamento anual (${formatCurrency(receitaAnual)}) está chegando perto do limite do MEI (R$ 81.000). Hora de pensar em virar Simples Nacional!`,
+            emoji: '⚠️',
           });
         }
         if (regime === 'simples' && receitaAnual > 4000000) {
           result.push({
             tipo: 'warning',
-            msg: `Receita anual estimada de ${formatCurrency(receitaAnual)} está próxima do limite do Simples Nacional (R$ 4.800.000). Avalie o Lucro Presumido ou Real.`,
-          });
-        }
-        if (regime === 'presumido' && receitaAnual > 60000000) {
-          result.push({
-            tipo: 'warning',
-            msg: `Receita anual estimada de ${formatCurrency(receitaAnual)} está próxima do limite do Lucro Presumido (R$ 78.000.000). Prepare migração para Lucro Real.`,
+            msg: `Seu faturamento anual (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Hora de avaliar o Lucro Presumido!`,
+            emoji: '📈',
           });
         }
       }
-      // Check DRE data
       const dre = localStorage.getItem('precificalc_dre');
       if (dre) {
         const d = JSON.parse(dre);
@@ -46,7 +45,8 @@ function useLimitAlerts() {
         if (rb > 0 && lucro < 0) {
           result.push({
             tipo: 'danger',
-            msg: `O DRE indica prejuízo líquido de ${formatCurrency(Math.abs(lucro))}. Revise custos e receitas.`,
+            msg: `Seus números mostram prejuízo de ${formatCurrency(Math.abs(lucro))}! Revise seus preços ou corte gastos.`,
+            emoji: '🔴',
           });
         }
       }
@@ -56,124 +56,193 @@ function useLimitAlerts() {
   return alerts;
 }
 
-export default function Dashboard({ onNavigate }) {
+export default function Dashboard({ onNavigate, perfilEmpresa }) {
   const alerts = useLimitAlerts();
+  const [showWizard, setShowWizard] = useState(false);
+  const [nomeEmpresa, setNomeEmpresa] = useState('');
+
+  useEffect(() => {
+    try {
+      const p = perfilEmpresa || JSON.parse(localStorage.getItem('precificalc_perfil') || '{}');
+      if (p.nomeEmpresa) setNomeEmpresa(p.nomeEmpresa);
+    } catch {}
+  }, [perfilEmpresa]);
+
+  const quickActions = [
+    {
+      id: 'wizard',
+      emoji: '🎯',
+      title: 'Quero Precificar!',
+      desc: 'Descubra o preço ideal em 5 passos simples',
+      action: () => setShowWizard(true),
+      highlight: true,
+      color: 'from-brand-600 to-brand-700',
+    },
+    {
+      id: 'precificacao',
+      emoji: '🏷️',
+      title: 'Formar Preço',
+      desc: 'Calculadora completa de preço de venda',
+      action: () => onNavigate('precificacao'),
+      color: 'from-blue-600 to-blue-700',
+    },
+    {
+      id: 'comparativo',
+      emoji: '📊',
+      title: 'Comparar Impostos',
+      desc: 'Qual tipo de empresa paga menos imposto?',
+      action: () => onNavigate('comparativo'),
+      color: 'from-violet-600 to-violet-700',
+    },
+    {
+      id: 'projecao',
+      emoji: '🚀',
+      title: 'Se eu crescer...',
+      desc: 'Simule o impacto de crescer 10%, 20%, 50%',
+      action: () => onNavigate('projecao'),
+      color: 'from-emerald-600 to-emerald-700',
+    },
+  ];
 
   const modules = [
-    { id: 'simulador', icon: Calculator, title: 'Simulador Tributário', desc: 'Calcule a carga tributária em todos os regimes: MEI, Simples Nacional, Lucro Presumido e Lucro Real.' },
-    { id: 'comparativo', icon: BarChart3, title: 'Comparativo de Regimes', desc: 'Compare lado a lado a carga tributária entre todos os regimes para encontrar o mais vantajoso.' },
-    { id: 'viabilidade', icon: Target, title: 'Análise de Viabilidade', desc: 'Avalie a viabilidade do negócio com cálculo de ROI, payback e projeção financeira.' },
-    { id: 'custos', icon: Wallet, title: 'Custos Operacionais', desc: 'Mapeie custos fixos e variáveis do negócio para formar preço e analisar viabilidade.' },
-    { id: 'precificacao', icon: Tags, title: 'Precificação', desc: 'Calcule o preço de venda de produtos e serviços considerando custos, tributos e margem.' },
-    { id: 'equilibrio', icon: Scale, title: 'Ponto de Equilíbrio', desc: 'Determine a receita mínima necessária para cobrir todos os custos e começar a lucrar.' },
-    { id: 'dre', icon: FileSpreadsheet, title: 'DRE', desc: 'Monte o Demonstrativo de Resultado do Exercício com cálculo automático de margens e EBITDA.' },
-    { id: 'calendario', icon: CalendarDays, title: 'Calendário Fiscal', desc: 'Consulte todas as obrigações tributárias e trabalhistas com prazos de vencimento por regime.' },
-    { id: 'enquadramento', icon: UserCheck, title: 'Enquadramento Tributário', desc: 'Receba uma recomendação de regime tributário baseada no perfil da sua empresa.' },
-    { id: 'propostas', icon: FileText, title: 'Gerador de Propostas', desc: 'Crie propostas comerciais de produtos e serviços com detalhamento e impressão em PDF.' },
+    { id: 'custos', emoji: '💰', title: 'Meus Gastos', desc: 'Organize todos os seus gastos fixos e variáveis' },
+    { id: 'equilibrio', emoji: '⚖️', title: 'Preço Mínimo', desc: 'Abaixo desse valor = PREJUÍZO' },
+    { id: 'viabilidade', emoji: '✅', title: 'Vai Dar Certo?', desc: 'ROI, payback e projeção do seu negócio' },
+    { id: 'dre', emoji: '📋', title: 'Resultado Mensal', desc: 'Quanto entrou, quanto saiu, quanto sobrou' },
+    { id: 'enquadramento', emoji: '🏢', title: 'Melhor Tipo de Empresa', desc: 'MEI, Simples, Presumido ou Real?' },
+    { id: 'simulador', emoji: '🧮', title: 'Simular Impostos', desc: 'Veja quanto de imposto você paga em cada regime' },
+    { id: 'propostas', emoji: '📄', title: 'Criar Proposta', desc: 'Monte uma proposta profissional para seu cliente' },
+    { id: 'calendario', emoji: '📅', title: 'Datas Importantes', desc: 'Quando pagar impostos e entregar obrigações' },
   ];
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-6">
-        <h1 className="text-2xl font-semibold text-slate-800">PrecifiCALC Enterprise</h1>
-        <p className="text-slate-500 mt-1">Plataforma de precificação, análise tributária e gestão financeira empresarial</p>
+      {/* Wizard modal */}
+      {showWizard && (
+        <WizardPrecificar onClose={() => setShowWizard(false)} onNavigate={onNavigate} />
+      )}
+
+      {/* Header */}
+      <div className="border-b border-slate-200 pb-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              {nomeEmpresa ? `Olá, ${nomeEmpresa}! 👋` : 'Bem-vindo ao PrecifiCALC! 👋'}
+            </h1>
+            <p className="text-slate-500 mt-1">
+              Descubra se você está cobrando certo pelo que vende
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Alertas de limites */}
+      {/* Alerts */}
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((a, i) => (
             <div
               key={i}
-              className={`flex items-start gap-3 p-3 rounded-lg border text-sm ${
+              className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
                 a.tipo === 'danger'
                   ? 'bg-red-50 border-red-200 text-red-700'
                   : 'bg-amber-50 border-amber-200 text-amber-700'
               }`}
             >
-              <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
-              <span>{a.msg}</span>
+              <span className="text-lg flex-shrink-0">{a.emoji}</span>
+              <span className="font-medium">{a.msg}</span>
             </div>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Calculator} label="Regimes Tributários" value="4" subvalue="MEI, Simples, Presumido, Real" color="brand" />
-        <StatCard icon={BarChart3} label="Anexos do Simples" value="5" subvalue="30 faixas de alíquotas" color="blue" />
-        <StatCard icon={Tags} label="Tributos Mapeados" value="12+" subvalue="IRPJ, CSLL, PIS, COFINS, ISS..." color="purple" />
-        <StatCard icon={Scale} label="Base Atualizada" value="2026" subvalue="Legislação vigente" color="green" />
+      {/* QUANTO SOBRA NO BOLSO - The star of the show */}
+      <QuantoSobraCard perfilEmpresa={perfilEmpresa} />
+
+      {/* Quick Actions - Big buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {quickActions.map((action) => (
+          <button
+            key={action.id}
+            onClick={action.action}
+            className={`relative text-left rounded-2xl p-5 text-white transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] shadow-lg ${
+              action.highlight
+                ? `bg-gradient-to-br ${action.color} ring-2 ring-brand-300 ring-offset-2`
+                : `bg-gradient-to-br ${action.color}`
+            }`}
+          >
+            {action.highlight && (
+              <div className="absolute -top-2 -right-2 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md animate-pulse">
+                COMECE AQUI!
+              </div>
+            )}
+            <span className="text-3xl block mb-2">{action.emoji}</span>
+            <h3 className="font-bold text-lg">{action.title}</h3>
+            <p className="text-white/80 text-sm mt-1">{action.desc}</p>
+            <div className="flex items-center gap-1 mt-3 text-white/60 text-xs font-medium">
+              Acessar <ArrowRight size={12} />
+            </div>
+          </button>
+        ))}
       </div>
 
+      {/* Other modules */}
       <div>
-        <h2 className="text-lg font-medium text-slate-800 mb-4">Módulos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <h2 className="text-lg font-semibold text-slate-800 mb-4">Mais ferramentas</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {modules.map((mod) => (
             <button
               key={mod.id}
               onClick={() => onNavigate(mod.id)}
-              className="text-left bg-white rounded-lg border border-slate-200 p-5 hover:border-brand-300 hover:shadow-md transition-all group"
+              className="text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-brand-300 hover:shadow-md transition-all group"
             >
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-md bg-slate-100 text-slate-400 group-hover:text-brand-600 group-hover:bg-brand-50 transition-colors">
-                  <mod.icon size={20} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-slate-800 font-medium mb-1 group-hover:text-brand-700 transition-colors">{mod.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{mod.desc}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-slate-400 text-xs font-medium group-hover:text-brand-600 transition-colors">
-                Acessar módulo <ArrowRight size={12} />
-              </div>
+              <span className="text-2xl block mb-2">{mod.emoji}</span>
+              <h3 className="text-slate-800 font-semibold text-sm mb-1 group-hover:text-brand-700">{mod.title}</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">{mod.desc}</p>
             </button>
           ))}
         </div>
       </div>
 
+      {/* Simple regime summary - no jargon */}
       <Card>
         <div className="px-5 py-4 border-b border-slate-100">
-          <h2 className="text-base font-medium text-slate-800">Resumo dos Regimes Tributários</h2>
+          <h2 className="text-base font-semibold text-slate-800">🏢 Tipos de empresa no Brasil</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Entenda qual é o seu e se vale trocar</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm table-pro">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left px-5 py-3">Regime</th>
-                <th className="text-left px-5 py-3">Limite Anual</th>
-                <th className="text-left px-5 py-3">Alíquota</th>
-                <th className="text-left px-5 py-3">Tributos</th>
-                <th className="text-left px-5 py-3">Indicado Para</th>
+                <th className="text-left px-5 py-3">Tipo</th>
+                <th className="text-left px-5 py-3">Faturamento máximo/ano</th>
+                <th className="text-left px-5 py-3">Imposto aproximado</th>
+                <th className="text-left px-5 py-3">Pra quem é</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               <tr className="hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-800 font-medium">MEI</td>
-                <td className="px-5 py-3">R$ 81.000</td>
-                <td className="px-5 py-3 text-emerald-600 font-medium">~1-2%</td>
-                <td className="px-5 py-3">INSS + ISS/ICMS</td>
-                <td className="px-5 py-3">O objetivo é regularizar, testar o negócio ou faturar pouco com custo mínimo.</td>
+                <td className="px-5 py-3 text-slate-800 font-semibold">🟢 MEI</td>
+                <td className="px-5 py-3">R$ 81 mil</td>
+                <td className="px-5 py-3 text-emerald-600 font-medium">~R$ 82-87/mês fixo</td>
+                <td className="px-5 py-3">Começando, fatura pouco, quer gastar o mínimo</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-800 font-medium">Simples Nacional</td>
-                <td className="px-5 py-3">R$ 4.800.000</td>
-                <td className="px-5 py-3 text-blue-600 font-medium">4% a 33%</td>
-                <td className="px-5 py-3">DAS Unificado</td>
-                <td className="px-5 py-3">O foco é simplicidade e previsibilidade, não otimização fiscal máxima.</td>
+                <td className="px-5 py-3 text-slate-800 font-semibold">🔵 Simples Nacional</td>
+                <td className="px-5 py-3">R$ 4,8 milhões</td>
+                <td className="px-5 py-3 text-blue-600 font-medium">4% a 33% do faturamento</td>
+                <td className="px-5 py-3">Maioria dos pequenos negócios, imposto numa guia só</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-800 font-medium">Lucro Presumido</td>
-                <td className="px-5 py-3">R$ 78.000.000</td>
-                <td className="px-5 py-3 text-violet-600 font-medium">~11-17%</td>
-                <td className="px-5 py-3">IRPJ, CSLL, PIS, COFINS, ISS</td>
-                <td className="px-5 py-3">A margem real é maior que a margem presumida pela lei.</td>
+                <td className="px-5 py-3 text-slate-800 font-semibold">🟣 Lucro Presumido</td>
+                <td className="px-5 py-3">R$ 78 milhões</td>
+                <td className="px-5 py-3 text-violet-600 font-medium">~11% a 17% do faturamento</td>
+                <td className="px-5 py-3">Lucro real maior que o governo "presume"</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-800 font-medium">Lucro Real</td>
+                <td className="px-5 py-3 text-slate-800 font-semibold">🟠 Lucro Real</td>
                 <td className="px-5 py-3">Sem limite</td>
-                <td className="px-5 py-3 text-amber-600 font-medium">~34% s/ lucro</td>
-                <td className="px-5 py-3">IRPJ, CSLL, PIS, COFINS, ISS</td>
-                <td className="px-5 py-3">A empresa tem muitos créditos, margem apertada ou oscilações fortes no resultado.</td>
+                <td className="px-5 py-3 text-amber-600 font-medium">~34% sobre o lucro</td>
+                <td className="px-5 py-3">Grandes empresas ou margem muito apertada</td>
               </tr>
             </tbody>
           </table>

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Onboarding from './components/Onboarding';
+import ThemeToggle from './components/ThemeToggle';
 import Dashboard from './pages/Dashboard';
 import SimuladorTributario from './pages/SimuladorTributario';
 import CustosOperacionais from './pages/CustosOperacionais';
@@ -36,6 +37,7 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [perfilEmpresa, setPerfilEmpresa] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -45,15 +47,16 @@ export default function App() {
     
     if (onboarded === 'true' && perfil) {
       setIsOnboardingComplete(true);
-      setPerfilEmpresa(JSON.parse(perfil));
+      try {
+        setPerfilEmpresa(JSON.parse(perfil));
+      } catch { /* ignore */ }
     }
+    // Small delay for smooth entrance
+    setTimeout(() => setIsLoading(false), 200);
   }, []);
 
-  // Close sidebar on mobile by default
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
+    if (isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
   const handleOnboardingComplete = (dadosEmpresa) => {
@@ -80,15 +83,28 @@ export default function App() {
     navigate(routeMap[pageId] || '/');
   }, [navigate]);
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="text-center animate-fadeIn">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/20">
+            <span className="text-white font-bold text-lg">P</span>
+          </div>
+          <div className="w-8 h-8 border-3 border-slate-200 dark:border-slate-700 border-t-brand-500 rounded-full animate-spin mx-auto mt-4" />
+        </div>
+      </div>
+    );
+  }
+
   if (!isOnboardingComplete) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // Compute main content margin based on sidebar state (desktop only)
   const mainMargin = isMobile ? '' : (sidebarOpen ? 'ml-60' : 'ml-16');
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -100,24 +116,25 @@ export default function App() {
       <main className={`flex-1 overflow-y-auto transition-all duration-200 ${mainMargin}`}>
         {/* Mobile top bar */}
         {isMobile && (
-          <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 h-14 flex items-center gap-3 shadow-sm">
+          <div className="sticky top-0 z-30 glass border-b border-slate-200 dark:border-slate-700 px-4 h-14 flex items-center gap-3 shadow-sm safe-top">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 -ml-2 rounded-md text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              className="p-2.5 -ml-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
               aria-label="Abrir menu"
             >
               <Menu size={22} />
             </button>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-brand-600 flex items-center justify-center">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center shadow-sm">
                 <span className="text-white font-bold text-xs">P</span>
               </div>
-              <span className="text-sm font-semibold text-slate-800">PrecifiCALC</span>
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-200">PrecifiCALC</span>
             </div>
+            <ThemeToggle compact />
           </div>
         )}
 
-        <div className="p-4 sm:p-6 max-w-[1400px] mx-auto">
+        <div className="p-4 sm:p-6 max-w-[1400px] mx-auto safe-bottom">
           <Routes>
             <Route path="/" element={<Dashboard onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/simulador" element={<SimuladorTributario onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
