@@ -302,8 +302,8 @@ export default function Precificacao() {
 
             {modo === 'hora' ? (
               <>
-                <InputField label="💰 Seu custo por hora" value={custoHora} onChange={setCustoHora} prefix="R$" step={10}
-                  help="Inclua: seu tempo + materiais + deslocamento" />
+                <InputField label="💰 Custo por hora do serviço" value={custoHora} onChange={setCustoHora} prefix="R$" step={10}
+                  help="Inclua: tempo + materiais + deslocamento" />
                 <InputField label="⏱️ Horas por serviço" value={horasPorServico} onChange={setHorasPorServico} step={0.5} min={0.5}
                   help="Quantas horas leva 1 serviço" />
                 <InputField label="📅 Serviços por mês" value={servicosMensal} onChange={setServicosMensal} step={5} min={1} />
@@ -325,7 +325,7 @@ export default function Precificacao() {
                   { value: 'servico', label: 'Serviço' },
                   { value: 'produto', label: 'Produto' },
                 ]} />
-                <InputField label="Seu custo unitário" value={custoProduto} onChange={setCustoProduto} prefix="R$" step={10} />
+                <InputField label="Custo unitário do produto" value={custoProduto} onChange={setCustoProduto} prefix="R$" step={10} />
               </>
             ) : (
               <>
@@ -369,7 +369,7 @@ export default function Precificacao() {
                   <div className="mt-3">
                     <div className="flex items-center gap-1 mb-1">
                       <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
-                      <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. É o que define sua faixa de imposto no Simples Nacional." />
+                      <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. É o que define a faixa de imposto no Simples Nacional." />
                     </div>
                     <InputField value={rbt12} onChange={setRbt12} prefix="R$" step={10000}
                       help={`Alíquota efetiva: ${formatPercent(aliquotaEfetiva)}`} />
@@ -392,7 +392,7 @@ export default function Precificacao() {
                   <SelectField label="Atividade" value={tipoAtividade} onChange={setTipoAtividade} className="mt-3" options={[
                     { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
                   ]} />
-                  <InputField label="ISS da sua cidade (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} className="mt-3" />
+                  <InputField label="ISS do município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} className="mt-3" />
                 </>
               )}
             </div>
@@ -468,7 +468,7 @@ export default function Precificacao() {
                     <p className="text-2xl font-bold">{formatCurrency(calculo.reverso.precoMercado)}</p>
                   </div>
                   <div>
-                    <p className="text-xs opacity-70">Sua margem real</p>
+                    <p className="text-xs opacity-70">Margem real do produto</p>
                     <p className={`text-3xl font-black ${calculo.reverso.margemReal >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                       {calculo.reverso.margemReal.toFixed(1)}%
                     </p>
@@ -489,7 +489,7 @@ export default function Precificacao() {
                 {!calculo.reverso.temLucro && (
                   <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
                     <p className="text-sm font-bold text-red-700">
-                      💡 Seu preço mínimo precisa ser {formatCurrency(calculo.precoMinimo)} para não ter prejuízo.
+                      💡 O preço mínimo precisa ser {formatCurrency(calculo.precoMinimo)} para não ter prejuízo.
                     </p>
                     <p className="text-xs text-red-600 mt-1">
                       E para ter {margemDesejada}% de lucro, precisa cobrar {formatCurrency(calculo.precoVenda)}.
@@ -520,7 +520,7 @@ export default function Precificacao() {
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-2 border-emerald-300 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-2xl">💰</span>
-                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Quanto sobra no seu bolso</span>
+                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Lucro líquido mensal</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>

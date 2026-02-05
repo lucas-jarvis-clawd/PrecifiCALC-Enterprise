@@ -201,8 +201,8 @@ export default function PontoEquilibrio() {
                 </div>
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Info size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R &ge; 28% - migrado do Anexo V para III (aliquota menor)</p>
+                    <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!) 🎉</p>
                   </div>
                 )}
               </div>
@@ -213,10 +213,10 @@ export default function PontoEquilibrio() {
               <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
-                  <p className="text-xs text-amber-700 font-medium">Anexo IV - CPP nao inclusa no DAS</p>
+                  <p className="text-xs text-amber-700 font-medium">Anexo IV — CPP (INSS Patronal) paga separado do DAS</p>
                 </div>
                 <p className="text-xs text-amber-600 mt-1">
-                  CPP separada (20% da folha): <span className="font-medium">{formatCurrency(cppAnexoIV)}/mes</span>
+                  CPP (20% sobre a folha): <span className="font-medium">{formatCurrency(cppAnexoIV)}/mês</span> — recolhimento via GPS
                 </p>
               </div>
             )}

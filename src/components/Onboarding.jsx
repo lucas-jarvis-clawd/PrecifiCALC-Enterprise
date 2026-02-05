@@ -15,8 +15,8 @@ export default function Onboarding({ onComplete }) {
   });
 
   const steps = [
-    { id: 1, title: 'Sobre você', emoji: '👋' },
-    { id: 2, title: 'Sua empresa', emoji: '🏢' },
+    { id: 1, title: 'Dados iniciais', emoji: '👋' },
+    { id: 2, title: 'Dados da empresa', emoji: '🏢' },
     { id: 3, title: 'Pronto!', emoji: '🚀' },
   ];
 
@@ -84,13 +84,13 @@ export default function Onboarding({ onComplete }) {
           </div>
           <h1 className="text-2xl font-bold">
             {currentStep === 1 && 'Bem-vindo ao PrecifiCALC! 🎉'}
-            {currentStep === 2 && 'Sobre sua empresa'}
+            {currentStep === 2 && 'Dados da empresa'}
             {currentStep === 3 && 'Tudo pronto!'}
           </h1>
           <p className="text-brand-100 mt-2 text-sm">
-            {currentStep === 1 && 'Vamos descobrir o preço certo para o que você vende'}
-            {currentStep === 2 && 'Para calcular seus impostos corretamente'}
-            {currentStep === 3 && 'Agora vamos descobrir se você está cobrando certo!'}
+            {currentStep === 1 && 'Vamos calcular o preço ideal para os produtos da empresa'}
+            {currentStep === 2 && 'Para calcular os impostos corretamente'}
+            {currentStep === 3 && 'Agora vamos descobrir o preço certo dos produtos!'}
           </p>
 
           {/* Progress */}
@@ -112,7 +112,7 @@ export default function Onboarding({ onComplete }) {
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Como se chama sua empresa? (ou seu nome)
+                  Nome da empresa (ou do empresário)
                 </label>
                 <input
                   type="text"
@@ -182,7 +182,7 @@ export default function Onboarding({ onComplete }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    O que você faz?
+                    Atividade principal da empresa
                   </label>
                   <select
                     value={empresaData.atividade}
@@ -219,7 +219,7 @@ export default function Onboarding({ onComplete }) {
               <div className="text-center">
                 <div className="text-6xl mb-4">🎉</div>
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Perfeito!</h3>
-                <p className="text-slate-500">Agora vou te ajudar a descobrir o preço certo</p>
+                <p className="text-slate-500">Agora vamos calcular o preço ideal dos produtos da empresa</p>
               </div>
 
               <div className="bg-slate-50 rounded-xl p-5 space-y-2">
@@ -236,11 +236,11 @@ export default function Onboarding({ onComplete }) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-                    <span className="text-brand-700">Clique em <strong>"Quero Precificar!"</strong> para descobrir seu preço ideal</span>
+                    <span className="text-brand-700">Clique em <strong>"Quero Precificar!"</strong> para descobrir o preço ideal dos produtos</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-400 text-white flex items-center justify-center text-xs font-bold">2</span>
-                    <span className="text-brand-700">Veja <strong>"Comparar Impostos"</strong> para descobrir se está no tipo certo</span>
+                    <span className="text-brand-700">Veja <strong>"Comparar Impostos"</strong> para descobrir se a empresa está no regime certo</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-300 text-white flex items-center justify-center text-xs font-bold">3</span>
@@ -275,7 +275,7 @@ export default function Onboarding({ onComplete }) {
               {currentStep === 3 ? (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Vamos descobrir meu preço!
+                  Vamos calcular o preço ideal!
                 </>
               ) : (
                 <>

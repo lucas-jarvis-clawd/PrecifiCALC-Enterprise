@@ -215,19 +215,19 @@ export default function AnaliseViabilidade() {
             {dados.regime === 'simples' && (
               <div className="p-3 bg-slate-50 rounded-md space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Fator R</span>
+                  <span className="text-xs text-slate-500">Fator R (% da folha sobre faturamento)</span>
                   <span className={`text-xs font-medium ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                     {(fatorR * 100).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Anexo Efetivo</span>
+                  <span className="text-xs text-slate-500">Anexo efetivo</span>
                   <span className="text-xs font-medium text-slate-700">Anexo {anexoEfetivo}</span>
                 </div>
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Info size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R &ge; 28% - migrado do Anexo V para III (aliquota menor)</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!) 🎉</p>
                   </div>
                 )}
               </div>
@@ -238,10 +238,10 @@ export default function AnaliseViabilidade() {
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
-                  <p className="text-xs text-amber-700 font-medium">Anexo IV - CPP nao inclusa no DAS</p>
+                  <p className="text-xs text-amber-700 font-medium">Anexo IV — CPP (INSS Patronal) paga separado do DAS</p>
                 </div>
                 <p className="text-xs text-amber-600 mt-1">
-                  CPP separada (20% da folha): <span className="font-medium">{formatCurrency(cppAnexoIV)}/mes</span>
+                  CPP (20% sobre a folha): <span className="font-medium">{formatCurrency(cppAnexoIV)}/mês</span> — recolhimento via GPS
                 </p>
               </div>
             )}

@@ -10,11 +10,11 @@ import {
 } from '../data/taxData';
 
 const STEPS = [
-  { id: 1, title: 'O que você vende?', emoji: '🛍️' },
-  { id: 2, title: 'Quanto custa pra você?', emoji: '💰' },
-  { id: 3, title: 'Seus gastos fixos', emoji: '🏠' },
-  { id: 4, title: 'Sua empresa', emoji: '🏢' },
-  { id: 5, title: 'Seu preço ideal!', emoji: '🎯' },
+  { id: 1, title: 'O que a empresa vende?', emoji: '🛍️' },
+  { id: 2, title: 'Qual o custo de produção?', emoji: '💰' },
+  { id: 3, title: 'Gastos fixos da empresa', emoji: '🏠' },
+  { id: 4, title: 'Dados da empresa', emoji: '🏢' },
+  { id: 5, title: 'Preço ideal calculado!', emoji: '🎯' },
 ];
 
 export default function WizardPrecificar({ onClose, onNavigate }) {
@@ -236,10 +236,10 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
           {/* Step 1: What you sell */}
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-slate-800">O que você quer precificar?</h3>
+              <h3 className="text-xl font-semibold text-slate-800">O que a empresa quer precificar?</h3>
               <div className="grid grid-cols-1 gap-3">
                 {[
-                  { id: 'produto', icon: ShoppingBag, label: 'Produto / Mercadoria', desc: 'Algo que você fabrica ou revende', emoji: '📦' },
+                  { id: 'produto', icon: ShoppingBag, label: 'Produto / Mercadoria', desc: 'Produto fabricado ou revendido pela empresa', emoji: '📦' },
                   { id: 'servico_hora', icon: Clock, label: 'Serviço por Hora', desc: 'Consultoria, aula, manutenção...', emoji: '⏰' },
                   { id: 'servico_projeto', icon: Target, label: 'Serviço por Projeto', desc: 'Site, reforma, tratamento...', emoji: '📋' },
                 ].map(opt => (

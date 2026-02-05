@@ -146,7 +146,7 @@ export default function SimuladorTributario() {
           <Calculator className="text-brand-600" size={22} />
           Simulador Tributário
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Calcule a carga tributária completa em qualquer regime brasileiro</p>
+        <p className="text-slate-500 text-sm mt-1">Calcule a carga tributária da empresa em qualquer regime brasileiro</p>
       </div>
 
       {/* Sublimite warning banner */}
@@ -175,7 +175,7 @@ export default function SimuladorTributario() {
               <div>
                 <div className="flex items-center gap-1 mb-1">
                   <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
-                  <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. A Receita Federal usa esse valor para definir em qual faixa do Simples Nacional você se enquadra e qual será a alíquota do seu imposto." />
+                  <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. A Receita Federal usa esse valor para definir em qual faixa do Simples Nacional a empresa se enquadra e qual será a alíquota do imposto." />
                 </div>
                 <InputField
                   value={rbt12}
@@ -295,7 +295,7 @@ export default function SimuladorTributario() {
                   { value: 'transportePassageiros', label: 'Transporte de Passageiros' },
                   { value: 'servHospitalares', label: 'Serviços Hospitalares' },
                 ]} />
-                <InputField label="Alíquota ISS do Município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia de 2% a 5% conforme município" />
+                <InputField label="Alíquota ISS do Município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia de 2% a 5% conforme o município da empresa" />
               </>
             )}
 
