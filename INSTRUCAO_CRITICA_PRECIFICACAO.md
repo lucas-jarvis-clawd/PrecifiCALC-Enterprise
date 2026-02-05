@@ -2,24 +2,24 @@
 
 ## ⚠️ NUNCA ESQUECER - REGRA DE OURO
 
-### A PRECIFICAÇÃO É DOS PRODUTOS DOS CLIENTES, NÃO DO LUCAS!
+### A PRECIFICAÇÃO É DOS PRODUTOS/SERVIÇOS DOS CLIENTES, NÃO DO LUCAS!
 
 **CONTEXTO CORRETO:**
 - Lucas/esposa são **CONSULTORES** que ajudam clientes
-- O webapp calcula preços dos **PRODUTOS DOS CLIENTES/EMPRESÁRIOS**
-- Lucas NÃO está precificando produtos dele
-- Lucas está ajudando OUTROS empresários a precificar
+- O webapp calcula preços dos **PRODUTOS OU SERVIÇOS DOS CLIENTES/EMPRESÁRIOS**
+- Lucas NÃO está precificando produtos/serviços dele
+- Lucas está ajudando OUTROS empresários a precificar seus produtos/serviços
 
 ### LINGUAGEM CORRETA NA INTERFACE:
 
 **✅ CORRETO - Para empresário usando diretamente:**
-- "Seus produtos devem custar R$ X"
+- "Seus produtos/serviços devem custar R$ X"
 - "Sua margem será Y%"
 - "Seu negócio terá lucro de R$ Z"
 - "Com sua receita, o melhor regime é..."
 
 **✅ CORRETO - Para consultor atendendo cliente:**
-- "Os produtos desta empresa devem custar R$ X"
+- "Os produtos/serviços desta empresa devem custar R$ X"
 - "A margem do cliente será Y%"
 - "O lucro líquido da empresa será R$ Z"
 - "Para esta empresa, recomendamos..."
@@ -33,9 +33,9 @@
 
 ### Módulo de Precificação:
 - Interface fala sobre produtos/serviços DO CLIENTE
-- Cálculos são para produtos que O CLIENTE vende
+- Cálculos são para produtos OU serviços que O CLIENTE vende
 - Margens são do negócio DO CLIENTE
-- Preços são que O CLIENTE deve cobrar
+- Preços são que O CLIENTE deve cobrar por seus produtos/serviços
 
 ### Dashboard:
 - "Lucro líquido" é do negócio DO CLIENTE

@@ -15,7 +15,7 @@
 **Uso:** Ferramenta de trabalho para fazer cálculos durante consultorias (uso secundário)
 
 **Necessidades:**
-- ✅ Calcular precificação de produtos/serviços para clientes
+- ✅ Calcular precificação de produtos OU serviços para clientes
 - ✅ Mostrar impacto tributário nas margens de lucro
 - ✅ Simular diferentes cenários de negócio
 - ✅ Gerar relatórios profissionais com marca própria

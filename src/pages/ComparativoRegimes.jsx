@@ -227,7 +227,7 @@ export default function ComparativoRegimes() {
           <BarChart3 className="text-brand-600" size={22} />
           Comparar Impostos
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Descubra qual tipo de empresa paga menos imposto para o seu caso</p>
+        <p className="text-slate-500 text-sm mt-1">Descubra qual regime tributário paga menos imposto para esta empresa</p>
       </div>
 
       {/* Sublimite warning */}
@@ -246,7 +246,7 @@ export default function ComparativoRegimes() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <InputField label="Faturamento mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Quanto entra por mês" />
             <InputField label="Faturamento últimos 12 meses" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Soma do que faturou nos últimos 12 meses" />
-            <SelectField label="O que você faz" value={tipoAtividade} onChange={setTipoAtividade} options={[
+            <SelectField label="Atividade da empresa" value={tipoAtividade} onChange={setTipoAtividade} options={[
               { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
             ]} />
             <SelectField label="Anexo do Simples" value={anexo} onChange={setAnexo} options={[
@@ -255,7 +255,7 @@ export default function ComparativoRegimes() {
             ]} />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <InputField label="ISS da sua cidade (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Imposto do município" />
+            <InputField label="ISS do município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Imposto municipal da empresa" />
             <InputField label="Despesas dedutíveis (% do faturamento)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Gastos que abaixam o imposto no L. Real" />
             <InputField label="Créditos de PIS/COFINS (%)" value={creditosPercent} onChange={setCreditosPercent} suffix="%" min={0} max={80} step={5} help="Compras que geram crédito no L. Real" />
             <InputField label="Folha de pagamento mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Salários + encargos (para cálculo da Folha%)" />

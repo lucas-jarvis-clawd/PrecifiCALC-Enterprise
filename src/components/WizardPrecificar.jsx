@@ -400,11 +400,11 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
           {/* Step 4: Company info */}
           {step === 4 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-slate-800">Sobre sua empresa</h3>
+              <h3 className="text-xl font-semibold text-slate-800">Dados da empresa</h3>
               <p className="text-slate-500">Para calcular os impostos corretamente</p>
 
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">Tipo da sua empresa:</label>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Tipo da empresa (regime tributário):</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {regimeOptions.map(r => (
                     <button
@@ -432,7 +432,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  💰 Quanto fatura por mês? (aproximado)
+                  💰 Faturamento mensal da empresa (aproximado)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
@@ -443,7 +443,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  Quanto de lucro você quer? (margem)
+                  Margem de lucro desejada
                 </label>
                 <div className="flex items-center gap-4">
                   <input
@@ -475,7 +475,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               {/* Main price */}
               <div className="text-center bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl p-6 text-white shadow-lg">
                 <p className="text-brand-200 text-sm font-medium mb-1">
-                  {nomeItem ? `Preço ideal para "${nomeItem}"` : 'Seu preço ideal é:'}
+                  {nomeItem ? `Preço ideal para "${nomeItem}"` : 'O preço ideal do produto é:'}
                 </p>
                 <p className="text-5xl font-black tracking-tight">{formatCurrency(calculo.precoVenda)}</p>
                 {tipoVenda === 'servico_hora' && (
@@ -489,7 +489,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-2 border-emerald-300 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">💰</span>
-                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Quanto sobra no seu bolso</span>
+                  <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Lucro líquido da empresa</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -532,7 +532,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                         <div className="flex items-center gap-2">
                           {i === 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Melhor</span>}
                           <span className="text-sm font-medium text-slate-700">{c.label}</span>
-                          {c.isAtual && <span className="text-xs text-brand-600">(sua empresa)</span>}
+                          {c.isAtual && <span className="text-xs text-brand-600">(regime atual)</span>}
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-slate-800">{formatCurrency(c.preco)}</span>
@@ -555,7 +555,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                 <h4 className="text-sm font-bold text-slate-800 mb-3">🧮 Como chegamos nesse preço:</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Seu custo direto</span>
+                    <span className="text-slate-600">Custo direto do produto</span>
                     <span className="font-medium">{formatCurrency(calculo.custoBase)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -567,7 +567,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                     <span className="font-medium text-red-600">{formatCurrency(calculo.impostos)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">+ Seu lucro ({margemDesejada}%)</span>
+                    <span className="text-slate-600">+ Lucro da empresa ({margemDesejada}%)</span>
                     <span className="font-medium text-emerald-600">{formatCurrency(calculo.lucroUnit)}</span>
                   </div>
                   <div className="flex justify-between border-t border-slate-300 pt-2">

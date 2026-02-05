@@ -22,14 +22,14 @@ function useLimitAlerts() {
         if (regime === 'mei' && receitaAnual > 65000) {
           result.push({
             tipo: 'warning',
-            msg: `Seu faturamento anual (${formatCurrency(receitaAnual)}) está chegando perto do limite do MEI (R$ 81.000). Hora de pensar em virar Simples Nacional!`,
+            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando perto do limite do MEI (R$ 81.000). Hora de avaliar a migração para Simples Nacional!`,
             emoji: '⚠️',
           });
         }
         if (regime === 'simples' && receitaAnual > 4000000) {
           result.push({
             tipo: 'warning',
-            msg: `Seu faturamento anual (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Hora de avaliar o Lucro Presumido!`,
+            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Hora de avaliar o Lucro Presumido!`,
             emoji: '📈',
           });
         }
@@ -45,7 +45,7 @@ function useLimitAlerts() {
         if (rb > 0 && lucro < 0) {
           result.push({
             tipo: 'danger',
-            msg: `Seus números mostram prejuízo de ${formatCurrency(Math.abs(lucro))}! Revise seus preços ou corte gastos.`,
+            msg: `Os números indicam prejuízo de ${formatCurrency(Math.abs(lucro))}! É preciso revisar os preços de venda ou reduzir custos operacionais.`,
             emoji: '🔴',
           });
         }
@@ -73,7 +73,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
       id: 'wizard',
       emoji: '🎯',
       title: 'Quero Precificar!',
-      desc: 'Descubra o preço ideal em 5 passos simples',
+      desc: 'Calcule o preço ideal do produto ou serviço em 5 passos',
       action: () => setShowWizard(true),
       highlight: true,
       color: 'from-brand-600 to-brand-700',
@@ -82,7 +82,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
       id: 'precificacao',
       emoji: '🏷️',
       title: 'Formar Preço',
-      desc: 'Calculadora completa de preço de venda',
+      desc: 'Calculadora completa do preço de venda do produto/serviço',
       action: () => onNavigate('precificacao'),
       color: 'from-blue-600 to-blue-700',
     },
@@ -90,29 +90,29 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
       id: 'comparativo',
       emoji: '📊',
       title: 'Comparar Impostos',
-      desc: 'Qual tipo de empresa paga menos imposto?',
+      desc: 'Qual regime tributário paga menos imposto?',
       action: () => onNavigate('comparativo'),
       color: 'from-violet-600 to-violet-700',
     },
     {
       id: 'projecao',
       emoji: '🚀',
-      title: 'Se eu crescer...',
-      desc: 'Simule o impacto de crescer 10%, 20%, 50%',
+      title: 'Projeção de Crescimento',
+      desc: 'Se a empresa crescer 10%, 20%, 50% — o que muda?',
       action: () => onNavigate('projecao'),
       color: 'from-emerald-600 to-emerald-700',
     },
   ];
 
   const modules = [
-    { id: 'custos', emoji: '💰', title: 'Meus Gastos', desc: 'Organize todos os seus gastos fixos e variáveis' },
-    { id: 'equilibrio', emoji: '⚖️', title: 'Preço Mínimo', desc: 'Abaixo desse valor = PREJUÍZO' },
-    { id: 'viabilidade', emoji: '✅', title: 'Vai Dar Certo?', desc: 'ROI, payback e projeção do seu negócio' },
-    { id: 'dre', emoji: '📋', title: 'Resultado Mensal', desc: 'Quanto entrou, quanto saiu, quanto sobrou' },
-    { id: 'enquadramento', emoji: '🏢', title: 'Melhor Tipo de Empresa', desc: 'MEI, Simples, Presumido ou Real?' },
-    { id: 'simulador', emoji: '🧮', title: 'Simular Impostos', desc: 'Veja quanto de imposto você paga em cada regime' },
-    { id: 'propostas', emoji: '📄', title: 'Criar Proposta', desc: 'Monte uma proposta profissional para seu cliente' },
-    { id: 'calendario', emoji: '📅', title: 'Datas Importantes', desc: 'Quando pagar impostos e entregar obrigações' },
+    { id: 'custos', emoji: '💰', title: 'Custos Operacionais', desc: 'Mapeie todos os gastos fixos e variáveis da empresa' },
+    { id: 'equilibrio', emoji: '⚖️', title: 'Ponto de Equilíbrio', desc: 'Mínimo que a empresa precisa vender para não ter prejuízo' },
+    { id: 'viabilidade', emoji: '✅', title: 'Viabilidade do Negócio', desc: 'ROI, payback e projeção do investimento' },
+    { id: 'dre', emoji: '📋', title: 'Resultado Mensal (DRE)', desc: 'Quanto entrou, quanto saiu, quanto sobrou no negócio' },
+    { id: 'enquadramento', emoji: '🏢', title: 'Melhor Regime Tributário', desc: 'MEI, Simples, Presumido ou Real — qual se encaixa?' },
+    { id: 'simulador', emoji: '🧮', title: 'Simular Impostos', desc: 'Calcule a carga tributária em cada regime' },
+    { id: 'propostas', emoji: '📄', title: 'Criar Proposta', desc: 'Monte uma proposta comercial profissional' },
+    { id: 'calendario', emoji: '📅', title: 'Calendário Fiscal', desc: 'Datas de pagamento de impostos e obrigações' },
   ];
 
   return (
@@ -130,7 +130,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
               {nomeEmpresa ? `Olá, ${nomeEmpresa}! 👋` : 'Bem-vindo ao PrecifiCALC! 👋'}
             </h1>
             <p className="text-slate-500 mt-1">
-              Descubra se você está cobrando certo pelo que vende
+              Ferramenta completa para precificar produtos e serviços da empresa
             </p>
           </div>
         </div>
@@ -207,7 +207,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
       <Card>
         <div className="px-5 py-4 border-b border-slate-100">
           <h2 className="text-base font-semibold text-slate-800">🏢 Tipos de empresa no Brasil</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Entenda qual é o seu e se vale trocar</p>
+          <p className="text-xs text-slate-500 mt-0.5">Entenda qual regime a empresa se encaixa e se vale trocar</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm table-pro">

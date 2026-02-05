@@ -96,7 +96,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
         <div className="text-center">
           <span className="text-4xl">💰</span>
           <h3 className="text-lg font-bold text-slate-600 mt-2">Lucro Líquido do Empresário</h3>
-          <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra no seu bolso após todos os gastos e impostos)</p>
+          <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra para a empresa após todos os gastos e impostos)</p>
           <p className="text-slate-500 text-sm mt-2">
             Use o botão <strong>"Quero Precificar!"</strong> para descobrir
           </p>
@@ -130,7 +130,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
             Lucro Líquido do Empresário
           </h3>
           <p className={`text-[10px] ${isPositive ? 'text-emerald-600' : 'text-red-600'} opacity-70`}>
-            (Quanto sobra no seu bolso após todos os gastos e impostos)
+            (Quanto sobra para a empresa após todos os gastos e impostos)
           </p>
         </div>
       </div>
@@ -211,20 +211,20 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       {/* Emotional feedback */}
       {!isPositive && (
         <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
-          <p className="text-sm font-bold text-red-700">😰 Atenção! Você está no prejuízo!</p>
-          <p className="text-xs text-red-600 mt-1">Revise seus preços ou reduza custos. Você precisa cobrar mais ou gastar menos.</p>
+          <p className="text-sm font-bold text-red-700">😰 Atenção! A empresa está no prejuízo!</p>
+          <p className="text-xs text-red-600 mt-1">É preciso revisar os preços de venda ou reduzir os custos operacionais.</p>
         </div>
       )}
       {isPositive && isGood && (
         <div className="mt-3 p-3 bg-emerald-200/50 border border-emerald-300 rounded-lg">
           <p className="text-sm font-bold text-emerald-700">🎉 Excelente! Margem saudável!</p>
-          <p className="text-xs text-emerald-600 mt-1">Sua margem está acima de 20%. Negócio bem precificado!</p>
+          <p className="text-xs text-emerald-600 mt-1">Margem do negócio acima de 20%. Produtos/serviços bem precificados!</p>
         </div>
       )}
       {isPositive && !isGood && isOk && (
         <div className="mt-3 p-3 bg-amber-100 border border-amber-300 rounded-lg">
           <p className="text-sm font-bold text-amber-700">⚡ Pode melhorar!</p>
-          <p className="text-xs text-amber-600 mt-1">Margem entre 10-20%. Considere ajustar seus preços para cima.</p>
+          <p className="text-xs text-amber-600 mt-1">Margem entre 10-20%. Considere ajustar os preços dos produtos para cima.</p>
         </div>
       )}
     </div>
