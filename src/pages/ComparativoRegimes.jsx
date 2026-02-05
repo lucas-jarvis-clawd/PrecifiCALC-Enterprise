@@ -244,8 +244,8 @@ export default function ComparativoRegimes() {
       <Card>
         <CardBody>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <InputField label="Faturamento mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Quanto entra por mês" />
-            <InputField label="Faturamento últimos 12 meses" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Soma do que faturou nos últimos 12 meses" />
+            <InputField label="Receita Bruta Mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Faturamento mensal da empresa" />
+            <InputField label="RBT12 (Faturamento últimos 12 meses)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Receita Bruta Total acumulada — define a faixa no Simples" />
             <SelectField label="Atividade da empresa" value={tipoAtividade} onChange={setTipoAtividade} options={[
               { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
             ]} />
@@ -258,13 +258,13 @@ export default function ComparativoRegimes() {
             <InputField label="ISS do município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Imposto municipal da empresa" />
             <InputField label="Despesas dedutíveis (% do faturamento)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Gastos que abaixam o imposto no L. Real" />
             <InputField label="Créditos de PIS/COFINS (%)" value={creditosPercent} onChange={setCreditosPercent} suffix="%" min={0} max={80} step={5} help="Compras que geram crédito no L. Real" />
-            <InputField label="Folha de pagamento mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Salários + encargos (para cálculo da Folha%)" />
+            <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Salários + encargos — usado para CPP (Anexo IV) e Fator R" />
           </div>
 
           {/* Fator R display */}
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md">
-              <span className="text-xs text-slate-500">Folha% (Fator R):</span>
+              <span className="text-xs text-slate-500">Fator R (% da folha sobre faturamento):</span>
               <span className={`text-sm font-semibold font-mono ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                 {(fatorR * 100).toFixed(2)}%
               </span>
@@ -272,7 +272,7 @@ export default function ComparativoRegimes() {
             {showFatorRInfo && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <Info size={14} />
-                <span>Folha ≥ 28% do faturamento → usa Anexo III (imposto menor!) 🎉</span>
+                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor!) 🎉</span>
               </div>
             )}
             {anexoEfetivo !== anexo && (
@@ -282,7 +282,7 @@ export default function ComparativoRegimes() {
             )}
             {cppAnexoIV > 0 && (
               <span className="text-xs text-amber-600">
-                CPP Anexo IV: {formatCurrency(cppAnexoIV)}/mês (incluso no total do Simples)
+                CPP (INSS Patronal) Anexo IV: {formatCurrency(cppAnexoIV)}/mês — pago separado via GPS
               </span>
             )}
           </div>
@@ -405,8 +405,8 @@ export default function ComparativoRegimes() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-slate-800 font-medium text-sm">Alíquota Efetiva por Faturamento</h2>
-          <p className="text-slate-400 text-xs mt-0.5">Como a carga tributária evolui com o crescimento da receita</p>
+          <h2 className="text-slate-800 font-medium text-sm">Alíquota Efetiva (% real de imposto) por Faturamento</h2>
+          <p className="text-slate-400 text-xs mt-0.5">Como o percentual de imposto muda conforme a receita cresce</p>
         </CardHeader>
         <CardBody>
           <ResponsiveContainer width="100%" height={320}>

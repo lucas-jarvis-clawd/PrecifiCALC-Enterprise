@@ -166,7 +166,7 @@ export default function PontoEquilibrio() {
                     { value: 'I', label: 'Anexo I' }, { value: 'II', label: 'Anexo II' },
                     { value: 'III', label: 'Anexo III' }, { value: 'IV', label: 'Anexo IV' }, { value: 'V', label: 'Anexo V' },
                   ]} />
-                  <InputField label="Receita Bruta 12 Meses (RBT12)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} className="mt-3" />
+                  <InputField label="RBT12 (Faturamento últimos 12 meses)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} className="mt-3" help="Receita Bruta Total dos últimos 12 meses — define a faixa do Simples" />
                   <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} className="mt-3" />
                 </>
               )}
@@ -190,7 +190,7 @@ export default function PontoEquilibrio() {
             {regime === 'simples' && (
               <div className="mt-3 p-3 bg-slate-50 rounded-md space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Fator R</span>
+                  <span className="text-xs text-slate-500">Fator R (% da folha sobre faturamento)</span>
                   <span className={`text-xs font-medium ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                     {(fatorR * 100).toFixed(2)}%
                   </span>
