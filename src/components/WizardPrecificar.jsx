@@ -263,7 +263,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  Nome do que você vende (opcional)
+                  Nome do produto ou serviço (opcional)
                 </label>
                 <input
                   type="text"
@@ -280,17 +280,17 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
           {step === 2 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-slate-800">
-                {tipoVenda === 'servico_hora' ? 'Quanto custa sua hora?' : 'Quanto custa pra você fazer/comprar?'}
+                {tipoVenda === 'servico_hora' ? 'Qual o custo por hora do serviço?' : 'Qual o custo de produção/aquisição?'}
               </h3>
-              <p className="text-slate-500">Inclua material, insumos, tudo que gasta pra entregar</p>
+              <p className="text-slate-500">Inclua material, insumos, tudo que a empresa gasta para entregar</p>
 
               {tipoVenda === 'servico_hora' ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                      💰 Quanto você gasta por hora trabalhada?
+                      💰 Custo por hora trabalhada
                     </label>
-                    <p className="text-xs text-slate-400 mb-2">Seu "custo" por hora: salário ÷ horas trabalhadas + materiais</p>
+                    <p className="text-xs text-slate-400 mb-2">Custo da hora: salário ÷ horas trabalhadas + materiais</p>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
                       <input
@@ -347,8 +347,8 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
           {/* Step 3: Fixed expenses */}
           {step === 3 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-slate-800">Seus gastos fixos do mês</h3>
-              <p className="text-slate-500">Gastos que você tem todo mês, vendendo ou não</p>
+              <h3 className="text-xl font-semibold text-slate-800">Gastos fixos mensais da empresa</h3>
+              <p className="text-slate-500">Gastos que a empresa tem todo mês, vendendo ou não</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -379,7 +379,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  📈 Quantos {tipoVenda === 'produto' ? 'produtos' : 'serviços'} você vende por mês?
+                  📈 Quantos {tipoVenda === 'produto' ? 'produtos' : 'serviços'} a empresa vende por mês?
                 </label>
                 <input type="number" value={qtdMensal} onChange={e => setQtdMensal(e.target.value)} placeholder="50"
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-lg" />

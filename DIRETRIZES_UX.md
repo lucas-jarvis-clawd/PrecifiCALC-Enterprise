@@ -1,5 +1,10 @@
 # 🎯 DIRETRIZES UX - PrecifiCALC Enterprise
 
+## 🚨 INSTRUÇÃO CRÍTICA - NUNCA ESQUECER
+### A PRECIFICAÇÃO É DOS PRODUTOS DOS CLIENTES, NÃO DO LUCAS!
+
+Lucas/esposa são CONSULTORES que ajudam clientes a precificar PRODUTOS DOS CLIENTES.
+
 ## 🔧 REGRAS DE OURO (Diretrizes do Lucas)
 
 ### ✅ O QUE MANTER

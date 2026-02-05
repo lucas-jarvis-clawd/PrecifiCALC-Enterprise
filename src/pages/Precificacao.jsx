@@ -539,7 +539,7 @@ export default function Precificacao() {
                 {calculo.lucroAnual > 0 && (
                   <div className="mt-3 text-center">
                     <p className="text-sm text-emerald-600">
-                      🎉 São <span className="font-bold text-emerald-700">{formatCurrency(calculo.lucroAnual)}</span> por ano no seu bolso!
+                      🎉 São <span className="font-bold text-emerald-700">{formatCurrency(calculo.lucroAnual)}</span> de lucro líquido anual!
                     </p>
                   </div>
                 )}
@@ -593,14 +593,14 @@ export default function Precificacao() {
             <CardHeader><h2 className="text-slate-800 font-medium text-sm">🧮 Como o preço é formado</h2></CardHeader>
             <CardBody>
               <div className="space-y-2">
-                <PriceRow label="Seu custo direto" value={calculo.custoUnitario} total={calculo.precoVenda} color="bg-red-500" />
+                <PriceRow label="Custo direto" value={calculo.custoUnitario} total={calculo.precoVenda} color="bg-red-500" />
                 <PriceRow label="Gastos variáveis" value={calculo.despVariavelUnitario} total={calculo.precoVenda} color="bg-amber-500" />
                 <PriceRow label="Rateio dos fixos" value={calculo.custoFixoUnitario} total={calculo.precoVenda} color="bg-orange-500" />
                 <PriceRow label="Impostos" value={calculo.impostoUnitario} total={calculo.precoVenda} color="bg-violet-500" />
                 {cppAnexoIV > 0 && (
                   <PriceRow label="INSS patronal (Anexo IV)" value={calculo.cppUnitario} total={calculo.precoVenda} color="bg-rose-500" />
                 )}
-                <PriceRow label="💰 Seu lucro" value={calculo.lucroUnitario} total={calculo.precoVenda} color="bg-emerald-500" />
+                <PriceRow label="💰 Lucro do produto" value={calculo.lucroUnitario} total={calculo.precoVenda} color="bg-emerald-500" />
                 <div className="border-t border-slate-200 pt-2 flex justify-between">
                   <span className="text-sm font-bold text-slate-800">= Preço de Venda</span>
                   <span className="text-sm font-bold text-brand-600 font-mono">{formatCurrency(calculo.precoVenda)}</span>
