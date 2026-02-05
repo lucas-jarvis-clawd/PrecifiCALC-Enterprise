@@ -27,17 +27,17 @@
 PrecifiCALC Enterprise é um **sistema web de precificação contábil** que oferece simulações tributárias completas, análises comparativas de regimes fiscais e ferramentas de gestão financeira para empresas brasileiras.
 
 ### Proposta de Valor
-- **9 módulos integrados** de análise tributária e financeira
-- **Base tributária brasileira completa** atualizada para 2026
-- **Simulador multi-regime** (MEI, Simples, Presumido, Real)
-- **Interface profissional** com onboarding guiado
-- **Cálculos em tempo real** com validações legais
+- **Precificação inteligente** de produtos/serviços com base em tributos reais
+- **Simulações rápidas** para empresários tomarem decisões financeiras
+- **Interface simples** para quem não é contador mas precisa calcular números
+- **Ferramenta de consultoria** para profissionais atenderem clientes
+- **Cálculos em tempo real** que mostram impacto tributário nos preços
 
 ### Público-Alvo
-- Contadores e escritórios contábeis
-- Empresários que precisam otimizar tributação
-- Consultores tributários
-- Analistas financeiros
+- **EMPRESÁRIOS** que precisam calcular números e precificar produtos/serviços
+- **CONSULTORES** (como a esposa do Lucas) que fazem cálculos para clientes
+- Pequenos e médios empresários buscando otimização tributária
+- Profissionais liberais que prestam consultoria empresarial
 
 ---
 
@@ -455,8 +455,8 @@ Etapa 3: Configurações Finais
 #### UX do Onboarding:
 - **Progress bar** visual com ícones
 - **Validação por etapa** (não avança sem dados obrigatórios)
-- **Design gradient** profissional
-- **Sugestões contextuais** em cada etapa
+- **Linguagem simples** para empresários (não jargão contábil)
+- **Sugestões contextuais** focadas em negócios práticos
 
 ---
 
@@ -645,24 +645,23 @@ vite.config.js       // Build config
 ### Tiers de Produto:
 ```
 🆓 FREE
-├── Simulador básico (1 empresa)
-├── Comparativo simples
+├── Precificação básica (1 produto)
+├── Simulador tributário simples
 └── Relatórios básicos
 
-💎 PRO (R$ 49-99/mês)
-├── Todos os módulos
-├── Multi-empresa (até 10)
+💎 PRO (R$ 49-99/mês) - CONSULTORES
+├── Multi-clientes (até 10)
+├── Marca branca nos relatórios
 ├── Exportação Excel/CSV
-├── Marca branca nos PDFs
-└── Templates por segmento
+├── Templates por segmento
+└── Calculadoras avançadas
 
-🏢 ENTERPRISE (R$ 199-499/mês)  
-├── Empresas ilimitadas
-├── Simulador Reforma Tributária
-├── Dashboard consolidado
-├── API de integração
-├── Suporte prioritário
-└── Customização avançada
+🏢 ENTERPRISE (R$ 199-499/mês) - ESCRITÓRIOS
+├── Clientes ilimitados
+├── Dashboard consolidado multi-cliente
+├── API para integração
+├── Customização total da marca
+└── Suporte prioritário
 ```
 
 ### Diferenciação Competitiva:
