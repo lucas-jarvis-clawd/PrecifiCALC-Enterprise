@@ -1,10 +1,18 @@
 # 🎯 PÚBLICO-ALVO - PrecifiCALC Enterprise
 
+## 🎯 MODELO DE NEGÓCIO: B2C (Venda Direta ao Empresário)
+
+**IMPORTANTE:** PrecifiCALC será vendido DIRETAMENTE para empresários individuais, NÃO para escritórios contábeis. É um produto de consumo empresarial (B2C), não ferramenta profissional (B2B).
+
 ## 👥 USUÁRIOS PRINCIPAIS
 
+### 🏢 EMPRESÁRIOS (Usuários Primários - B2C)
+**Perfil:** Donos de negócio que precisam precificar e otimizar tributação
+**Uso:** Ferramenta pessoal para calcular preços e tomar decisões financeiras
+
 ### 👩‍💼 CONSULTORA (Esposa do Lucas)
-**Perfil:** Profissional que atende clientes empresariais
-**Uso:** Ferramenta de trabalho para fazer cálculos durante consultorias
+**Perfil:** Profissional que atende clientes empresariais  
+**Uso:** Ferramenta de trabalho para fazer cálculos durante consultorias (uso secundário)
 
 **Necessidades:**
 - ✅ Calcular precificação de produtos/serviços para clientes
