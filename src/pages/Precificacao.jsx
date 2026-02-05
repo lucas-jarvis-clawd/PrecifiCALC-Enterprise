@@ -366,10 +366,21 @@ export default function Precificacao() {
                     { value: 'I', label: 'Anexo I - Comércio' }, { value: 'II', label: 'Anexo II - Indústria' },
                     { value: 'III', label: 'Anexo III - Serviços' }, { value: 'IV', label: 'Anexo IV - Construção' }, { value: 'V', label: 'Anexo V - TI/Eng' },
                   ]} />
-                  <InputField label="Faturamento últimos 12 meses" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} className="mt-3"
-                    help={`Imposto efetivo: ${formatPercent(aliquotaEfetiva)}`} />
-                  <InputField label="Folha de pagamento mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} className="mt-3"
-                    help="Salários + encargos dos funcionários" />
+                  <div className="mt-3">
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
+                      <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. É o que define sua faixa de imposto no Simples Nacional." />
+                    </div>
+                    <InputField value={rbt12} onChange={setRbt12} prefix="R$" step={10000}
+                      help={`Alíquota efetiva: ${formatPercent(aliquotaEfetiva)}`} />
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="text-xs font-medium text-slate-600">Folha de pagamento mensal</label>
+                      <InfoTip text="Soma dos salários + encargos (INSS, FGTS) de todos os funcionários. Usado para calcular o Fator R." />
+                    </div>
+                    <InputField value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} />
+                  </div>
                 </>
               )}
               {regime !== 'simples' && (
@@ -386,34 +397,40 @@ export default function Precificacao() {
               )}
             </div>
 
-            {/* Folha% display (translated from Fator R) */}
+            {/* Fator R display with tooltip */}
             {regime === 'simples' && (
               <div className="mt-3 p-3 bg-slate-50 rounded-md space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Folha% (Fator R)</span>
+                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                    Fator R (% da folha sobre faturamento)
+                    <InfoTip text="Fator R = Folha de Pagamento ÷ Faturamento 12 meses. Se ≥ 28%, empresas do Anexo V migram para o Anexo III (imposto menor)." />
+                  </span>
                   <span className={`text-xs font-medium ${folhaPercent >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                     {(folhaPercent * 100).toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Anexo que vale</span>
+                  <span className="text-xs text-slate-500">Anexo efetivo</span>
                   <span className="text-xs font-medium text-slate-700">Anexo {anexoEfetivo}</span>
                 </div>
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Boa! Sua folha ≥ 28% — migrou pro Anexo III com imposto menor! 🎉</p>
+                    <p className="text-xs text-emerald-600">Boa! Fator R ≥ 28% — migrou pro Anexo III com imposto menor! 🎉</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* CPP warning */}
+            {/* CPP warning with tooltip */}
             {regime === 'simples' && anexoEfetivo === 'IV' && (
               <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
-                  <p className="text-xs text-amber-700 font-medium">Anexo IV: INSS patronal é pago separado</p>
+                  <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
+                    CPP (Contribuição Patronal Previdenciária) — paga separado no Anexo IV
+                    <InfoTip text="CPP = INSS que a empresa paga (20% da folha). No Anexo IV do Simples, essa contribuição NÃO está incluída no DAS e precisa ser paga à parte via GPS." />
+                  </p>
                 </div>
                 <p className="text-xs text-amber-600 mt-1">
                   Custo extra: <span className="font-medium">{formatCurrency(cppAnexoIV)}/mês</span> (20% da folha)

@@ -225,9 +225,9 @@ export default function ComparativoRegimes() {
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
           <BarChart3 className="text-brand-600" size={22} />
-          Comparativo de Regimes
+          Comparar Impostos
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Encontre o regime mais vantajoso para o perfil do negócio</p>
+        <p className="text-slate-500 text-sm mt-1">Descubra qual tipo de empresa paga menos imposto para o seu caso</p>
       </div>
 
       {/* Sublimite warning */}
@@ -244,27 +244,27 @@ export default function ComparativoRegimes() {
       <Card>
         <CardBody>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <InputField label="Receita Bruta Mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} />
-            <InputField label="RBT12 (Simples Nacional)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Receita bruta dos últimos 12 meses" />
-            <SelectField label="Tipo de Atividade" value={tipoAtividade} onChange={setTipoAtividade} options={[
+            <InputField label="Faturamento mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Quanto entra por mês" />
+            <InputField label="Faturamento últimos 12 meses" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Soma do que faturou nos últimos 12 meses" />
+            <SelectField label="O que você faz" value={tipoAtividade} onChange={setTipoAtividade} options={[
               { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
             ]} />
             <SelectField label="Anexo do Simples" value={anexo} onChange={setAnexo} options={[
               { value: 'I', label: 'Anexo I - Comércio' }, { value: 'II', label: 'Anexo II - Indústria' },
-              { value: 'III', label: 'Anexo III - Serviços' }, { value: 'IV', label: 'Anexo IV - Serviços' }, { value: 'V', label: 'Anexo V - TI/Eng' },
+              { value: 'III', label: 'Anexo III - Serviços' }, { value: 'IV', label: 'Anexo IV - Construção/Limpeza' }, { value: 'V', label: 'Anexo V - TI/Eng/Consultoria' },
             ]} />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <InputField label="Alíquota ISS (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia conforme município" />
-            <InputField label="Despesas Dedutíveis (% receita)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Para Lucro Real" />
-            <InputField label="Créditos PIS/COFINS (% receita)" value={creditosPercent} onChange={setCreditosPercent} suffix="%" min={0} max={80} step={5} help="Para Lucro Real" />
-            <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Para CPP (Anexo IV) e Fator R" />
+            <InputField label="ISS da sua cidade (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Imposto do município" />
+            <InputField label="Despesas dedutíveis (% do faturamento)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Gastos que abaixam o imposto no L. Real" />
+            <InputField label="Créditos de PIS/COFINS (%)" value={creditosPercent} onChange={setCreditosPercent} suffix="%" min={0} max={80} step={5} help="Compras que geram crédito no L. Real" />
+            <InputField label="Folha de pagamento mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Salários + encargos (para cálculo da Folha%)" />
           </div>
 
           {/* Fator R display */}
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md">
-              <span className="text-xs text-slate-500">Fator R:</span>
+              <span className="text-xs text-slate-500">Folha% (Fator R):</span>
               <span className={`text-sm font-semibold font-mono ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                 {(fatorR * 100).toFixed(2)}%
               </span>
@@ -272,7 +272,7 @@ export default function ComparativoRegimes() {
             {showFatorRInfo && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <Info size={14} />
-                <span>Fator R {'>='} 28%: comparação usando Anexo III (mais vantajoso)</span>
+                <span>Folha ≥ 28% do faturamento → usa Anexo III (imposto menor!) 🎉</span>
               </div>
             )}
             {anexoEfetivo !== anexo && (
@@ -290,24 +290,24 @@ export default function ComparativoRegimes() {
       </Card>
 
       {melhor && (
-        <div className="bg-white border border-brand-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="bg-gradient-to-r from-brand-50 to-white border-2 border-brand-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-brand-100 flex items-center justify-center">
-              <Award className="text-brand-600" size={20} />
+            <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center">
+              <span className="text-2xl">🏆</span>
             </div>
             <div>
-              <p className="text-slate-500 text-xs">Regime mais vantajoso</p>
-              <p className="text-slate-800 text-lg font-semibold">{melhor.regime}</p>
+              <p className="text-slate-500 text-xs font-medium">O melhor pro seu caso</p>
+              <p className="text-slate-800 text-xl font-bold">{melhor.regime}</p>
             </div>
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-slate-400 text-xs">Alíquota Efetiva</p>
-              <p className="text-brand-600 font-semibold">{formatPercent(melhor.aliquotaEfetiva)}</p>
+              <p className="text-slate-400 text-xs">Imposto efetivo</p>
+              <p className="text-brand-600 font-bold">{formatPercent(melhor.aliquotaEfetiva)}</p>
             </div>
             <div className="text-right">
-              <p className="text-slate-400 text-xs">Economia mensal</p>
-              <p className="text-emerald-600 font-semibold">{formatCurrency(economia)}</p>
+              <p className="text-slate-400 text-xs">Economia/mês</p>
+              <p className="text-emerald-600 font-bold">{formatCurrency(economia)}</p>
             </div>
             <button
               onClick={() => setShowSalvar(true)}
@@ -354,7 +354,7 @@ export default function ComparativoRegimes() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Tributo Mensal por Regime</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">💰 Quanto de imposto em cada tipo</h2></CardHeader>
           <CardBody>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={comparativo} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
@@ -371,7 +371,7 @@ export default function ComparativoRegimes() {
         </Card>
 
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Ranking Detalhado</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">🏆 Do melhor pro pior</h2></CardHeader>
           <CardBody>
             <div className="space-y-2">
               {comparativo.map((item, i) => (
@@ -390,9 +390,13 @@ export default function ComparativoRegimes() {
               ))}
             </div>
             {economia > 0 && (
-              <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-md text-center">
-                <p className="text-xs text-slate-500">Economia anual escolhendo {melhor.regime}</p>
-                <p className="text-lg font-semibold text-emerald-600">{formatCurrency(economia * 12)}</p>
+              <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl text-center">
+                <p className="text-4xl mb-1">🎉</p>
+                <p className="text-xs text-emerald-600 font-medium">Escolhendo {melhor.regime} você economiza:</p>
+                <p className="text-2xl font-black text-emerald-700">{formatCurrency(economia * 12)}/ano!</p>
+                <p className="text-sm text-emerald-600 mt-1">
+                  São {formatCurrency(economia)}/mês que ficam no seu bolso!
+                </p>
               </div>
             )}
           </CardBody>

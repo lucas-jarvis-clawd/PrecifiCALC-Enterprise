@@ -17,6 +17,7 @@ import Configuracoes from './pages/Configuracoes';
 import DRE from './pages/DRE';
 import CalendarioFiscal from './pages/CalendarioFiscal';
 import Enquadramento from './pages/Enquadramento';
+import ProjecaoCrescimento from './pages/ProjecaoCrescimento';
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(
@@ -73,6 +74,7 @@ export default function App() {
       comparativo: '/comparativo',
       viabilidade: '/viabilidade',
       equilibrio: '/equilibrio',
+      projecao: '/projecao',
       propostas: '/propostas',
       dre: '/dre',
       calendario: '/calendario',
@@ -143,6 +145,7 @@ export default function App() {
             <Route path="/comparativo" element={<ComparativoRegimes onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/viabilidade" element={<AnaliseViabilidade onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/equilibrio" element={<PontoEquilibrio onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
+            <Route path="/projecao" element={<ProjecaoCrescimento onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/propostas" element={<Propostas onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/dre" element={<DRE onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />
             <Route path="/calendario" element={<CalendarioFiscal onNavigate={handleNavigate} perfilEmpresa={perfilEmpresa} />} />

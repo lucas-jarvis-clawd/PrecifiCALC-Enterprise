@@ -45,9 +45,9 @@ Valor: Decisão tomada em 5 minutos com dados concretos
 ### Cenário 2: Precificação de Produto
 ```
 Situação: Cliente quer lançar novo produto mas não sabe o preço
-Uso: Consultora usa módulo Precificação → insere custos + margem desejada
-Resultado: Preço final considerando todos os tributos
-Valor: Garantia de margem real sem surpresas tributárias
+Uso: Consultora usa módulo Precificação → insere custos DO PRODUTO DO CLIENTE + margem desejada
+Resultado: Preço que O CLIENTE deve cobrar considerando todos os tributos
+Valor: Cliente garante margem real sem surpresas tributárias
 ```
 
 ### Cenário 3: Análise de Viabilidade

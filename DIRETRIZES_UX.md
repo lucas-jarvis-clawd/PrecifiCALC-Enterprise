@@ -87,11 +87,32 @@
 - **Cores semânticas** (verde=economia, vermelho=atenção)
 - **Linguagem de negócios** com precisão técnica
 - **Ações claras** em cada módulo
+- **Contexto:** "Seus produtos" (dirigindo-se ao empresário)
 
 ### Para Consultores (Uso Secundário) 
 - **Modo apresentação** para reuniões
 - **Relatórios profissionais** com marca própria
 - **Acesso a detalhes técnicos** quando necessário
+- **Contexto:** "Produtos do cliente" ou "Esta empresa"
+
+## 🎯 LINGUAGEM CORRETA NA INTERFACE
+
+### ✅ Para Empresário Usando Diretamente:
+- "Seus produtos devem ser vendidos por R$ X"
+- "Sua margem será Y%"
+- "Seu negócio terá lucro líquido de R$ Z"
+- "Com sua receita atual, o melhor regime é..."
+
+### ✅ Para Consultor Atendendo Cliente:
+- "Os produtos do cliente devem custar R$ X"  
+- "A margem desta empresa será Y%"
+- "O lucro líquido da empresa será R$ Z"
+- "Para esta empresa, recomendamos..."
+
+### ❌ Evitar Ambiguidade:
+- ❌ "Sua margem" (margem de quem?)
+- ❌ "Seus impostos" (do consultor ou do cliente?)
+- ❌ "Seu faturamento" (não está claro)
 
 ## ⚠️ O QUE NÃO FAZER
 

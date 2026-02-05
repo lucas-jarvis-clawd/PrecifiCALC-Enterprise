@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Calculator, AlertTriangle, Info, BookOpen } from 'lucide-react';
+import { Calculator, AlertTriangle, Info, BookOpen, HelpCircle } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
+import { InfoTip } from '../components/Tooltip';
 import {
   formatCurrency, formatPercent,
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
@@ -171,15 +172,20 @@ export default function SimuladorTributario() {
             ]} />
 
             {regime === 'simples' ? (
-              <InputField
-                label="Receita Bruta dos Últimos 12 Meses (RBT12)"
-                value={rbt12}
-                onChange={setRbt12}
-                prefix="R$"
-                step={10000}
-                min={0}
-                help={`Receita mensal média: ${formatCurrency(rbt12 / 12)}`}
-              />
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
+                  <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. A Receita Federal usa esse valor para definir em qual faixa do Simples Nacional você se enquadra e qual será a alíquota do seu imposto." />
+                </div>
+                <InputField
+                  value={rbt12}
+                  onChange={setRbt12}
+                  prefix="R$"
+                  step={10000}
+                  min={0}
+                  help={`Receita mensal média: ${formatCurrency(rbt12 / 12)}`}
+                />
+              </div>
             ) : (
               <InputField
                 label="Receita Bruta Mensal"
@@ -246,13 +252,16 @@ export default function SimuladorTributario() {
                 {/* Fator R display */}
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-slate-600">Fator R</span>
+                    <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
+                      Fator R (% da folha sobre faturamento)
+                      <InfoTip text="Fator R = total de folha de pagamento dos últimos 12 meses ÷ RBT12. Se o Fator R for ≥ 28%, empresas do Anexo V migram para o Anexo III, pagando menos imposto." />
+                    </span>
                     <span className={`text-sm font-semibold font-mono ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                       {(fatorR * 100).toFixed(2)}%
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Folha 12m / RBT12 = {formatCurrency(folha12Meses)} / {formatCurrency(rbt12)}
+                    Folha 12m ÷ RBT12 = {formatCurrency(folha12Meses)} ÷ {formatCurrency(rbt12)}
                   </p>
                 </div>
 
@@ -299,27 +308,38 @@ export default function SimuladorTributario() {
                 <div className="border-t border-slate-200 pt-3 mt-1">
                   <div className="flex items-center gap-1.5 mb-3">
                     <BookOpen className="text-slate-400" size={14} />
-                    <span className="text-xs font-medium text-slate-600">Ajustes do LALUR</span>
+                    <span className="text-xs font-medium text-slate-600">LALUR (Ajustes do Lucro Real)</span>
+                    <InfoTip text="LALUR = Livro de Apuração do Lucro Real. É onde se faz ajustes no lucro contábil para chegar no lucro tributável. Adições aumentam o lucro tributável; exclusões diminuem." />
                   </div>
                   <div className="space-y-3">
-                    <InputField
-                      label="Adições ao LALUR (R$)"
-                      value={adicoesLalur}
-                      onChange={setAdicoesLalur}
-                      prefix="R$"
-                      step={500}
-                      min={0}
-                      help="Despesas não dedutíveis, multas, etc."
-                    />
-                    <InputField
-                      label="Exclusões do LALUR (R$)"
-                      value={exclusoesLalur}
-                      onChange={setExclusoesLalur}
-                      prefix="R$"
-                      step={500}
-                      min={0}
-                      help="Receitas não tributáveis, incentivos fiscais"
-                    />
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <label className="text-xs font-medium text-slate-600">Adições ao LALUR</label>
+                        <InfoTip text="Valores que devem ser SOMADOS ao lucro contábil para fins de imposto. Ex: multas fiscais, despesas não dedutíveis, brindes." />
+                      </div>
+                      <InputField
+                        value={adicoesLalur}
+                        onChange={setAdicoesLalur}
+                        prefix="R$"
+                        step={500}
+                        min={0}
+                        help="Despesas não dedutíveis, multas, etc."
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <label className="text-xs font-medium text-slate-600">Exclusões do LALUR</label>
+                        <InfoTip text="Valores que podem ser SUBTRAÍDOS do lucro contábil para fins de imposto. Ex: dividendos recebidos, incentivos fiscais, receitas não tributáveis." />
+                      </div>
+                      <InputField
+                        value={exclusoesLalur}
+                        onChange={setExclusoesLalur}
+                        prefix="R$"
+                        step={500}
+                        min={0}
+                        help="Receitas não tributáveis, incentivos fiscais"
+                      />
+                    </div>
                   </div>
                 </div>
               </>
