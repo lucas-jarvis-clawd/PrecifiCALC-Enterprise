@@ -446,7 +446,7 @@ export const substituicaoTributaria = {
     },
 
     eletronicos: {
-      smartphone: { mva: 0.41.5, aliquotaInterna: 0.17 },
+      smartphone: { mva: 0.415, aliquotaInterna: 0.17 },
       computador: { mva: 0.30, aliquotaInterna: 0.17 },
       televisor: { mva: 0.35, aliquotaInterna: 0.17 }
     }

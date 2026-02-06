@@ -1,29 +1,66 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 
-export default defineConfig([
-  globalIgnores(['dist']),
+export default [
+  {
+    ignores: [
+      'dist/**/*',
+      'build/**/*',
+      'node_modules/**/*'
+    ]
+  },
+  
   {
     files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
+    
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.es2021
+      },
+      
       parserOptions: {
         ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
+        ecmaFeatures: {
+          jsx: true
+        },
+        sourceType: 'module'
+      }
     },
+    
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh
+    },
+    
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-    },
-  },
-])
+      // Base JavaScript
+      ...js.configs.recommended.rules,
+      
+      // React Hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      
+      // Performance and quality
+      'no-unused-vars': ['error', {
+        vars: 'all',
+        args: 'after-used',
+        ignoreRestSiblings: true,
+        varsIgnorePattern: '^[A-Z_]|^React$'
+      }],
+      
+      'no-console': ['warn'],
+      'no-debugger': ['error'],
+      'no-empty': ['error', { allowEmptyCatch: false }],
+      'prefer-const': 'error',
+      'no-var': 'error',
+      
+      // React specific
+      'react-refresh/only-export-components': ['warn', { 
+        allowConstantExport: true 
+      }]
+    }
+  }
+];

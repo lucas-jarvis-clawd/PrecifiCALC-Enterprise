@@ -2,7 +2,23 @@ import { useState, useEffect, useMemo } from 'react';
 import { FileSpreadsheet, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
-import { formatCurrency, formatPercent } from '../data/taxData';
+import { formatCurrency } from '../data/taxData';
+
+// Componente DRELine movido para fora do render
+const DRELine = ({ label, value, level = 0, bold = false, highlight = false }) => {
+  const indent = level * 20;
+  const isNeg = value < 0;
+  return (
+    <div className={`flex justify-between py-1.5 ${bold ? 'font-semibold border-t border-slate-200 mt-1 pt-2' : ''} ${highlight ? 'bg-slate-50 px-3 -mx-3 rounded' : ''}`}>
+      <span className={`${bold ? 'text-slate-800' : 'text-slate-600'} text-sm`} style={{ paddingLeft: indent }}>
+        {level > 0 && !bold ? '(-) ' : ''}{label}
+      </span>
+      <span className={`font-mono text-sm ${isNeg ? 'text-red-600' : bold ? 'text-slate-800' : 'text-slate-700'} ${highlight ? 'text-brand-600 font-semibold' : ''}`}>
+        {formatCurrency(Math.abs(value))}{isNeg ? ' (-)' : ''}
+      </span>
+    </div>
+  );
+};
 
 export default function DRE() {
   const [periodo, setPeriodo] = useState('mensal');
@@ -24,27 +40,34 @@ export default function DRE() {
       const saved = localStorage.getItem('precificalc_dre');
       if (saved) {
         const d = JSON.parse(saved);
-        if (d.receitaBruta !== undefined) setReceitaBruta(d.receitaBruta);
-        if (d.impostosSobreVendas !== undefined) setImpostosSobreVendas(d.impostosSobreVendas);
-        if (d.devolucoes !== undefined) setDevolucoes(d.devolucoes);
-        if (d.cpv !== undefined) setCpv(d.cpv);
-        if (d.despAdmin !== undefined) setDespAdmin(d.despAdmin);
-        if (d.despPessoal !== undefined) setDespPessoal(d.despPessoal);
-        if (d.despComerciais !== undefined) setDespComerciais(d.despComerciais);
-        if (d.outrasDespesas !== undefined) setOutrasDespesas(d.outrasDespesas);
-        if (d.depreciacao !== undefined) setDepreciacao(d.depreciacao);
-        if (d.resultadoFinanceiro !== undefined) setResultadoFinanceiro(d.resultadoFinanceiro);
-        if (d.irpjCsll !== undefined) setIrpjCsll(d.irpjCsll);
-        if (d.periodo) setPeriodo(d.periodo);
+        // Usar timeout para evitar cascading renders
+        setTimeout(() => {
+          if (d.receitaBruta !== undefined) setReceitaBruta(d.receitaBruta);
+          if (d.impostosSobreVendas !== undefined) setImpostosSobreVendas(d.impostosSobreVendas);
+          if (d.devolucoes !== undefined) setDevolucoes(d.devolucoes);
+          if (d.cpv !== undefined) setCpv(d.cpv);
+          if (d.despAdmin !== undefined) setDespAdmin(d.despAdmin);
+          if (d.despPessoal !== undefined) setDespPessoal(d.despPessoal);
+          if (d.despComerciais !== undefined) setDespComerciais(d.despComerciais);
+          if (d.outrasDespesas !== undefined) setOutrasDespesas(d.outrasDespesas);
+          if (d.depreciacao !== undefined) setDepreciacao(d.depreciacao);
+          if (d.resultadoFinanceiro !== undefined) setResultadoFinanceiro(d.resultadoFinanceiro);
+          if (d.irpjCsll !== undefined) setIrpjCsll(d.irpjCsll);
+          if (d.periodo) setPeriodo(d.periodo);
+        }, 0);
       }
       // Also try to load from custos/simulador
       const custos = localStorage.getItem('precificalc_custos');
       if (custos && !saved) {
         const c = JSON.parse(custos);
-        if (c.custoFolha) setDespPessoal(c.custoFolha);
-        if (c.totalFixos) setDespAdmin(c.totalFixos);
+        setTimeout(() => {
+          if (c.custoFolha) setDespPessoal(c.custoFolha);
+          if (c.totalFixos) setDespAdmin(c.totalFixos);
+        }, 0);
       }
-    } catch {}
+    } catch {
+      // Ignore errors loading from localStorage
+    }
   }, []);
 
   // Save to localStorage
@@ -73,21 +96,6 @@ export default function DRE() {
       margemLiquida: rb > 0 ? (ll / rb) * 100 : 0,
     };
   }, [receitaBruta, impostosSobreVendas, devolucoes, cpv, despAdmin, despPessoal, despComerciais, outrasDespesas, depreciacao, resultadoFinanceiro, irpjCsll, mult]);
-
-  const DRELine = ({ label, value, level = 0, bold = false, highlight = false }) => {
-    const indent = level * 20;
-    const isNeg = value < 0;
-    return (
-      <div className={`flex justify-between py-1.5 ${bold ? 'font-semibold border-t border-slate-200 mt-1 pt-2' : ''} ${highlight ? 'bg-slate-50 px-3 -mx-3 rounded' : ''}`}>
-        <span className={`${bold ? 'text-slate-800' : 'text-slate-600'} text-sm`} style={{ paddingLeft: indent }}>
-          {level > 0 && !bold ? '(-) ' : ''}{label}
-        </span>
-        <span className={`font-mono text-sm ${isNeg ? 'text-red-600' : bold ? 'text-slate-800' : 'text-slate-700'} ${highlight ? 'text-brand-600 font-semibold' : ''}`}>
-          {formatCurrency(Math.abs(value))}{isNeg ? ' (-)' : ''}
-        </span>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-6 animate-fadeIn">

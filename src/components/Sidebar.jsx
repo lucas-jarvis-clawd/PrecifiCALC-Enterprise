@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -174,16 +174,25 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
   if (isMobile) {
     return (
       <>
+        {/* Improved backdrop with smooth blur */}
         <div
-          className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-            mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-all duration-300 ease-out ${
+            mobileOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
           }`}
           onClick={onMobileClose}
         />
+        {/* Enhanced mobile sidebar */}
         <aside
-          className={`fixed top-0 left-0 h-full w-72 bg-navy-950 z-50 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${
+          className={`fixed top-0 left-0 h-full w-72 bg-navy-950 z-50 flex flex-col transition-all duration-300 ease-out shadow-premium-lg ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          } safe-top safe-bottom`}
+          style={{
+            // Ensure proper safe area handling
+            paddingTop: 'env(safe-area-inset-top, 0)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0)',
+            height: '100vh', // Explicit height for proper mobile handling
+            maxHeight: '100vh',
+          }}
         >
           {sidebarContent}
         </aside>

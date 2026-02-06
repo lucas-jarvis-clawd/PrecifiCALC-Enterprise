@@ -303,7 +303,7 @@ function gerarRelatorio(tipo) {
       <div class="footer">
         Gerado por ${empresa.nome} • Powered by PrecifiCALC Enterprise
       </div>
-      <script>window.print();<\/script>
+      <script>window.print();</script>
     </body></html>
   `);
   win.document.close();

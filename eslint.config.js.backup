@@ -1,0 +1,307 @@
+// 🚀 ESLint Configuration for PrecifiCALC Enterprise
+// Focused on Performance, Clean Code & React Best Practices
+
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+
+export default [
+  // 🚫 Global ignores
+  {
+    ignores: [
+      'dist/**/*',
+      'build/**/*',
+      'node_modules/**/*',
+      'coverage/**/*',
+      '*.config.js',
+      'public/**/*',
+      'src/data/__tests__/**/*',
+      'src/test/**/*'
+    ]
+  },
+  
+  // 📁 Main configuration for JS/JSX files
+  {
+    files: ['**/*.{js,jsx}'],
+    
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        
+        // Custom globals for our app
+        __VERSION__: 'readonly',
+        __BUILD_TIME__: 'readonly',
+        __DEV__: 'readonly',
+        performanceMonitor: 'readonly'
+      },
+      
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: {
+          jsx: true,
+          impliedStrict: true
+        },
+        sourceType: 'module'
+      }
+    },
+    
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh
+    },
+    
+    rules: {
+      // 📊 PERFORMANCE RULES
+      
+      // Prevent expensive operations in render
+      'no-array-constructor': 'error',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-implicit-coercion': 'error',
+      
+      // Memory management
+      'no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'after-used',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^[A-Z_]|^React$',
+          argsIgnorePattern: '^_|^props$|^event$'
+        }
+      ],
+      
+      // Prevent memory leaks
+      'no-global-assign': 'error',
+      'no-implicit-globals': 'error',
+      
+      // 🎯 REACT PERFORMANCE RULES
+      
+      // React Hooks optimization
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn', // Changed to warn for development
+      
+      // React Refresh
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true }
+      ],
+      
+      // 🧹 CLEAN CODE RULES
+      
+      // Code clarity
+      'no-magic-numbers': [
+        'warn',
+        {
+          ignore: [0, 1, -1, 2, 10, 100, 1000],
+          ignoreArrayIndexes: true,
+          ignoreDefaultValues: true,
+          enforceConst: true
+        }
+      ],
+      
+      // Function complexity
+      'complexity': ['warn', { max: 15 }],
+      'max-depth': ['warn', { max: 4 }],
+      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'max-params': ['warn', { max: 5 }],
+      
+      // Code organization
+      'no-duplicate-imports': 'error',
+      'sort-imports': [
+        'warn',
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+          memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single']
+        }
+      ],
+      
+      // 🚫 ERROR PREVENTION
+      
+      // Potential bugs
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'no-alert': 'warn',
+      'no-confirm': 'warn',
+      
+      // Type safety
+      'no-undef': 'error',
+      'no-undefined': 'error',
+      'no-implicit-coercion': 'error',
+      'eqeqeq': ['error', 'always', { null: 'ignore' }],
+      'no-eq-null': 'off', // Conflicts with eqeqeq
+      
+      // Async/Promise handling
+      'no-async-promise-executor': 'error',
+      'no-await-in-loop': 'warn',
+      'no-promise-executor-return': 'error',
+      'require-atomic-updates': 'error',
+      
+      // 💎 STYLE & CONSISTENCY
+      
+      // Modern JS features
+      'prefer-arrow-callback': 'error',
+      'prefer-const': 'error',
+      'prefer-template': 'error',
+      'prefer-spread': 'error',
+      'prefer-rest-params': 'error',
+      'prefer-destructuring': [
+        'warn',
+        {
+          array: true,
+          object: true
+        }
+      ],
+      
+      // ES6+ features
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'prefer-object-spread': 'error',
+      
+      // Function style
+      'func-style': ['warn', 'expression', { allowArrowFunctions: true }],
+      'arrow-body-style': ['warn', 'as-needed'],
+      
+      // Semicolons and commas
+      'semi': ['error', 'always'],
+      'comma-dangle': ['error', 'never'],
+      
+      // 🔒 SECURITY RULES
+      
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-script-url': 'error',
+      
+      // 📱 REACT SPECIFIC RULES
+      
+      // JSX best practices
+      'jsx-quotes': ['error', 'prefer-double'],
+      
+      // React patterns
+      'no-useless-constructor': 'error',
+      'no-useless-return': 'error',
+      
+      // 🎯 CUSTOM BUSINESS LOGIC RULES
+      
+      // localStorage usage (we want to track this) - disabled for development
+      // 'no-restricted-globals': [
+      //   'error',
+      //   {
+      //     name: 'localStorage',
+      //     message: 'Use performantStorage from utils/performance.js for tracked localStorage operations'
+      //   }
+      // ],
+      
+      // Console usage in production
+      'no-restricted-syntax': process.env.NODE_ENV === 'production' ? [
+        'error',
+        {
+          selector: 'CallExpression[callee.object.name="console"][callee.property.name!=/^(warn|error)$/]',
+          message: 'Unexpected console statement in production'
+        }
+      ] : 'off',
+      
+      // 🏆 PERFORMANCE-SPECIFIC RULES
+      
+      // Prevent inefficient patterns
+      'no-loop-func': 'error',
+      'no-inner-declarations': 'error',
+      
+      // Object/Array optimization
+      'no-sparse-arrays': 'error',
+      'no-delete-var': 'error',
+      
+      // Function optimization
+      'no-extra-bind': 'error',
+      'no-useless-call': 'error',
+      
+      // 📏 CODE FORMATTING (minimal, let Prettier handle most)
+      
+      'indent': 'off', // Let Prettier handle this
+      'quotes': 'off', // Let Prettier handle this
+      'linebreak-style': 'off', // Cross-platform compatibility
+      
+      // Only essential formatting rules
+      'no-trailing-spaces': 'error',
+      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }],
+      'eol-last': 'error'
+    }
+  },
+  
+  // 🔧 Configuration for specific file types
+  
+  // Test files - relaxed rules
+  {
+    files: ['**/*.test.{js,jsx}', '**/__tests__/**/*.{js,jsx}'],
+    rules: {
+      'no-magic-numbers': 'off',
+      'max-lines-per-function': 'off',
+      'no-console': 'off',
+      'complexity': 'off'
+    }
+  },
+  
+  // Data files - specialized rules  
+  {
+    files: ['src/data/**/*.js'],
+    rules: {
+      'no-magic-numbers': 'off', // Tax calculations have many constants
+      'max-lines-per-function': 'off', // Complex tax calculations
+      'complexity': ['warn', { max: 25 }] // Higher complexity allowed for calculations
+    }
+  },
+  
+  // Configuration files
+  {
+    files: ['*.config.{js,mjs}', 'vite.config.js', 'tailwind.config.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
+    },
+    rules: {
+      'no-console': 'off',
+      'no-magic-numbers': 'off'
+    }
+  },
+  
+  // Service Worker files
+  {
+    files: ['src/pwa/**/*.js', 'public/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker
+      }
+    },
+    rules: {
+      'no-console': 'off',
+      'no-restricted-globals': 'off'
+    }
+  },
+  
+  // 🎯 Extend base configurations
+  ...js.configs.recommended.rules ? [js.configs.recommended] : [],
+  
+  // React Hooks configuration
+  {
+    plugins: {
+      'react-hooks': reactHooks
+    },
+    rules: reactHooks.configs.recommended.rules
+  }
+];
+
+// 📝 Usage notes:
+// 1. Run `npm run lint` to check all files
+// 2. Run `npm run lint:fix` to auto-fix issues
+// 3. Add `/* eslint-disable-next-line rule-name */` for specific exceptions
+// 4. Use `// eslint-disable-line` for end-of-line exceptions
+// 5. Performance rules focus on React optimization and bundle size
+// 6. Clean code rules enforce readability and maintainability

@@ -3,6 +3,11 @@ import { Tags, DollarSign, TrendingUp, Calculator, AlertTriangle, Info, Clock, A
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { InfoTip } from '../components/Tooltip';
+import { TermoTecnico, LabelComTermoTecnico } from '../components/TermoTecnico';
+import { BotaoUsarNaProposta, BotaoImportarCustos, NotificacaoDadosDisponiveis } from '../components/IntegracaoModulos';
+import { CalculationLoader, ButtonLoading } from '../components/LoadingStates';
+import TabsContainer, { TabPanel } from '../components/TabsContainer';
+import AdvancedPricingTab from '../components/AdvancedPricingTab';
 import {
   formatCurrency, formatPercent,
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
@@ -48,8 +53,34 @@ export default function Precificacao() {
   // Reverse pricing fields
   const [precoMercado, setPrecoMercado] = useState(200);
 
-  // Import costs
+  // UI State
+  const [calculando, setCalculando] = useState(false);
+  const [mostrarNotificacaoCustos, setMostrarNotificacaoCustos] = useState(false);
+  const [dadosEnviadosParaProposta, setDadosEnviadosParaProposta] = useState(false);
+
+  // Import costs and check for available data
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem('precificalc_custos');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.despesasFixas) {
+          setDespesasFixas(data.despesasFixas);
+          setCustosImportados(true);
+        }
+        if (data.custoVariavelUnitario) setCustoProduto(data.custoVariavelUnitario);
+        if (data.quantidadeMensal) setQuantidadeMensal(data.quantidadeMensal);
+        
+        // Show notification if there's cost data but not imported yet
+        if (!custosImportados && (data.despesasFixas || data.custoVariavelUnitario)) {
+          setMostrarNotificacaoCustos(true);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Função para importar dados de custos
+  const handleImportarCustos = () => {
     try {
       const saved = localStorage.getItem('precificalc_custos');
       if (saved) {
@@ -57,10 +88,42 @@ export default function Precificacao() {
         if (data.despesasFixas) setDespesasFixas(data.despesasFixas);
         if (data.custoVariavelUnitario) setCustoProduto(data.custoVariavelUnitario);
         if (data.quantidadeMensal) setQuantidadeMensal(data.quantidadeMensal);
+        if (data.folhaMensal) setFolhaMensal(data.folhaMensal);
         setCustosImportados(true);
+        setMostrarNotificacaoCustos(false);
       }
-    } catch {}
-  }, []);
+    } catch (error) {
+      console.error('Erro ao importar custos:', error);
+    }
+  };
+
+  // Função para enviar dados para propostas
+  const handleUsarNaProposta = (dadosPrecificacao) => {
+    try {
+      const dadosParaProposta = {
+        produto: tipo === 'produto' ? 'Produto' : 'Serviço',
+        descricao: `${tipo === 'produto' ? 'Produto' : 'Serviço'} calculado`,
+        preco: dadosPrecificacao.precoVenda,
+        custo: dadosPrecificacao.custoTotal,
+        margem: dadosPrecificacao.margemReal,
+        impostos: dadosPrecificacao.impostoTotalUnitario,
+        quantidade: 1,
+        dataCalculada: new Date().toISOString(),
+        regime: regime,
+        modo: modo,
+      };
+
+      // Salvar no localStorage para o módulo Propostas
+      const propostasExistentes = JSON.parse(localStorage.getItem('precificalc_propostas') || '{}');
+      propostasExistentes.ultimoItemPrecificado = dadosParaProposta;
+      localStorage.setItem('precificalc_propostas', JSON.stringify(propostasExistentes));
+
+      setDadosEnviadosParaProposta(true);
+      setTimeout(() => setDadosEnviadosParaProposta(false), 3000);
+    } catch (error) {
+      console.error('Erro ao enviar para propostas:', error);
+    }
+  };
 
   // localStorage persistence
   useEffect(() => {
@@ -255,11 +318,24 @@ export default function Precificacao() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      {/* Header da Página */}
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
           <Tags className="text-brand-600" size={22} />
           Formar Preço de Venda
         </h1>
+        <p className="text-sm text-slate-600 mt-1">
+          Calcule o preço ideal para seus produtos e serviços
+        </p>
+      </div>
+
+      {/* Sistema de Abas */}
+      <TabsContainer defaultTab="normal">
+        {(activeTab) => (
+          <>
+            {/* Aba Precificação Padrão */}
+            <TabPanel value="normal" activeTab={activeTab}>
+              <div className="space-y-6">
         <p className="text-slate-500 text-sm mt-1">Descubra o preço certo considerando seus custos, impostos e lucro desejado</p>
       </div>
 
@@ -352,37 +428,63 @@ export default function Precificacao() {
               <InputField label="🎯 Margem de lucro desejada" value={margemDesejada} onChange={setMargemDesejada} suffix="%" min={1} max={80} step={1} />
             )}
 
+            {/* Notificação de dados disponíveis em Custos */}
+            {!custosImportados && mostrarNotificacaoCustos && (
+              <NotificacaoDadosDisponiveis
+                tipo="custos"
+                onImportar={handleImportarCustos}
+                onDismiss={() => setMostrarNotificacaoCustos(false)}
+                className="mb-4"
+              />
+            )}
+
             <div className="border-t border-slate-200 pt-3 mt-3">
-              <p className="text-xs font-bold text-slate-500 mb-2">🏢 Tipo da empresa (impostos)</p>
-              <SelectField label="Regime" value={regime} onChange={setRegime} options={[
-                { value: 'mei', label: 'MEI' },
-                { value: 'simples', label: 'Simples Nacional' },
-                { value: 'presumido', label: 'Lucro Presumido' },
-                { value: 'real', label: 'Lucro Real' },
-              ]} />
-              {regime === 'simples' && (
-                <>
-                  <SelectField label="Anexo" value={anexo} onChange={setAnexo} className="mt-3" options={[
-                    { value: 'I', label: 'Anexo I - Comércio' }, { value: 'II', label: 'Anexo II - Indústria' },
-                    { value: 'III', label: 'Anexo III - Serviços' }, { value: 'IV', label: 'Anexo IV - Construção' }, { value: 'V', label: 'Anexo V - TI/Eng' },
+              <p className="text-xs font-bold text-slate-500 mb-2">🏢 Regime Tributário da Empresa</p>
+              <div className="space-y-3">
+                <LabelComTermoTecnico termo="simples" textoExplicativo="Regime da empresa">
+                  <SelectField value={regime} onChange={setRegime} options={[
+                    { value: 'mei', label: 'MEI (até R$ 81 mil/ano)' },
+                    { value: 'simples', label: 'Simples Nacional (até R$ 4,8 mi/ano)' },
+                    { value: 'presumido', label: 'Lucro Presumido' },
+                    { value: 'real', label: 'Lucro Real' },
                   ]} />
-                  <div className="mt-3">
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
-                      <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. É o que define a faixa de imposto no Simples Nacional." />
+                </LabelComTermoTecnico>
+                
+                {regime === 'simples' && (
+                  <>
+                    <LabelComTermoTecnico termo="anexo" textoExplicativo="Categoria da atividade">
+                      <SelectField value={anexo} onChange={setAnexo} options={[
+                        { value: 'I', label: 'Anexo I - Comércio' }, 
+                        { value: 'II', label: 'Anexo II - Indústria' },
+                        { value: 'III', label: 'Anexo III - Serviços' }, 
+                        { value: 'IV', label: 'Anexo IV - Construção/Obras' }, 
+                        { value: 'V', label: 'Anexo V - TI/Engenharia' },
+                      ]} />
+                    </LabelComTermoTecnico>
+                    
+                    <div>
+                      <LabelComTermoTecnico termo="rbt12" textoExplicativo="Faturamento últimos 12 meses" />
+                      <InputField 
+                        value={rbt12} 
+                        onChange={setRbt12} 
+                        prefix="R$" 
+                        step={10000}
+                        help={`💡 Sua alíquota atual: ${formatPercent(aliquotaEfetiva)}`} 
+                      />
                     </div>
-                    <InputField value={rbt12} onChange={setRbt12} prefix="R$" step={10000}
-                      help={`Alíquota efetiva: ${formatPercent(aliquotaEfetiva)}`} />
-                  </div>
-                  <div className="mt-3">
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-xs font-medium text-slate-600">Folha de pagamento mensal</label>
-                      <InfoTip text="Soma dos salários + encargos (INSS, FGTS) de todos os funcionários. Usado para calcular o Fator R." />
+                    
+                    <div>
+                      <LabelComTermoTecnico termo="cpp" textoExplicativo="Folha de pagamento mensal" />
+                      <InputField 
+                        value={folhaMensal} 
+                        onChange={setFolhaMensal} 
+                        prefix="R$" 
+                        step={1000}
+                        help="Soma de salários + encargos de todos os funcionários"
+                      />
                     </div>
-                    <InputField value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} />
-                  </div>
-                </>
-              )}
+                  </>
+                )}</div>
               {regime !== 'simples' && (
                 <InputField label="Faturamento mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} className="mt-3"
                   help={`Imposto efetivo: ${formatPercent(aliquotaEfetiva)}`} />
@@ -556,6 +658,34 @@ export default function Precificacao() {
                 </div>
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(calculo.precoMinimo)}</p>
               </div>
+
+              {/* AÇÕES DE INTEGRAÇÃO */}
+              <div className="bg-gradient-to-r from-brand-50 to-cyan-50 border border-brand-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-brand-800 mb-1">✨ Próximos Passos</h3>
+                    <p className="text-xs text-brand-600">Use esse preço para gerar uma proposta profissional</p>
+                  </div>
+                  <BotaoUsarNaProposta
+                    dadosPrecificacao={{
+                      ...calculo,
+                      nome: tipo === 'produto' ? 'Produto' : 'Serviço',
+                      regime,
+                      modo,
+                    }}
+                    onUsar={handleUsarNaProposta}
+                    disabled={calculo.precoVenda <= 0}
+                  />
+                </div>
+                
+                {dadosEnviadosParaProposta && (
+                  <div className="mt-3 p-2 bg-emerald-100 border border-emerald-300 rounded-lg animate-fade-in-up">
+                    <p className="text-xs text-emerald-700 font-medium">
+                      🎉 Dados enviados! Vá em "Propostas" para gerar o documento.
+                    </p>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -672,6 +802,16 @@ export default function Precificacao() {
           </Card>
         </div>
       </div>
+              </div>
+            </TabPanel>
+
+            {/* Aba Precificação Avançada */}
+            <TabPanel value="advanced" activeTab={activeTab}>
+              <AdvancedPricingTab />
+            </TabPanel>
+          </>
+        )}
+      </TabsContainer>
     </div>
   );
 }

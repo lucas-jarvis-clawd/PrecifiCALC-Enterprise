@@ -51,7 +51,9 @@ function useLimitAlerts() {
         }
       }
       setAlerts(result);
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load data:', error);
+    }
   }, []);
   return alerts;
 }
@@ -65,7 +67,9 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
     try {
       const p = perfilEmpresa || JSON.parse(localStorage.getItem('precificalc_perfil') || '{}');
       if (p.nomeEmpresa) setNomeEmpresa(p.nomeEmpresa);
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to load data:', error);
+    }
   }, [perfilEmpresa]);
 
   const quickActions = [

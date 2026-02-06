@@ -112,7 +112,7 @@ export default function Propostas() {
         </head>
         <body>
           ${printContent.innerHTML}
-          <script>window.print();<\/script>
+          <script>window.print();</script>
         </body>
       </html>
     `);
