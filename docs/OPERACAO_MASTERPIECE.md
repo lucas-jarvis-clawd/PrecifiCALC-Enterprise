@@ -6,7 +6,12 @@
 **Branch:** `masterpiece-upgrade`  
 **Objetivo:** Backend perfeito, Frontend perfeito, Lógica tributária irretocável, Código elegante
 
-## 🤖 ESQUADRÃO ATIVO (5 Agentes Especializados)
+## 🚨 REQUISITOS CRÍTICOS ADICIONAIS (02:05)
+**Lucas:** "Não pode ter absolutamente nenhum cálculo errado, alíquota errada ou informação desatualizada"  
+**Nova funcionalidade:** Aba "Precificação Avançada" com NCM e produtos monofásicos  
+**Agentes adicionais spawned:** 3 especialistas em NCM/tributação
+
+## 🤖 ESQUADRÃO ATIVO (8 Agentes Especializados)
 
 ### 1. 🏗️ BACKEND ARCHITECT  
 **Session:** `e8ab7cee-b06b-4ca7-9859-7d1543830aa3`  
@@ -58,6 +63,40 @@
 - Consolidar documentação de erros
 - Validação final de masterpiece
 
+---
+
+## 🆕 AGENTES ESPECIALIZADOS - PRECIFICAÇÃO AVANÇADA NCM
+
+### 6. 🧑‍⚖️ TAX LEGISLATION SPECIALIST  
+**Session:** `9852ed98-5bb8-4ee3-a11e-a243c57eb1aa`  
+**Status:** 🔄 Investigando  
+**Missão:** Análise completa tributação por NCM
+- Mapear impactos de NCM na tributação
+- Identificar fontes oficiais de dados
+- Documentar legislação atual 2026
+- Mapear produtos monofásicos
+- Criar roadmap de implementação
+
+### 7. 🎨 ADVANCED PRICING FRONTEND  
+**Session:** `b22a59db-89de-4c09-a3bd-73da562e2de6`  
+**Status:** 🔄 Aguardando requisitos  
+**Missão:** Nova aba Precificação Avançada
+- Componente AdvancedPricingTab.jsx
+- Campo NCM com validação  
+- Interface para produtos monofásicos
+- Tooltips explicativos
+- Design premium responsivo
+
+### 8. 🏗️ NCM CALCULATION BACKEND  
+**Session:** `b61c76fd-cf7e-4926-acc1-c8226d28f09c`  
+**Status:** 🔄 Aguardando análise  
+**Missão:** Engine cálculo tributário por NCM
+- Cálculos específicos por NCM
+- Lógica produtos monofásicos
+- ICMS por estado/NCM  
+- IPI específico por NCM
+- 100% precisão e atualização
+
 ## 📋 LEITURA OBRIGATÓRIA (Todos os Agentes)
 
 ### Documentos Críticos:
@@ -100,6 +139,17 @@
 - [ ] Documentação consolidada
 - [ ] Deploy guide pronto
 
+### NCM & Precificação Avançada ✅
+- [ ] Aba "Precificação Avançada" funcional
+- [ ] Campo NCM com validação 8 dígitos
+- [ ] Cálculos 100% precisos por NCM
+- [ ] Produtos monofásicos implementados
+- [ ] ICMS por estado/NCM correto
+- [ ] IPI específico por NCM
+- [ ] Zero cálculos errados (crítico)
+- [ ] Legislação 2026 atualizada
+- [ ] Fontes oficiais documentadas
+
 ## 📊 TRACKING DE PROGRESS
 
 ### Commits por Agente:
@@ -134,6 +184,33 @@ feat(quality): testes E2E completos
 feat(quality): resolução conflitos
 feat(quality): consolidação documentação
 ```
+
+## 🔄 WORKFLOW ESPECIALIZADO - NCM
+
+### Sequência Crítica para Precificação Avançada:
+1. **🧑‍⚖️ Tax Legislation Specialist** (PRIMEIRO)
+   - Mapeia TODOS os requisitos de NCM
+   - Identifica fontes oficiais de dados
+   - Documenta legislação atualizada
+   - Cria roadmap de implementação
+
+2. **🏗️ NCM Backend** (SEGUNDO - após análise)
+   - Implementa engine de cálculo baseado na análise
+   - Cria módulos específicos por tipo de imposto
+   - Testes unitários para todos os cenários
+   - Validações de precisão
+
+3. **🎨 Advanced Frontend** (TERCEIRO - coordenado)
+   - Implementa aba baseada nos requisitos definidos
+   - Interface para NCM com validação
+   - Componentes para produtos monofásicos
+   - UX premium e responsiva
+
+4. **🎯 Quality Master** (ÚLTIMO - integração)
+   - Valida precisão dos cálculos vs. legislação
+   - Testes E2E da nova funcionalidade
+   - Integração com aba existente
+   - Documentação consolidada
 
 ## 🔄 WORKFLOW DE INTEGRAÇÃO
 
