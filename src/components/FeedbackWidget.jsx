@@ -99,10 +99,10 @@ export default function FeedbackWidget() {
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-4 text-white">
           <h3 className="font-bold text-sm">
-            {step === 'type' && '💬 Como podemos melhorar?'}
+            {step === 'type' && 'Como podemos melhorar?'}
             {step === 'form' && `${FEEDBACK_TYPES.find(t => t.id === feedbackType)?.label || 'Feedback'}`}
-            {step === 'rating' && '⭐ Avalie sua experiência'}
-            {step === 'done' && '✅ Obrigado!'}
+            {step === 'rating' && 'Avalie sua experiência'}
+            {step === 'done' && 'Obrigado!'}
           </h3>
           <p className="text-brand-200 text-xs mt-0.5">
             {step === 'type' && 'Seu feedback nos ajuda a melhorar'}
@@ -225,11 +225,11 @@ export default function FeedbackWidget() {
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {rating === 0 && 'Toque nas estrelas para avaliar'}
-                {rating === 1 && '😞 Poxa... vamos melhorar!'}
-                {rating === 2 && '😕 Entendido, temos trabalho a fazer'}
-                {rating === 3 && '🤔 Razoável, mas pode melhorar'}
-                {rating === 4 && '😊 Muito bom! Obrigado!'}
-                {rating === 5 && '🤩 Incrível! Isso nos motiva!'}
+                {rating === 1 && 'Vamos melhorar.'}
+                {rating === 2 && 'Entendido, temos trabalho a fazer.'}
+                {rating === 3 && 'Razoável, mas pode melhorar.'}
+                {rating === 4 && 'Muito bom. Obrigado.'}
+                {rating === 5 && 'Excelente. Isso nos motiva.'}
               </p>
 
               <div className="flex items-center justify-between pt-2">

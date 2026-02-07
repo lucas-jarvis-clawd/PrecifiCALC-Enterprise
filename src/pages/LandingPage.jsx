@@ -45,21 +45,21 @@ const TESTIMONIALS = [
     role: 'Dona de confeitaria',
     text: 'Finalmente entendi quanto cobrar pelos meus bolos! Estava cobrando R$ 80 e o preço certo era R$ 135. Estava no prejuízo sem saber.',
     stars: 5,
-    avatar: '👩‍🍳',
+    avatar: '',
   },
   {
     name: 'Roberto Silva',
     role: 'Consultor de TI',
     text: 'Descobri que minha hora valia quase o dobro do que eu cobrava. Em 3 meses recuperei todo o tempo investido.',
     stars: 5,
-    avatar: '👨‍💻',
+    avatar: '',
   },
   {
     name: 'Ana Paula',
     role: 'Loja de roupas',
     text: 'O comparativo de regimes me mostrou que eu poderia economizar R$ 18 mil por ano só mudando de Simples para Presumido!',
     stars: 5,
-    avatar: '👩‍💼',
+    avatar: '',
   },
 ];
 
@@ -263,7 +263,7 @@ export default function LandingPage({ onStart, onDemo }) {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Problem */}
             <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl p-8">
-              <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-4">😰 Sem o PrecifiCALC...</h3>
+              <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-4">Sem o PrecifiCALC...</h3>
               <ul className="space-y-3">
                 {[
                   'Preço baseado em "achismo" ou cópia do concorrente',
@@ -282,7 +282,7 @@ export default function LandingPage({ onStart, onDemo }) {
 
             {/* Solution */}
             <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-8">
-              <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mb-4">🚀 Com o PrecifiCALC...</h3>
+              <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mb-4">Com o PrecifiCALC...</h3>
               <ul className="space-y-3">
                 {[
                   'Preço calculado com todos os custos e impostos inclusos',
@@ -347,14 +347,11 @@ export default function LandingPage({ onStart, onDemo }) {
 
           <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { step: 1, emoji: '📝', title: 'Informe seus dados', desc: 'Nome da empresa, tipo de negócio e regime tributário. Menos de 1 minuto.' },
-              { step: 2, emoji: '🧮', title: 'Calcule o preço', desc: 'Informe seus custos e a ferramenta calcula o preço ideal com impostos inclusos.' },
-              { step: 3, emoji: '💰', title: 'Veja quanto sobra', desc: 'Descubra seu lucro real por venda, por mês e por ano. Sem surpresas.' },
+              { step: 1, title: 'Informe seus dados', desc: 'Nome da empresa, tipo de negócio e regime tributário. Menos de 1 minuto.' },
+              { step: 2, title: 'Calcule o preço', desc: 'Informe seus custos e a ferramenta calcula o preço ideal com impostos inclusos.' },
+              { step: 3, title: 'Veja quanto sobra', desc: 'Descubra seu lucro real por venda, por mês e por ano. Sem surpresas.' },
             ].map((item) => (
               <div key={item.step} className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">{item.emoji}</span>
-                </div>
                 <div className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center mx-auto mb-3 text-sm font-bold">
                   {item.step}
                 </div>
@@ -474,7 +471,7 @@ export default function LandingPage({ onStart, onDemo }) {
           </div>
           <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs">© {new Date().getFullYear()} PrecifiCALC. Todos os direitos reservados.</p>
-            <p className="text-xs">Feito com ❤️ no Brasil 🇧🇷</p>
+            <p className="text-xs">Feito com amor no Brasil</p>
           </div>
         </div>
       </footer>

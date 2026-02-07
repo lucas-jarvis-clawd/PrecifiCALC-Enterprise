@@ -15,29 +15,29 @@ export default function Onboarding({ onComplete }) {
   });
 
   const steps = [
-    { id: 1, title: 'Dados iniciais', emoji: '👋' },
-    { id: 2, title: 'Dados da empresa', emoji: '🏢' },
-    { id: 3, title: 'Pronto!', emoji: '🚀' },
+    { id: 1, title: 'Dados iniciais', emoji: '' },
+    { id: 2, title: 'Dados da empresa', emoji: '' },
+    { id: 3, title: 'Pronto!', emoji: '' },
   ];
 
   const regimes = [
-    { id: 'mei', label: '🟢 MEI', desc: 'Fatura até R$ 81 mil/ano', tip: 'Começando ou fatura pouco' },
-    { id: 'simples', label: '🔵 Simples Nacional', desc: 'Fatura até R$ 4,8 milhões/ano', tip: 'Maioria dos pequenos negócios' },
-    { id: 'presumido', label: '🟣 Lucro Presumido', desc: 'Fatura até R$ 78 milhões/ano', tip: 'Empresa média-grande' },
-    { id: 'real', label: '🟠 Lucro Real', desc: 'Sem limite', tip: 'Grande empresa ou margem apertada' },
+    { id: 'mei', label: 'MEI', desc: 'Fatura até R$ 81 mil/ano', tip: 'Começando ou fatura pouco' },
+    { id: 'simples', label: 'Simples Nacional', desc: 'Fatura até R$ 4,8 milhões/ano', tip: 'Maioria dos pequenos negócios' },
+    { id: 'presumido', label: 'Lucro Presumido', desc: 'Fatura até R$ 78 milhões/ano', tip: 'Empresa média-grande' },
+    { id: 'real', label: 'Lucro Real', desc: 'Sem limite', tip: 'Grande empresa ou margem apertada' },
   ];
 
   const atividades = [
-    '🛍️ Comércio / Loja',
-    '🔧 Prestação de Serviços',
-    '💻 Tecnologia / Software',
-    '📋 Consultoria',
-    '🏥 Saúde',
-    '🎓 Educação',
-    '🍕 Alimentação',
-    '🏗️ Construção',
-    '🏭 Indústria',
-    '📦 Outros',
+    'Comércio / Loja',
+    'Prestação de Serviços',
+    'Tecnologia / Software',
+    'Consultoria',
+    'Saúde',
+    'Educação',
+    'Alimentação',
+    'Construção',
+    'Indústria',
+    'Outros',
   ];
 
   const handleNext = () => {
@@ -83,7 +83,7 @@ export default function Onboarding({ onComplete }) {
             <span className="text-4xl">{steps[currentStep - 1].emoji}</span>
           </div>
           <h1 className="text-2xl font-bold">
-            {currentStep === 1 && 'Bem-vindo ao PrecifiCALC! 🎉'}
+            {currentStep === 1 && 'Bem-vindo ao PrecifiCALC!'}
             {currentStep === 2 && 'Dados da empresa'}
             {currentStep === 3 && 'Tudo pronto!'}
           </h1>
@@ -176,7 +176,7 @@ export default function Onboarding({ onComplete }) {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 mt-2">💡 Não sabe? Provavelmente é Simples Nacional.</p>
+                <p className="text-xs text-slate-400 mt-2">Não sabe? Provavelmente é Simples Nacional.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,7 +217,7 @@ export default function Onboarding({ onComplete }) {
           {currentStep === 3 && (
             <div className="space-y-5">
               <div className="text-center">
-                <div className="text-6xl mb-4">🎉</div>
+                <div className="text-6xl mb-4"></div>
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Perfeito!</h3>
                 <p className="text-slate-500">Agora vamos calcular o preço ideal dos produtos da empresa</p>
               </div>
@@ -232,7 +232,7 @@ export default function Onboarding({ onComplete }) {
               </div>
 
               <div className="bg-gradient-to-r from-brand-50 to-emerald-50 border border-brand-200 rounded-xl p-5">
-                <h4 className="font-bold text-brand-800 mb-3">🎯 O que fazer primeiro:</h4>
+                <h4 className="font-bold text-brand-800 mb-3">O que fazer primeiro:</h4>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">1</span>

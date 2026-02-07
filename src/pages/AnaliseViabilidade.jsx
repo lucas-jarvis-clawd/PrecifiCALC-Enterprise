@@ -227,7 +227,7 @@ export default function AnaliseViabilidade() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Info size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!) 🎉</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!)</p>
                   </div>
                 )}
               </div>

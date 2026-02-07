@@ -1,4 +1,4 @@
-// React importado automaticamente pelo Vite
+import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -43,10 +43,10 @@ const menuItems = [
 ];
 
 const sections = {
-  visao_geral: '📊 Visão Geral',
-  precificacao: '🏷️ Preço & Custos',
-  analise: '📈 Análise & Projeção',
-  extras: '⚙️ Ferramentas',
+  visao_geral: 'Visão Geral',
+  precificacao: 'Preço & Custos',
+  analise: 'Análise & Projeção',
+  extras: 'Ferramentas',
 };
 
 export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobileClose }) {

@@ -10,11 +10,11 @@ import {
 } from '../data/taxData';
 
 const STEPS = [
-  { id: 1, title: 'O que a empresa vende?', emoji: '🛍️' },
-  { id: 2, title: 'Qual o custo de produção?', emoji: '💰' },
-  { id: 3, title: 'Gastos fixos da empresa', emoji: '🏠' },
-  { id: 4, title: 'Dados da empresa', emoji: '🏢' },
-  { id: 5, title: 'Preço ideal calculado!', emoji: '🎯' },
+  { id: 1, title: 'O que a empresa vende?', emoji: '' },
+  { id: 2, title: 'Qual o custo de produção?', emoji: '' },
+  { id: 3, title: 'Gastos fixos da empresa', emoji: '' },
+  { id: 4, title: 'Dados da empresa', emoji: '' },
+  { id: 5, title: 'Preço ideal calculado!', emoji: '' },
 ];
 
 export default function WizardPrecificar({ onClose, onNavigate }) {
@@ -200,10 +200,10 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
   };
 
   const regimeOptions = [
-    { id: 'mei', label: 'MEI', desc: 'Faturamento até R$ 81 mil/ano', emoji: '🟢' },
-    { id: 'simples', label: 'Simples Nacional', desc: 'Faturamento até R$ 4,8 milhões/ano', emoji: '🔵' },
-    { id: 'presumido', label: 'Lucro Presumido', desc: 'Faturamento até R$ 78 milhões/ano', emoji: '🟣' },
-    { id: 'real', label: 'Lucro Real', desc: 'Sem limite de faturamento', emoji: '🟠' },
+    { id: 'mei', label: 'MEI', desc: 'Faturamento até R$ 81 mil/ano', emoji: '' },
+    { id: 'simples', label: 'Simples Nacional', desc: 'Faturamento até R$ 4,8 milhões/ano', emoji: '' },
+    { id: 'presumido', label: 'Lucro Presumido', desc: 'Faturamento até R$ 78 milhões/ano', emoji: '' },
+    { id: 'real', label: 'Lucro Real', desc: 'Sem limite de faturamento', emoji: '' },
   ];
 
   return (
@@ -212,7 +212,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 rounded-t-2xl z-10">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-slate-800">🎯 Quero Precificar!</h2>
+            <h2 className="text-lg font-bold text-slate-800">Quero Precificar!</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
           </div>
 
@@ -239,9 +239,9 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               <h3 className="text-xl font-semibold text-slate-800">O que a empresa quer precificar?</h3>
               <div className="grid grid-cols-1 gap-3">
                 {[
-                  { id: 'produto', icon: ShoppingBag, label: 'Produto / Mercadoria', desc: 'Produto fabricado ou revendido pela empresa', emoji: '📦' },
-                  { id: 'servico_hora', icon: Clock, label: 'Serviço por Hora', desc: 'Consultoria, aula, manutenção...', emoji: '⏰' },
-                  { id: 'servico_projeto', icon: Target, label: 'Serviço por Projeto', desc: 'Site, reforma, tratamento...', emoji: '📋' },
+                  { id: 'produto', icon: ShoppingBag, label: 'Produto / Mercadoria', desc: 'Produto fabricado ou revendido pela empresa', emoji: '' },
+                  { id: 'servico_hora', icon: Clock, label: 'Serviço por Hora', desc: 'Consultoria, aula, manutenção...', emoji: '' },
+                  { id: 'servico_projeto', icon: Target, label: 'Serviço por Projeto', desc: 'Site, reforma, tratamento...', emoji: '' },
                 ].map(opt => (
                   <button
                     key={opt.id}
@@ -288,7 +288,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                      💰 Custo por hora trabalhada
+                      Custo por hora trabalhada
                     </label>
                     <p className="text-xs text-slate-400 mb-2">Custo da hora: salário ÷ horas trabalhadas + materiais</p>
                     <div className="relative">
@@ -304,7 +304,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                      ⏱️ Quantas horas por serviço?
+                      Quantas horas por serviço?
                     </label>
                     <input
                       type="number"
@@ -326,7 +326,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               ) : (
                 <div>
                   <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                    💰 Custo por {tipoVenda === 'produto' ? 'produto' : 'serviço'}
+                    Custo por {tipoVenda === 'produto' ? 'produto' : 'serviço'}
                   </label>
                   <p className="text-xs text-slate-400 mb-2">Material + mão de obra direta + tudo que gasta pra fazer UM</p>
                   <div className="relative">
@@ -352,7 +352,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">🏠 Aluguel + Contas</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Aluguel + Contas</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
                     <input type="number" value={aluguel} onChange={e => setAluguel(e.target.value)} placeholder="2.000"
@@ -360,7 +360,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">👥 Salários + Encargos</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Salários + Encargos</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
                     <input type="number" value={salarios} onChange={e => setSalarios(e.target.value)} placeholder="5.000"
@@ -369,7 +369,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">📊 Outros gastos fixos</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Outros gastos fixos</label>
                 <p className="text-xs text-slate-400 mb-2">Software, contador, marketing, internet, etc.</p>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
@@ -379,7 +379,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  📈 Quantos {tipoVenda === 'produto' ? 'produtos' : 'serviços'} a empresa vende por mês?
+                  Quantos {tipoVenda === 'produto' ? 'produtos' : 'serviços'} a empresa vende por mês?
                 </label>
                 <input type="number" value={qtdMensal} onChange={e => setQtdMensal(e.target.value)} placeholder="50"
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-lg" />
@@ -426,13 +426,13 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               {regime === '' && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-700">💡 Não sabe? A maioria dos pequenos negócios é Simples Nacional.</p>
+                  <p className="text-sm text-amber-700">Não sabe? A maioria dos pequenos negócios é Simples Nacional.</p>
                 </div>
               )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  💰 Faturamento mensal da empresa (aproximado)
+                  Faturamento mensal da empresa (aproximado)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
@@ -468,7 +468,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               {/* Celebration animation */}
               {showCelebration && (
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-50">
-                  <div className="text-6xl animate-bounce">🎉</div>
+                  <div className="text-6xl animate-bounce"></div>
                 </div>
               )}
 
@@ -488,7 +488,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               {/* QUANTO SOBRA NO BOLSO */}
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-2 border-emerald-300 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">💰</span>
+                  <span className="text-2xl"></span>
                   <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Lucro líquido da empresa</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -511,7 +511,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="text-red-500" size={20} />
-                  <span className="text-sm font-bold text-red-700">⚠️ ABAIXO DISSO = PREJUÍZO</span>
+                  <span className="text-sm font-bold text-red-700">ABAIXO DISSO = PREJUÍZO</span>
                 </div>
                 <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(calculo.precoMinimo)}</p>
                 <p className="text-xs text-red-500 mt-1">Preço mínimo para não ter prejuízo (margem zero)</p>
@@ -520,7 +520,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               {/* Price comparison across regimes */}
               {calculo.comparativo.length > 1 && (
                 <div className="bg-white border border-slate-200 rounded-xl p-4">
-                  <h4 className="text-sm font-bold text-slate-800 mb-3">📊 Preço em cada tipo de empresa:</h4>
+                  <h4 className="text-sm font-bold text-slate-800 mb-3">Preço em cada tipo de empresa:</h4>
                   <div className="space-y-2">
                     {calculo.comparativo.map((c, i) => (
                       <div
@@ -544,7 +544,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                   {calculo.economiaAnual > 500 && (
                     <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
                       <p className="text-xs text-emerald-600">Economia anual no melhor regime vs pior:</p>
-                      <p className="text-xl font-bold text-emerald-700">🎉 {formatCurrency(calculo.economiaAnual)}/ano!</p>
+                      <p className="text-xl font-bold text-emerald-700">{formatCurrency(calculo.economiaAnual)}/ano!</p>
                     </div>
                   )}
                 </div>
@@ -552,7 +552,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               {/* Breakdown */}
               <div className="bg-slate-50 rounded-xl p-4">
-                <h4 className="text-sm font-bold text-slate-800 mb-3">🧮 Como chegamos nesse preço:</h4>
+                <h4 className="text-sm font-bold text-slate-800 mb-3">Como chegamos nesse preço:</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Custo direto do produto</span>

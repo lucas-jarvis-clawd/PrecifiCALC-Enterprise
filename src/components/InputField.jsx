@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
 function formatThousands(num) {

@@ -256,7 +256,7 @@ export default function ComparativoRegimes() {
             {showFatorRInfo && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <Info size={14} />
-                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor!) 🎉</span>
+                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor!)</span>
               </div>
             )}
             {anexoEfetivo !== anexo && (
@@ -277,7 +277,7 @@ export default function ComparativoRegimes() {
         <div className="bg-gradient-to-r from-brand-50 to-white border-2 border-brand-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center">
-              <span className="text-2xl">🏆</span>
+              <Award size={28} className="text-brand-600" />
             </div>
             <div>
               <p className="text-slate-500 text-xs font-medium">O melhor pro seu caso</p>
@@ -338,7 +338,7 @@ export default function ComparativoRegimes() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">💰 Quanto de imposto em cada tipo</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Quanto de imposto em cada tipo</h2></CardHeader>
           <CardBody>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={comparativo} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
@@ -355,7 +355,7 @@ export default function ComparativoRegimes() {
         </Card>
 
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">🏆 Do melhor pro pior</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Do melhor pro pior</h2></CardHeader>
           <CardBody>
             <div className="space-y-2">
               {comparativo.map((item, i) => (
@@ -375,7 +375,6 @@ export default function ComparativoRegimes() {
             </div>
             {economia > 0 && (
               <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl text-center">
-                <p className="text-4xl mb-1">🎉</p>
                 <p className="text-xs text-emerald-600 font-medium">Escolhendo {melhor.regime} você economiza:</p>
                 <p className="text-2xl font-black text-emerald-700">{formatCurrency(economia * 12)}/ano!</p>
                 <p className="text-sm text-emerald-600 mt-1">

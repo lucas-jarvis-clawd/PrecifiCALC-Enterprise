@@ -342,9 +342,9 @@ export default function Precificacao() {
       {/* Mode selector */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: 'normal', label: '🏷️ Preço por Unidade', desc: 'Produto ou serviço por projeto' },
-          { id: 'hora', label: '⏰ Preço por Hora', desc: 'Serviços cobrados por hora' },
-          { id: 'reverso', label: '🔄 Preço Reverso', desc: 'Mercado cobra X, qual minha margem?' },
+          { id: 'normal', label: 'Preço por Unidade', desc: 'Produto ou serviço por projeto' },
+          { id: 'hora', label: 'Preço por Hora', desc: 'Serviços cobrados por hora' },
+          { id: 'reverso', label: 'Preço Reverso', desc: 'Mercado cobra X, qual minha margem?' },
         ].map(m => (
           <button
             key={m.id}
@@ -366,23 +366,23 @@ export default function Precificacao() {
         <Card>
           <CardHeader>
             <h2 className="text-slate-800 font-medium text-sm">
-              {modo === 'hora' ? '⏰ Dados do Serviço por Hora' : modo === 'reverso' ? '🔄 Preço do Mercado' : '📦 Dados do Produto/Serviço'}
+              {modo === 'hora' ? 'Dados do Serviço por Hora' : modo === 'reverso' ? 'Preço do Mercado' : 'Dados do Produto/Serviço'}
             </h2>
           </CardHeader>
           <CardBody className="space-y-3">
             {custosImportados && (
               <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-md">
-                <p className="text-xs text-emerald-700">✅ Dados importados de "Meus Gastos"</p>
+                <p className="text-xs text-emerald-700">Dados importados de "Meus Gastos"</p>
               </div>
             )}
 
             {modo === 'hora' ? (
               <>
-                <InputField label="💰 Custo por hora do serviço" value={custoHora} onChange={setCustoHora} prefix="R$" step={10}
+                <InputField label="Custo por hora do serviço" value={custoHora} onChange={setCustoHora} prefix="R$" step={10}
                   help="Inclua: tempo + materiais + deslocamento" />
-                <InputField label="⏱️ Horas por serviço" value={horasPorServico} onChange={setHorasPorServico} step={0.5} min={0.5}
+                <InputField label="Horas por serviço" value={horasPorServico} onChange={setHorasPorServico} step={0.5} min={0.5}
                   help="Quantas horas leva 1 serviço" />
-                <InputField label="📅 Serviços por mês" value={servicosMensal} onChange={setServicosMensal} step={5} min={1} />
+                <InputField label="Serviços por mês" value={servicosMensal} onChange={setServicosMensal} step={5} min={1} />
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-700">
                     Custo por serviço: <span className="font-bold">{formatCurrency(custoHora * horasPorServico)}</span>
@@ -393,7 +393,7 @@ export default function Precificacao() {
             ) : modo === 'reverso' ? (
               <>
                 <div className="p-3 bg-violet-50 border border-violet-200 rounded-lg">
-                  <p className="text-sm text-violet-700 font-medium">💡 Quanto o mercado cobra por esse serviço/produto?</p>
+                  <p className="text-sm text-violet-700 font-medium">Quanto o mercado cobra por esse serviço/produto?</p>
                   <p className="text-xs text-violet-500 mt-1">Vamos calcular se vale a pena pra você nesse preço</p>
                 </div>
                 <InputField label="Preço do mercado" value={precoMercado} onChange={setPrecoMercado} prefix="R$" step={10} />
@@ -410,22 +410,22 @@ export default function Precificacao() {
                   { value: 'produto', label: 'Produto / Mercadoria' },
                 ]} />
                 <InputField
-                  label={tipo === 'produto' ? '💰 Custo do produto (unitário)' : '💰 Custo do serviço (unitário)'}
+                  label={tipo === 'produto' ? 'Custo do produto (unitário)' : 'Custo do serviço (unitário)'}
                   value={custoProduto} onChange={setCustoProduto} prefix="R$" step={10}
                   help="Material + mão de obra direta"
                 />
               </>
             )}
 
-            <InputField label="🏠 Gastos fixos mensais" value={despesasFixas} onChange={setDespesasFixas} prefix="R$" step={500}
+            <InputField label="Gastos fixos mensais" value={despesasFixas} onChange={setDespesasFixas} prefix="R$" step={500}
               help="Aluguel, salários, contador, internet, etc." />
-            <InputField label="📊 Gastos variáveis (% do custo)" value={despesasVariaveisPercent} onChange={setDespesasVariaveisPercent} suffix="%" step={1}
+            <InputField label="Gastos variáveis (% do custo)" value={despesasVariaveisPercent} onChange={setDespesasVariaveisPercent} suffix="%" step={1}
               help="Comissões, frete, embalagem" />
             {modo !== 'hora' && (
-              <InputField label="📈 Quantidade mensal estimada" value={quantidadeMensal} onChange={setQuantidadeMensal} step={10} min={1} />
+              <InputField label="Quantidade mensal estimada" value={quantidadeMensal} onChange={setQuantidadeMensal} step={10} min={1} />
             )}
             {modo !== 'reverso' && (
-              <InputField label="🎯 Margem de lucro desejada" value={margemDesejada} onChange={setMargemDesejada} suffix="%" min={1} max={80} step={1} />
+              <InputField label="Margem de lucro desejada" value={margemDesejada} onChange={setMargemDesejada} suffix="%" min={1} max={80} step={1} />
             )}
 
             {/* Notificação de dados disponíveis em Custos */}
@@ -439,7 +439,7 @@ export default function Precificacao() {
             )}
 
             <div className="border-t border-slate-200 pt-3 mt-3">
-              <p className="text-xs font-bold text-slate-500 mb-2">🏢 Regime Tributário da Empresa</p>
+              <p className="text-xs font-bold text-slate-500 mb-2">Regime Tributário da Empresa</p>
               <div className="space-y-3">
                 <LabelComTermoTecnico termo="simples" textoExplicativo="Regime da empresa">
                   <SelectField value={regime} onChange={setRegime} options={[
@@ -469,7 +469,7 @@ export default function Precificacao() {
                         onChange={setRbt12} 
                         prefix="R$" 
                         step={10000}
-                        help={`💡 Sua alíquota atual: ${formatPercent(aliquotaEfetiva)}`} 
+                        help={`Sua alíquota atual: ${formatPercent(aliquotaEfetiva)}`} 
                       />
                     </div>
                     
@@ -518,7 +518,7 @@ export default function Precificacao() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Boa! Fator R ≥ 28% — migrou pro Anexo III com imposto menor! 🎉</p>
+                    <p className="text-xs text-emerald-600">Boa! Fator R >= 28% — migrou pro Anexo III com imposto menor!</p>
                   </div>
                 )}
               </div>
@@ -562,7 +562,7 @@ export default function Precificacao() {
                   : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-300'
               }`}>
                 <p className="text-sm font-bold uppercase tracking-wide mb-2">
-                  {calculo.reverso.temLucro ? '✅ O mercado cobra o suficiente!' : '❌ Nesse preço, você teria PREJUÍZO!'}
+                  {calculo.reverso.temLucro ? 'O mercado cobra o suficiente.' : 'Nesse preço, você teria PREJUÍZO.'}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -591,7 +591,7 @@ export default function Precificacao() {
                 {!calculo.reverso.temLucro && (
                   <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
                     <p className="text-sm font-bold text-red-700">
-                      💡 O preço mínimo precisa ser {formatCurrency(calculo.precoMinimo)} para não ter prejuízo.
+                      O preço mínimo precisa ser {formatCurrency(calculo.precoMinimo)} para não ter prejuízo.
                     </p>
                     <p className="text-xs text-red-600 mt-1">
                       E para ter {margemDesejada}% de lucro, precisa cobrar {formatCurrency(calculo.precoVenda)}.
@@ -621,7 +621,7 @@ export default function Precificacao() {
               {/* QUANTO SOBRA NO BOLSO */}
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-2 border-emerald-300 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">💰</span>
+                  <DollarSign size={24} className="text-emerald-600" />
                   <span className="text-sm font-bold text-emerald-800 uppercase tracking-wide">Lucro líquido mensal</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -641,7 +641,7 @@ export default function Precificacao() {
                 {calculo.lucroAnual > 0 && (
                   <div className="mt-3 text-center">
                     <p className="text-sm text-emerald-600">
-                      🎉 São <span className="font-bold text-emerald-700">{formatCurrency(calculo.lucroAnual)}</span> de lucro líquido anual!
+                      São <span className="font-bold text-emerald-700">{formatCurrency(calculo.lucroAnual)}</span> de lucro líquido anual.
                     </p>
                   </div>
                 )}
@@ -652,7 +652,7 @@ export default function Precificacao() {
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="text-red-500" size={24} />
                   <div>
-                    <p className="text-sm font-bold text-red-700">⚠️ ABAIXO DISSO = PREJUÍZO</p>
+                    <p className="text-sm font-bold text-red-700">ABAIXO DISSO = PREJUÍZO</p>
                     <p className="text-xs text-red-500">Preço mínimo (margem zero, só cobre custos + impostos)</p>
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export default function Precificacao() {
               <div className="bg-gradient-to-r from-brand-50 to-cyan-50 border border-brand-200 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-brand-800 mb-1">✨ Próximos Passos</h3>
+                    <h3 className="text-sm font-semibold text-brand-800 mb-1">Próximos Passos</h3>
                     <p className="text-xs text-brand-600">Use esse preço para gerar uma proposta profissional</p>
                   </div>
                   <BotaoUsarNaProposta
@@ -681,7 +681,7 @@ export default function Precificacao() {
                 {dadosEnviadosParaProposta && (
                   <div className="mt-3 p-2 bg-emerald-100 border border-emerald-300 rounded-lg animate-fade-in-up">
                     <p className="text-xs text-emerald-700 font-medium">
-                      🎉 Dados enviados! Vá em "Propostas" para gerar o documento.
+                      Dados enviados. Vá em "Propostas" para gerar o documento.
                     </p>
                   </div>
                 )}
@@ -693,7 +693,7 @@ export default function Precificacao() {
           {calculo.comparativoPrecos.length > 1 && (
             <Card>
               <CardHeader>
-                <h2 className="text-slate-800 font-medium text-sm">📊 Preço em cada tipo de empresa</h2>
+                <h2 className="text-slate-800 font-medium text-sm">Preço em cada tipo de empresa</h2>
                 <p className="text-xs text-slate-400">Mesmo produto, mesmo lucro, imposto diferente</p>
               </CardHeader>
               <CardBody>
@@ -720,7 +720,7 @@ export default function Precificacao() {
 
           {/* Price composition */}
           <Card>
-            <CardHeader><h2 className="text-slate-800 font-medium text-sm">🧮 Como o preço é formado</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Como o preço é formado</h2></CardHeader>
             <CardBody>
               <div className="space-y-2">
                 <PriceRow label="Custo direto" value={calculo.custoUnitario} total={calculo.precoVenda} color="bg-red-500" />
@@ -730,7 +730,7 @@ export default function Precificacao() {
                 {cppAnexoIV > 0 && (
                   <PriceRow label="INSS patronal (Anexo IV)" value={calculo.cppUnitario} total={calculo.precoVenda} color="bg-rose-500" />
                 )}
-                <PriceRow label="💰 Lucro do produto" value={calculo.lucroUnitario} total={calculo.precoVenda} color="bg-emerald-500" />
+                <PriceRow label="Lucro do produto" value={calculo.lucroUnitario} total={calculo.precoVenda} color="bg-emerald-500" />
                 <div className="border-t border-slate-200 pt-2 flex justify-between">
                   <span className="text-sm font-bold text-slate-800">= Preço de Venda</span>
                   <span className="text-sm font-bold text-brand-600 font-mono">{formatCurrency(calculo.precoVenda)}</span>
@@ -752,7 +752,7 @@ export default function Precificacao() {
           <Card>
             <CardHeader>
               <h2 className="text-slate-800 font-medium text-sm">
-                📅 Projeção Mensal ({calculo.qtdEfetiva} {modo === 'hora' ? 'serviços' : 'unidades'})
+                Projeção Mensal ({calculo.qtdEfetiva} {modo === 'hora' ? 'serviços' : 'unidades'})
               </h2>
             </CardHeader>
             <CardBody>
@@ -770,7 +770,7 @@ export default function Precificacao() {
                   <p className="text-red-600 font-medium">{formatCurrency(calculo.impostosMensal)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs">💰 Lucro líquido</p>
+                  <p className="text-slate-400 text-xs">Lucro líquido</p>
                   <p className={`font-bold ${calculo.lucroMensal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(calculo.lucroMensal)}</p>
                 </div>
                 <div>
@@ -783,13 +783,13 @@ export default function Precificacao() {
 
           {/* Sensitivity chart */}
           <Card>
-            <CardHeader><h2 className="text-slate-800 font-medium text-sm">📈 E se eu quiser mais lucro?</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">E se eu quiser mais lucro?</h2></CardHeader>
             <CardBody>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="margem" tick={{ fill: '#64748b', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `R$${v.toFixed(0)}`} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v.toFixed(0)}`} />
                   <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Preço']} />
                   <Bar dataKey="preco" radius={[3, 3, 0, 0]} fill="#cbd5e1">
                     {chartData.map((entry, i) => (

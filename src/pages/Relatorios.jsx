@@ -49,7 +49,7 @@ function getEmpresaInfo() {
 const segmentTemplates = {
   comercio: {
     label: 'Comércio',
-    icon: '🏪',
+    icon: '',
     regimeDefault: 'simples',
     custosTipoDefault: [
       { nome: 'Custo de Mercadoria (CMV)', valor: 0 },
@@ -62,7 +62,7 @@ const segmentTemplates = {
   },
   servicos: {
     label: 'Serviços',
-    icon: '💼',
+    icon: '',
     regimeDefault: 'presumido',
     custosTipoDefault: [
       { nome: 'Mão de Obra Direta', valor: 0 },
@@ -75,7 +75,7 @@ const segmentTemplates = {
   },
   industria: {
     label: 'Indústria',
-    icon: '🏭',
+    icon: '',
     regimeDefault: 'real',
     custosTipoDefault: [
       { nome: 'Matéria Prima', valor: 0 },
@@ -88,7 +88,7 @@ const segmentTemplates = {
   },
   contabilidade: {
     label: 'Escritório Contábil',
-    icon: '📊',
+    icon: '',
     regimeDefault: 'presumido',
     custosTipoDefault: [
       { nome: 'Software Contábil', valor: 0 },
@@ -101,7 +101,7 @@ const segmentTemplates = {
   },
   saude: {
     label: 'Saúde',
-    icon: '🏥',
+    icon: '',
     regimeDefault: 'presumido',
     custosTipoDefault: [
       { nome: 'Materiais Clínicos', valor: 0 },

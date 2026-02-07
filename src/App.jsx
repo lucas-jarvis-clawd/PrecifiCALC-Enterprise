@@ -1,18 +1,14 @@
-// 🚀 PrecifiCALC Enterprise App - Performance Optimized
+// PrecifiCALC Enterprise App - Performance Optimized
 import { useState, useEffect, useCallback, memo, useMemo, StrictMode } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 
-// 📊 Performance & Monitoring
-import PerformanceWidget from './components/PerformanceWidget';
-import { performantStorage, usePerformanceTracking } from './utils/performance';
-
-// 🎨 Core components (always loaded)
+// Core components (always loaded)
 import Sidebar from './components/Sidebar';
 import Onboarding from './components/Onboarding';
 import ThemeToggle from './components/ThemeToggle';
 
-// 🚀 Lazy-loaded pages with intelligent preloading
+// Lazy-loaded pages with intelligent preloading
 import {
   LazyDashboard,
   LazySimuladorTributario,
@@ -28,11 +24,10 @@ import {
   LazyCalendarioFiscal,
   LazyEnquadramento,
   LazyProjecaoCrescimento,
-  initializeSmartPreloading
 } from './components/LazyPages';
 
-// 📱 Responsive hook with performance optimization
-const useIsMobile = memo((breakpoint = 768) => {
+// Responsive hook with performance optimization
+function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
   );
@@ -40,13 +35,12 @@ const useIsMobile = memo((breakpoint = 768) => {
   useEffect(() => {
     let timeoutId;
     const handleResize = () => {
-      // Debounce resize events for better performance
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         setIsMobile(window.innerWidth < breakpoint);
       }, 100);
     };
-    
+
     window.addEventListener('resize', handleResize, { passive: true });
     return () => {
       clearTimeout(timeoutId);
@@ -55,81 +49,64 @@ const useIsMobile = memo((breakpoint = 768) => {
   }, [breakpoint]);
 
   return isMobile;
-});
+}
 
-// 🎯 Performance-optimized App component
+// Performance-optimized App component
 const App = memo(() => {
-  // 📊 Performance tracking for the main App component
-  const { trackRender, measure } = usePerformanceTracking('App');
-
-  // 🔧 State management with performance considerations
+  // State management with performance considerations
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [perfilEmpresa, setPerfilEmpresa] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [appError, setAppError] = useState(null);
-  
+
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  // 📊 Track initial app load performance
+  // Track initial app load
   useEffect(() => {
-    const loadMeasure = measure('initial_app_load');
-    
     const initializeApp = () => {
       try {
-        // Use performance-tracked localStorage
-        const onboarded = performantStorage.getItem('precificalc_onboarded');
-        const perfil = performantStorage.getItem('precificalc_perfil');
-        
+        const onboarded = localStorage.getItem('precificalc_onboarded');
+        const perfil = localStorage.getItem('precificalc_perfil');
+
         if (onboarded === 'true' && perfil) {
           setIsOnboardingComplete(true);
-          
+
           try {
             const parsedPerfil = JSON.parse(perfil);
             setPerfilEmpresa(parsedPerfil);
-            
-            // Initialize smart preloading based on user profile
-            initializeSmartPreloading();
-            
           } catch (parseError) {
             // Failed to parse user profile, clear corrupted data
-            performantStorage.removeItem('precificalc_perfil');
+            localStorage.removeItem('precificalc_perfil');
           }
         }
       } catch (storageError) {
         // Storage access error
         setAppError('Erro ao acessar dados salvos');
       }
-      
-      // Small delay for smooth entrance with performance tracking
+
+      // Small delay for smooth entrance
       setTimeout(() => {
         setIsLoading(false);
-        loadMeasure.end();
+        // Remove HTML splash screen
+        if (window.__removeSplash) window.__removeSplash();
       }, 200);
     };
 
     initializeApp();
+  }, []);
 
-    // Track render performance
-    const renderStart = performance.now();
-    const renderEnd = performance.now();
-    trackRender(renderEnd - renderStart);
-
-  }, [measure, trackRender]);
-
-  // 📱 Mobile responsiveness optimization
+  // Mobile responsiveness optimization
   useEffect(() => {
-    if (isMobile && sidebarOpen) {
+    if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [isMobile, sidebarOpen]);
+  }, [isMobile]);
 
-  // 🎯 Memoized navigation handler for performance
+  // Memoized navigation handler for performance
   const handleNavigate = useCallback((pageId) => {
-    const navigationMeasure = measure(`navigate_to_${pageId}`);
-    
     const routeMap = {
       dashboard: '/',
       simulador: '/simulador',
@@ -146,48 +123,37 @@ const App = memo(() => {
       relatorios: '/relatorios',
       configuracoes: '/configuracoes',
     };
-    
+
     const targetRoute = routeMap[pageId] || '/';
     navigate(targetRoute);
-    
+
     // Close mobile menu after navigation
     if (isMobile && mobileMenuOpen) {
       setMobileMenuOpen(false);
     }
-    
-    navigationMeasure.end();
-  }, [navigate, isMobile, mobileMenuOpen, measure]);
+  }, [navigate, isMobile, mobileMenuOpen]);
 
-  // 🎯 Memoized onboarding completion handler
+  // Memoized onboarding completion handler
   const handleOnboardingComplete = useCallback((dadosEmpresa) => {
-    const onboardingMeasure = measure('onboarding_complete');
-    
     try {
       setPerfilEmpresa(dadosEmpresa);
       setIsOnboardingComplete(true);
-      
-      // Save with performance tracking
-      performantStorage.setItem('precificalc_onboarded', 'true');
-      performantStorage.setItem('precificalc_perfil', JSON.stringify(dadosEmpresa));
-      
-      // Initialize smart preloading after onboarding
-      setTimeout(initializeSmartPreloading, 1000);
-      
+
+      localStorage.setItem('precificalc_onboarded', 'true');
+      localStorage.setItem('precificalc_perfil', JSON.stringify(dadosEmpresa));
     } catch (saveError) {
       // Failed to save onboarding data
       setAppError('Erro ao salvar configurações');
     }
-    
-    onboardingMeasure.end();
-  }, [measure]);
+  }, []);
 
-  // 🎨 Memoized computed values
+  // Memoized computed values
   const mainMarginClass = useMemo(() => {
     if (isMobile) return '';
     return sidebarOpen ? 'ml-60' : 'ml-16';
   }, [isMobile, sidebarOpen]);
 
-  // 📊 Sidebar toggle handler with performance tracking
+  // Sidebar toggle handler
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
   }, []);
@@ -200,7 +166,7 @@ const App = memo(() => {
     setMobileMenuOpen(true);
   }, []);
 
-  // 🚨 Error state
+  // Error state
   if (appError) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
@@ -212,7 +178,7 @@ const App = memo(() => {
             Erro na aplicação
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mb-4">{appError}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
@@ -223,27 +189,25 @@ const App = memo(() => {
     );
   }
 
-  // ⏳ Loading state with performance feedback
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center animate-fadeIn">
-          {/* Enhanced loading with PrecifiCALC branding */}
           <div className="relative mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/25">
+            <div className="w-16 h-16 rounded-2xl bg-[#001a2d] flex items-center justify-center mx-auto shadow-xl shadow-[#001a2d]/25">
               <span className="text-white font-bold text-2xl">P</span>
             </div>
-            
-            {/* Animated loading ring */}
+
             <div className="absolute -inset-2">
-              <div className="w-20 h-20 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-500 rounded-full animate-spin" />
+              <div className="w-20 h-20 border-4 border-slate-200 dark:border-slate-700 border-t-[#0a2540] rounded-full animate-spin" />
             </div>
           </div>
-          
+
           <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">
             PrecifiCALC Enterprise
           </h2>
-          
+
           <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse">
             Carregando sistema de precificação...
           </p>
@@ -252,16 +216,15 @@ const App = memo(() => {
     );
   }
 
-  // 🎯 Onboarding flow
+  // Onboarding flow
   if (!isOnboardingComplete) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // 🚀 Main application interface
+  // Main application interface
   return (
     <StrictMode>
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-        {/* 🎨 Sidebar with performance optimizations */}
         <Sidebar
           isOpen={sidebarOpen}
           onToggle={handleSidebarToggle}
@@ -270,10 +233,8 @@ const App = memo(() => {
           onMobileClose={handleMobileMenuClose}
         />
 
-        {/* 🖥️ Main content area */}
         <main className={`flex-1 overflow-y-auto transition-all duration-200 ${mainMarginClass}`}>
-          
-          {/* 📱 Mobile top bar - memoized for performance */}
+
           {isMobile && (
             <div className="sticky top-0 z-30 glass border-b border-slate-200 dark:border-slate-700 px-4 h-14 flex items-center gap-3 shadow-sm safe-top">
               <button
@@ -283,21 +244,20 @@ const App = memo(() => {
               >
                 <Menu size={22} />
               </button>
-              
+
               <div className="flex items-center gap-2 flex-1">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-sm">
+                <div className="w-7 h-7 rounded-lg bg-[#001a2d] flex items-center justify-center shadow-sm">
                   <span className="text-white font-bold text-xs">P</span>
                 </div>
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                   PrecifiCALC
                 </span>
               </div>
-              
+
               <ThemeToggle compact />
             </div>
           )}
 
-          {/* 📄 Page content with lazy loading */}
           <div className="p-4 sm:p-6 max-w-[1400px] mx-auto safe-bottom">
             <Routes>
               <Route 
@@ -417,24 +377,20 @@ const App = memo(() => {
                   />
                 } 
               />
-              <Route 
-                path="/configuracoes" 
+              <Route
+                path="/configuracoes"
                 element={
-                  <LazyConfiguracoes 
-                    onNavigate={handleNavigate} 
-                    perfilEmpresa={perfilEmpresa} 
+                  <LazyConfiguracoes
+                    onNavigate={handleNavigate}
+                    perfilEmpresa={perfilEmpresa}
                   />
-                } 
+                }
               />
-              
-              {/* 🚫 404 redirect */}
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </main>
-
-        {/* 📊 Performance Widget (only in development/debug mode) */}
-        <PerformanceWidget />
       </div>
     </StrictMode>
   );

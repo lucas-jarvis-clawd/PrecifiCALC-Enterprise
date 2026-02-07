@@ -20,22 +20,22 @@ export default function PoliticaPrivacidade({ onBack }) {
         <div className="prose prose-slate dark:prose-invert max-w-none text-sm leading-relaxed space-y-6">
           {/* Highlights */}
           <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5">
-            <h3 className="text-emerald-700 dark:text-emerald-400 font-bold mb-3">🔒 Resumo (TL;DR)</h3>
+            <h3 className="text-emerald-700 dark:text-emerald-400 font-bold mb-3">Resumo (TL;DR)</h3>
             <ul className="space-y-2 text-emerald-700 dark:text-emerald-400 text-sm">
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">-</span>
                 <span>Seus dados ficam <strong>apenas no seu navegador</strong> (localStorage)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">-</span>
                 <span><strong>Nenhum dado pessoal</strong> é enviado para servidores externos</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">-</span>
                 <span>Não usamos cookies de rastreamento de terceiros</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">-</span>
                 <span>Você pode apagar todos os dados a qualquer momento</span>
               </li>
             </ul>

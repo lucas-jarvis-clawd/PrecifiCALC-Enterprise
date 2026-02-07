@@ -129,7 +129,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             tipo: 'mei_limite',
             mes: m,
             msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o limite do MEI (R$ 81 mil). Hora de virar Simples Nacional!`,
-            icon: '🚀',
+            icon: '',
           });
         }
       }
@@ -139,7 +139,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             tipo: 'simples_limite',
             mes: m,
             msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o Simples Nacional (R$ 4,8M). Prepare-se para Lucro Presumido!`,
-            icon: '📈',
+            icon: '',
           });
         }
       }
@@ -156,11 +156,11 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
   const tt = { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,.1)' };
 
   const quickScenarios = [
-    { label: '😴 Estável', value: 0 },
-    { label: '📈 Leve (+5%/mês)', value: 5 },
-    { label: '🚀 Acelerado (+10%/mês)', value: 10 },
-    { label: '🔥 Explosivo (+20%/mês)', value: 20 },
-    { label: '📉 Queda (-5%/mês)', value: -5 },
+    { label: 'Estável', value: 0 },
+    { label: 'Leve (+5%/mês)', value: 5 },
+    { label: 'Acelerado (+10%/mês)', value: 10 },
+    { label: 'Explosivo (+20%/mês)', value: 20 },
+    { label: 'Queda (-5%/mês)', value: -5 },
   ];
 
   return (
@@ -176,7 +176,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Inputs */}
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">📊 Seus números atuais</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Seus números atuais</h2></CardHeader>
           <CardBody className="space-y-3">
             <InputField
               label="Faturamento mensal atual"
@@ -225,7 +225,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             />
 
             <div className="border-t border-slate-200 pt-3">
-              <label className="block text-xs font-medium text-slate-600 mb-2">🚀 Cenário de crescimento:</label>
+              <label className="block text-xs font-medium text-slate-600 mb-2">Cenário de crescimento:</label>
               <div className="space-y-1.5">
                 {quickScenarios.map(s => (
                   <button
@@ -305,7 +305,6 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
           {/* Emotional summary */}
           {projecao.crescimentoLucro > 0 && (
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5 text-center">
-              <p className="text-4xl mb-2">🎉</p>
               <p className="text-lg font-bold text-emerald-700">
                 Com {crescimentoMensal}% de crescimento ao mês, seu lucro sobe&nbsp;
                 <span className="text-emerald-800">{formatCurrency(projecao.crescimentoLucro)}/mês</span> em 1 ano!
@@ -317,7 +316,6 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
           )}
           {projecao.crescimentoLucro < 0 && (
             <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-5 text-center">
-              <p className="text-4xl mb-2">😰</p>
               <p className="text-lg font-bold text-red-700">
                 Cenário de queda: seu lucro cai {formatCurrency(Math.abs(projecao.crescimentoLucro))}/mês em 1 ano.
               </p>
@@ -328,7 +326,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
           {/* Chart */}
           <Card>
             <CardHeader>
-              <h2 className="text-slate-800 font-medium text-sm">📈 Projeção de 12 meses</h2>
+              <h2 className="text-slate-800 font-medium text-sm">Projeção de 12 meses</h2>
             </CardHeader>
             <CardBody>
               <ResponsiveContainer width="100%" height={320}>
@@ -349,7 +347,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
 
           {/* Monthly table */}
           <Card>
-            <CardHeader><h2 className="text-slate-800 font-medium text-sm">📋 Mês a mês</h2></CardHeader>
+            <CardHeader><h2 className="text-slate-800 font-medium text-sm">Mês a mês</h2></CardHeader>
             <CardBody>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -359,7 +357,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
                       <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">Faturamento</th>
                       <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">Impostos</th>
                       <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">Custos</th>
-                      <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">💰 Lucro</th>
+                      <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">Lucro</th>
                       <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500">Margem</th>
                     </tr>
                   </thead>

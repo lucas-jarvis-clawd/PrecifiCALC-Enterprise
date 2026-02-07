@@ -9,7 +9,6 @@ class PerformanceMonitor {
                      localStorage.getItem('precificalc_debug_mode') === 'true';
     
     if (this.isEnabled) {
-      this.setupObservers();
       this.trackCoreWebVitals();
     }
   }

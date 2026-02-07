@@ -105,7 +105,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }) {
       >
         <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white">⌨️ Atalhos de Teclado</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white">Atalhos de Teclado</h2>
             <p className="text-xs text-slate-500 mt-0.5">Navegação rápida para power users</p>
           </div>
           <button

@@ -85,8 +85,8 @@ class LazyLoadTracker {
   }
 
   executePreload(moduleName) {
-    // This would trigger the lazy import to cache the module
-    console.log(`📦 Preloading module: ${moduleName}`);
+    // Mark as loaded to prevent repeated attempts
+    this.loadedModules.add(moduleName);
   }
 }
 

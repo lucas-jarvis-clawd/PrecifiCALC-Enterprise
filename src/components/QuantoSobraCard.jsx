@@ -92,9 +92,9 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
   // Empty state — no data
   if (!dados || !dados.hasData) {
     return (
-      <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 border-2 border-dashed border-slate-300">
+      <div className="relative bg-white rounded-2xl p-6 border border-dashed border-slate-300">
         <div className="text-center">
-          <span className="text-4xl">💰</span>
+          <span className="text-4xl"></span>
           <h3 className="text-lg font-bold text-slate-600 mt-2">Lucro Líquido do Empresário</h3>
           <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra para a empresa após todos os gastos e impostos)</p>
           <p className="text-slate-500 text-sm mt-2">
@@ -110,26 +110,24 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
   const isOk = dados.margemReal >= 10;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl p-6 border-2 shadow-lg ${
+    <div className={`relative overflow-hidden rounded-2xl p-6 border bg-white ${
       isPositive
-        ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-teal-50 border-emerald-300'
-        : 'bg-gradient-to-br from-red-50 via-red-100 to-orange-50 border-red-300'
+        ? 'border-slate-200'
+        : 'border-slate-200'
     }`}>
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-        <DollarSign size={128} className={isPositive ? 'text-emerald-600' : 'text-red-600'} />
+      <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
+        <DollarSign size={128} className="text-slate-400" />
       </div>
 
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-2xl">{isPositive ? '💰' : '⚠️'}</span>
+        <span className="text-2xl"></span>
         <div>
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${
-            isPositive ? 'text-emerald-800' : 'text-red-800'
-          }`}>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[#1a2332]">
             Lucro Líquido do Empresário
           </h3>
-          <p className={`text-[10px] ${isPositive ? 'text-emerald-600' : 'text-red-600'} opacity-70`}>
+          <p className="text-[10px] text-slate-500">
             (Quanto sobra para a empresa após todos os gastos e impostos)
           </p>
         </div>
@@ -138,25 +136,25 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       {/* Main numbers */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <p className={`text-xs ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>Por mês</p>
-          <p className={`text-3xl font-black ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
+          <p className="text-xs text-slate-500">Por mês</p>
+          <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
             {formatCurrency(dados.lucroMensal)}
           </p>
         </div>
         <div>
-          <p className={`text-xs ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>Por ano</p>
-          <p className={`text-3xl font-black ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
+          <p className="text-xs text-slate-500">Por ano</p>
+          <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
             {formatCurrency(dados.lucroAnual)}
           </p>
         </div>
         <div>
-          <p className={`text-xs ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>Margem real</p>
+          <p className="text-xs text-slate-500">Margem real</p>
           <div className="flex items-center gap-2">
-            <p className={`text-3xl font-black ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}>
+            <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
               {dados.margemReal.toFixed(1)}%
             </p>
             {isPositive ? (
-              <TrendingUp className="text-emerald-500" size={24} />
+              <TrendingUp className="text-slate-400" size={24} />
             ) : (
               <TrendingDown className="text-red-500" size={24} />
             )}
@@ -165,7 +163,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       </div>
 
       {/* Breakdown bar */}
-      <div className="mt-4 pt-4 border-t border-emerald-300/50">
+      <div className="mt-4 pt-4 border-t border-slate-200">
         <div className="flex items-center gap-1 text-xs mb-2">
           <span className="text-slate-600 font-medium">De cada {formatCurrency(dados.faturamentoMensal)} que entra:</span>
         </div>
@@ -211,20 +209,20 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       {/* Emotional feedback */}
       {!isPositive && (
         <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
-          <p className="text-sm font-bold text-red-700">😰 Atenção! A empresa está no prejuízo!</p>
+          <p className="text-sm font-bold text-red-700">Atenção: a empresa está no prejuízo.</p>
           <p className="text-xs text-red-600 mt-1">É preciso revisar os preços de venda ou reduzir os custos operacionais.</p>
         </div>
       )}
       {isPositive && isGood && (
-        <div className="mt-3 p-3 bg-emerald-200/50 border border-emerald-300 rounded-lg">
-          <p className="text-sm font-bold text-emerald-700">🎉 Excelente! Margem saudável!</p>
-          <p className="text-xs text-emerald-600 mt-1">Margem do negócio acima de 20%. Produtos/serviços bem precificados!</p>
+        <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <p className="text-sm font-bold text-[#1a2332]">Excelente. Margem saudável.</p>
+          <p className="text-xs text-slate-500 mt-1">Margem do negócio acima de 20%. Produtos/serviços bem precificados!</p>
         </div>
       )}
       {isPositive && !isGood && isOk && (
-        <div className="mt-3 p-3 bg-amber-100 border border-amber-300 rounded-lg">
-          <p className="text-sm font-bold text-amber-700">⚡ Pode melhorar!</p>
-          <p className="text-xs text-amber-600 mt-1">Margem entre 10-20%. Considere ajustar os preços dos produtos para cima.</p>
+        <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <p className="text-sm font-bold text-[#1a2332]">Pode melhorar.</p>
+          <p className="text-xs text-slate-500 mt-1">Margem entre 10-20%. Considere ajustar os preços dos produtos para cima.</p>
         </div>
       )}
     </div>

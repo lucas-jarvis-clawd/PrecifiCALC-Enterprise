@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { TrendingDown, TrendingUp, AlertTriangle, Lightbulb, DollarSign, X, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '../data/taxData';
 
