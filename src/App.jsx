@@ -1,11 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './index.css';
 
-// Versão LEVE do PrecifiCALC - Carregamento Rápido
+// Loading Component Profissional
+function ProfessionalLoader() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="text-center">
+        {/* Logo Corporativo */}
+        <div className="mb-8">
+          <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+            <span className="text-white text-3xl font-bold tracking-wider">P</span>
+          </div>
+          <h1 className="text-3xl font-light text-white mb-2 tracking-wide">PrecifiCALC</h1>
+          <p className="text-slate-300 text-sm font-light tracking-widest uppercase">Enterprise Edition</p>
+        </div>
+
+        {/* Loading Animation Elegante */}
+        <div className="flex justify-center mb-6">
+          <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0ms'}}></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '400ms'}}></div>
+          </div>
+        </div>
+        
+        <p className="text-slate-400 text-sm font-light">Carregando plataforma empresarial...</p>
+      </div>
+    </div>
+  );
+}
+
+// App Principal Profissional
 function App() {
+  const [loading, setLoading] = useState(true);
   const [receita, setReceita] = useState('');
   const [custos, setCustos] = useState('');
-  const [margem, setMargem] = useState(30);
+  const [margem, setMargem] = useState(35);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const calcularPreco = () => {
     const custosNum = parseFloat(custos) || 0;
@@ -22,105 +57,155 @@ function App() {
 
   const resultado = calcularPreco();
 
+  if (loading) {
+    return <ProfessionalLoader />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 pt-8">
-          <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">P</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      {/* Header Corporativo */}
+      <div className="bg-white shadow-sm border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <span className="text-white text-lg font-bold">P</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-800 tracking-tight">PrecifiCALC</h1>
+              <p className="text-xs text-slate-500 tracking-wide">ENTERPRISE</p>
+            </div>
           </div>
-          <h1 className="text-white text-2xl font-bold">PrecifiCALC</h1>
-          <p className="text-white/80 text-sm">Calculadora Empresarial</p>
+          <div className="text-right">
+            <p className="text-sm font-medium text-slate-700">Lucas Lyra</p>
+            <p className="text-xs text-slate-500">CEO & Founder</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Dashboard Title */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-light text-slate-800 mb-2">Calculadora de Precificação</h2>
+          <p className="text-slate-600 text-sm">Análise estratégica de margem e rentabilidade</p>
         </div>
 
-        {/* Card Principal */}
-        <div className="bg-white rounded-2xl p-6 shadow-2xl">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">💰 Calcular Preço</h2>
-          
-          {/* Inputs */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                💸 Custos Totais (R$)
-              </label>
-              <input
-                type="number"
-                value={custos}
-                onChange={(e) => setCustos(e.target.value)}
-                placeholder="Ex: 100.00"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+        {/* Cards Profissionais */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-700">Custos Totais</h3>
+              <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+                <span className="text-red-500 text-lg">💸</span>
+              </div>
             </div>
+            <input
+              type="number"
+              value={custos}
+              onChange={(e) => setCustos(e.target.value)}
+              placeholder="0.00"
+              className="w-full text-2xl font-light text-slate-800 bg-transparent border-none outline-none placeholder-slate-400"
+            />
+            <p className="text-xs text-slate-500 mt-2">em Reais (R$)</p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                📊 Margem Desejada (%)
-              </label>
-              <input
-                type="range"
-                min="10"
-                max="80"
-                value={margem}
-                onChange={(e) => setMargem(e.target.value)}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>10%</span>
-                <span className="font-bold text-blue-600">{margem}%</span>
-                <span>80%</span>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-700">Margem Objetivo</h3>
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                <span className="text-blue-500 text-lg">📊</span>
+              </div>
+            </div>
+            <div className="text-2xl font-light text-slate-800 mb-2">{margem}%</div>
+            <input
+              type="range"
+              min="15"
+              max="70"
+              value={margem}
+              onChange={(e) => setMargem(e.target.value)}
+              className="w-full accent-blue-500"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-2">
+              <span>15%</span>
+              <span>70%</span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-700">Preço Sugerido</h3>
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <span className="text-emerald-600 text-lg">💰</span>
+              </div>
+            </div>
+            <div className="text-2xl font-semibold text-emerald-700">
+              R$ {custos ? resultado.precoVenda : '0.00'}
+            </div>
+            <p className="text-xs text-emerald-600 mt-2">Margem: {custos ? resultado.margemReal : '0'}%</p>
+          </div>
+        </div>
+
+        {/* Análise Detalhada */}
+        {custos && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+            <h3 className="font-semibold text-slate-700 mb-4">Análise de Rentabilidade</h3>
+            <div className="grid md:grid-cols-3 gap-6 text-center">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Custos Totais</p>
+                <p className="text-xl font-semibold text-slate-800">R$ {parseFloat(custos).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Lucro Bruto</p>
+                <p className="text-xl font-semibold text-emerald-600">R$ {resultado.lucro}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Margem Efetiva</p>
+                <p className="text-xl font-semibold text-blue-600">{resultado.margemReal}%</p>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Resultado */}
-          {custos && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
-              <h3 className="font-bold text-gray-800 mb-2">📈 Resultado:</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>💰 Preço de Venda:</span>
-                  <span className="font-bold text-green-600">R$ {resultado.precoVenda}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>💵 Lucro:</span>
-                  <span className="font-bold text-blue-600">R$ {resultado.lucro}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>📊 Margem Real:</span>
-                  <span className="font-bold text-purple-600">{resultado.margemReal}%</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Buttons */}
-          <div className="mt-6 space-y-2">
-            <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-              💾 Salvar Cálculo
-            </button>
-            <button className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
-              📄 Gerar Proposta
-            </button>
-          </div>
-        </div>
-
-        {/* Menu Simples */}
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button className="bg-white/20 text-white p-4 rounded-lg text-center hover:bg-white/30 transition-colors">
-            <div className="text-2xl mb-1">🏛️</div>
-            <div className="text-sm font-medium">Impostos</div>
+        {/* Actions Corporativas */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <button className="bg-blue-500 text-white py-4 px-6 rounded-xl font-medium hover:bg-blue-600 transition-all duration-200 flex items-center justify-center space-x-2">
+            <span>📊</span>
+            <span>Análise Tributária</span>
           </button>
-          <button className="bg-white/20 text-white p-4 rounded-lg text-center hover:bg-white/30 transition-colors">
-            <div className="text-2xl mb-1">📊</div>
-            <div className="text-sm font-medium">Relatórios</div>
+          <button className="bg-slate-800 text-white py-4 px-6 rounded-xl font-medium hover:bg-slate-900 transition-all duration-200 flex items-center justify-center space-x-2">
+            <span>📄</span>
+            <span>Gerar Proposta</span>
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-white/60 text-xs">
-          <p>Versão Rápida • Lucas Tech</p>
-          <p className="mt-1">Carregamento otimizado para mobile 📱</p>
+        {/* Módulos Empresariais */}
+        <div className="grid md:grid-cols-4 gap-4">
+          <button className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 text-center">
+            <div className="text-2xl mb-2">🏛️</div>
+            <p className="text-sm font-medium text-slate-700">Simulador</p>
+            <p className="text-xs text-slate-500">Tributário</p>
+          </button>
+          <button className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 text-center">
+            <div className="text-2xl mb-2">📈</div>
+            <p className="text-sm font-medium text-slate-700">DRE</p>
+            <p className="text-xs text-slate-500">Financeiro</p>
+          </button>
+          <button className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 text-center">
+            <div className="text-2xl mb-2">⚖️</div>
+            <p className="text-sm font-medium text-slate-700">Comparativo</p>
+            <p className="text-xs text-slate-500">Regimes</p>
+          </button>
+          <button className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 text-center">
+            <div className="text-2xl mb-2">📊</div>
+            <p className="text-sm font-medium text-slate-700">Analytics</p>
+            <p className="text-xs text-slate-500">Avançado</p>
+          </button>
+        </div>
+
+        {/* Footer Profissional */}
+        <div className="mt-12 text-center border-t border-slate-200 pt-8">
+          <p className="text-xs text-slate-500">
+            PrecifiCALC Enterprise • Desenvolvido por Lucas Tech • Versão 2.0
+          </p>
         </div>
       </div>
     </div>
