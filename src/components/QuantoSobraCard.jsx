@@ -98,7 +98,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
           <h3 className="text-lg font-bold text-slate-600 mt-2">Lucro Líquido do Empresário</h3>
           <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra para a empresa após todos os gastos e impostos)</p>
           <p className="text-slate-500 text-sm mt-2">
-            Use o botão <strong>"Quero Precificar!"</strong> para descobrir
+            Use o botão <strong>"Calcular Preço"</strong> para descobrir
           </p>
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
       {isPositive && isGood && (
         <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
           <p className="text-sm font-bold text-[#1a2332]">Excelente. Margem saudável.</p>
-          <p className="text-xs text-slate-500 mt-1">Margem do negócio acima de 20%. Produtos/serviços bem precificados!</p>
+          <p className="text-xs text-slate-500 mt-1">Margem do negócio acima de 20%. Produtos/serviços bem precificados.</p>
         </div>
       )}
       {isPositive && !isGood && isOk && (

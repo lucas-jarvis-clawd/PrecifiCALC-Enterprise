@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Scale, DollarSign, TrendingUp, Target, AlertTriangle, Info } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
@@ -10,71 +10,30 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 
-// Fallback helper functions for CPP, Fator R, sublimite
-const _calcCPP = (folha) => folha * 0.20;
-const _calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-const _getAnexoFR = (fr, anexo) => (anexo === 'V' && fr >= 0.28) ? 'III' : anexo;
-const _checkSublimite = (rbt12) => ({
-  dentroSimples: rbt12 <= 4800000,
-  dentroSublimite: rbt12 <= 3600000,
-  mensagem: rbt12 > 4800000 ? 'Excede limite Simples (R$ 4.8M)' : rbt12 > 3600000 ? 'Excede sublimite (R$ 3.6M). ISS/ICMS separados.' : null,
-});
-
-const LS_KEY = 'precificalc_pontoequilibrio';
+import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
+import PageHeader from '../components/PageHeader';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function PontoEquilibrio() {
-  const [custoFixoMensal, setCustoFixoMensal] = useState(15000);
-  const [custoVariavelPercent, setCustoVariavelPercent] = useState(30);
-  const [precoVendaUnitario, setPrecoVendaUnitario] = useState(200);
-  const [regime, setRegime] = useState('simples');
-  const [anexo, setAnexo] = useState('III');
-  const [tipoAtividade, setTipoAtividade] = useState('servicos');
-  const [issAliquota, setIssAliquota] = useState(5);
-  const [rbt12, setRbt12] = useState(600000);
-  const [receitaMensal, setReceitaMensal] = useState(50000);
-  const [folhaMensal, setFolhaMensal] = useState(20000);
-
-  // localStorage persistence - load
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.custoFixoMensal !== undefined) setCustoFixoMensal(data.custoFixoMensal);
-        if (data.custoVariavelPercent !== undefined) setCustoVariavelPercent(data.custoVariavelPercent);
-        if (data.precoVendaUnitario !== undefined) setPrecoVendaUnitario(data.precoVendaUnitario);
-        if (data.regime !== undefined) setRegime(data.regime);
-        if (data.anexo !== undefined) setAnexo(data.anexo);
-        if (data.tipoAtividade !== undefined) setTipoAtividade(data.tipoAtividade);
-        if (data.issAliquota !== undefined) setIssAliquota(data.issAliquota);
-        if (data.rbt12 !== undefined) setRbt12(data.rbt12);
-        if (data.receitaMensal !== undefined) setReceitaMensal(data.receitaMensal);
-        if (data.folhaMensal !== undefined) setFolhaMensal(data.folhaMensal);
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  // localStorage persistence - save
-  useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        custoFixoMensal, custoVariavelPercent, precoVendaUnitario,
-        regime, anexo, tipoAtividade, issAliquota, rbt12, receitaMensal, folhaMensal,
-      }));
-    } catch { /* ignore */ }
-  }, [custoFixoMensal, custoVariavelPercent, precoVendaUnitario,
-    regime, anexo, tipoAtividade, issAliquota, rbt12, receitaMensal, folhaMensal]);
+  const [state, setState] = useLocalStorage('precificalc_pontoequilibrio', {
+    custoFixoMensal: 15000, custoVariavelPercent: 30, precoVendaUnitario: 200,
+    regime: 'simples', anexo: 'III', tipoAtividade: 'servicos',
+    issAliquota: 5, rbt12: 600000, receitaMensal: 50000, folhaMensal: 20000,
+  });
+  const update = (field, value) => setState(prev => ({ ...prev, [field]: value }));
+  const { custoFixoMensal, custoVariavelPercent, precoVendaUnitario,
+    regime, anexo, tipoAtividade, issAliquota, rbt12, receitaMensal, folhaMensal } = state;
 
   // Fator R e Anexo Efetivo
-  const fatorR = regime === 'simples' ? _calcFatorR(folhaMensal * 12, rbt12) : 0;
-  const anexoEfetivo = regime === 'simples' ? _getAnexoFR(fatorR, anexo) : anexo;
+  const fatorR = regime === 'simples' ? calcFatorR(folhaMensal * 12, rbt12) : 0;
+  const anexoEfetivo = regime === 'simples' ? getAnexoPorFatorR(fatorR, anexo) : anexo;
   const migrouAnexo = regime === 'simples' && anexo === 'V' && anexoEfetivo === 'III';
 
   // CPP para Anexo IV
-  const cppAnexoIV = (regime === 'simples' && anexoEfetivo === 'IV') ? _calcCPP(folhaMensal) : 0;
+  const cppAnexoIV = (regime === 'simples' && anexoEfetivo === 'IV') ? calcCPPAnexoIV(folhaMensal) : 0;
 
   // Sublimite check
-  const sublimite = regime === 'simples' ? _checkSublimite(rbt12) : null;
+  const sublimite = regime === 'simples' ? checkSublimiteSimples(rbt12) : null;
 
   const receitaMensalEfetiva = regime === 'simples' ? rbt12 / 12 : receitaMensal;
 
@@ -137,48 +96,42 @@ export default function PontoEquilibrio() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <Scale className="text-brand-600" size={22} />
-          Ponto de Equilibrio
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Determine a receita minima para cobrir custos e comecar a lucrar</p>
-      </div>
+      <PageHeader icon={Scale} title="Ponto de Equilibrio" description="Determine a receita minima para cobrir custos e comecar a lucrar" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Parametros */}
         <Card>
           <CardHeader><h2 className="text-slate-800 font-medium text-sm">Parametros</h2></CardHeader>
           <CardBody className="space-y-3">
-            <InputField label="Custo Fixo Mensal" value={custoFixoMensal} onChange={setCustoFixoMensal} prefix="R$" step={1000} />
-            <InputField label="Custo Variavel (% do preco)" value={custoVariavelPercent} onChange={setCustoVariavelPercent} suffix="%" step={5} help="CMV, comissoes, frete" />
-            <InputField label="Preco de Venda Unitario" value={precoVendaUnitario} onChange={setPrecoVendaUnitario} prefix="R$" step={10} />
+            <InputField label="Custo Fixo Mensal" value={custoFixoMensal} onChange={v => update('custoFixoMensal', v)} prefix="R$" step={1000} />
+            <InputField label="Custo Variavel (% do preco)" value={custoVariavelPercent} onChange={v => update('custoVariavelPercent', v)} suffix="%" step={5} help="CMV, comissoes, frete" />
+            <InputField label="Preco de Venda Unitario" value={precoVendaUnitario} onChange={v => update('precoVendaUnitario', v)} prefix="R$" step={10} />
 
             <div className="border-t border-slate-200 pt-3">
               <p className="text-xs font-medium text-slate-500 mb-2">Regime Tributario</p>
-              <SelectField value={regime} onChange={setRegime} options={[
+              <SelectField value={regime} onChange={v => update('regime', v)} options={[
                 { value: 'mei', label: 'MEI' }, { value: 'simples', label: 'Simples Nacional' },
                 { value: 'presumido', label: 'Lucro Presumido' }, { value: 'real', label: 'Lucro Real' },
               ]} />
               {regime === 'simples' && (
                 <>
-                  <SelectField label="Anexo" value={anexo} onChange={setAnexo} className="mt-3" options={[
+                  <SelectField label="Anexo" value={anexo} onChange={v => update('anexo', v)} className="mt-3" options={[
                     { value: 'I', label: 'Anexo I' }, { value: 'II', label: 'Anexo II' },
                     { value: 'III', label: 'Anexo III' }, { value: 'IV', label: 'Anexo IV' }, { value: 'V', label: 'Anexo V' },
                   ]} />
-                  <InputField label="RBT12 (Faturamento últimos 12 meses)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} className="mt-3" help="Receita Bruta Total dos últimos 12 meses — define a faixa do Simples" />
-                  <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} className="mt-3" />
+                  <InputField label="RBT12 (Faturamento últimos 12 meses)" value={rbt12} onChange={v => update('rbt12', v)} prefix="R$" step={10000} className="mt-3" help="Receita Bruta Total dos últimos 12 meses — define a faixa do Simples" />
+                  <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={v => update('folhaMensal', v)} prefix="R$" step={1000} className="mt-3" />
                 </>
               )}
               {regime !== 'simples' && (
-                <InputField label="Receita Mensal Estimada" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} className="mt-3" />
+                <InputField label="Receita Mensal Estimada" value={receitaMensal} onChange={v => update('receitaMensal', v)} prefix="R$" step={5000} className="mt-3" />
               )}
               {(regime === 'presumido' || regime === 'real') && (
                 <>
-                  <SelectField label="Atividade" value={tipoAtividade} onChange={setTipoAtividade} className="mt-3" options={[
+                  <SelectField label="Atividade" value={tipoAtividade} onChange={v => update('tipoAtividade', v)} className="mt-3" options={[
                     { value: 'servicos', label: 'Servicos' }, { value: 'comercio', label: 'Comercio' }, { value: 'industria', label: 'Industria' },
                   ]} />
-                  <InputField label="Aliquota ISS (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} className="mt-3" />
+                  <InputField label="Aliquota ISS (%)" value={issAliquota} onChange={v => update('issAliquota', v)} suffix="%" min={2} max={5} step={0.5} className="mt-3" />
                 </>
               )}
               <div className="mt-3 p-2 bg-slate-50 rounded-md">
@@ -202,7 +155,7 @@ export default function PontoEquilibrio() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!)</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor)</p>
                   </div>
                 )}
               </div>

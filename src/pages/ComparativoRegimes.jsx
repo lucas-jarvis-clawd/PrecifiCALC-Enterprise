@@ -5,18 +5,8 @@ import InputField, { SelectField } from '../components/InputField';
 import { calcSimplesTax, calcMEI, calcLucroPresumido, calcLucroReal, formatCurrency, formatPercent, simplesNacional } from '../data/taxData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 
-// Defensive imports for functions the other agent is adding
-let calcCPPAnexoIV = (folha) => folha * 0.20;
-let calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-let getAnexoPorFatorR = (fr, anexo) => (fr >= 0.28 && anexo === 'V') ? 'III' : anexo;
-let checkSublimiteSimples = (rbt12) => {
-    const dentroSimples = rbt12 <= 4800000;
-    const dentroSublimite = rbt12 <= 3600000;
-    let mensagem = null;
-    if (!dentroSimples) mensagem = 'Receita excede o limite do Simples Nacional (R$ 4.800.000).';
-    else if (!dentroSublimite) mensagem = 'Receita excede o sublimite estadual/municipal (R$ 3.600.000). ISS e ICMS devem ser recolhidos separadamente.';
-    return { dentroSimples, dentroSublimite, mensagem };
-};
+import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
+import PageHeader from '../components/PageHeader';
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 const STORAGE_KEY = 'precificalc_comparativo';
@@ -206,13 +196,7 @@ export default function ComparativoRegimes() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <BarChart3 className="text-brand-600" size={22} />
-          Comparar Impostos
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Descubra qual regime tributário paga menos imposto para esta empresa</p>
-      </div>
+      <PageHeader icon={BarChart3} title="Comparar Impostos" description="Descubra qual regime tributário paga menos imposto para esta empresa" />
 
       {/* Sublimite warning */}
       {sublimite.mensagem && (
@@ -256,7 +240,7 @@ export default function ComparativoRegimes() {
             {showFatorRInfo && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <Info size={14} />
-                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor!)</span>
+                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor)</span>
               </div>
             )}
             {anexoEfetivo !== anexo && (
@@ -376,9 +360,9 @@ export default function ComparativoRegimes() {
             {economia > 0 && (
               <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl text-center">
                 <p className="text-xs text-emerald-600 font-medium">Escolhendo {melhor.regime} você economiza:</p>
-                <p className="text-2xl font-black text-emerald-700">{formatCurrency(economia * 12)}/ano!</p>
+                <p className="text-2xl font-black text-emerald-700">{formatCurrency(economia * 12)}/ano</p>
                 <p className="text-sm text-emerald-600 mt-1">
-                  São {formatCurrency(economia)}/mês que ficam no seu bolso!
+                  São {formatCurrency(economia)}/mês que ficam no caixa da empresa.
                 </p>
               </div>
             )}

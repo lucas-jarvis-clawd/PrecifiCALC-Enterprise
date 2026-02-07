@@ -57,6 +57,12 @@ export function TaxBreakdown({
       
       impostos.total = impostoSimples;
       
+      // Observação sobre ICMS/IPI incluídos no DAS
+      impostos.observacoes.push({
+        tipo: 'info',
+        texto: 'ICMS e IPI já estão incluídos na alíquota unificada do DAS (Simples Nacional)'
+      });
+
       // Verificar se NCM tem tratamento especial no Simples
       if (isNCMComTratamentoEspecial(ncm)) {
         impostos.observacoes.push({
@@ -68,35 +74,56 @@ export function TaxBreakdown({
     } else if (regime === 'presumido') {
       // Lucro Presumido - cálculos separados por imposto
       const presumedProfit = receita * 0.32; // 32% para serviços, varia por atividade
-      
+
       // PIS/COFINS
       const pis = receita * 0.0065;
       const cofins = receita * 0.03;
-      
+
       // IRPJ/CSLL sobre lucro presumido
       const irpj = presumedProfit * 0.15;
       const csll = presumedProfit * 0.09;
-      
+
       impostos.federal.push(
         { nome: 'PIS', base: receita, aliquota: 0.65, valor: pis },
         { nome: 'COFINS', base: receita, aliquota: 3.0, valor: cofins },
         { nome: 'IRPJ', base: presumedProfit, aliquota: 15, valor: irpj },
         { nome: 'CSLL', base: presumedProfit, aliquota: 9, valor: csll }
       );
-      
+
+      // IPI (federal)
+      const ipiAliq = dadosEmpresa.aliquotaIPI || 0;
+      if (ipiAliq > 0) {
+        const ipi = receita * (ipiAliq / 100);
+        impostos.federal.push({ nome: 'IPI', base: receita, aliquota: ipiAliq, valor: ipi });
+        impostos.total += ipi;
+      }
+
+      // ICMS (estadual)
+      const icmsAliq = dadosEmpresa.aliquotaICMS || 0;
+      if (icmsAliq > 0) {
+        const icms = receita * (icmsAliq / 100);
+        impostos.estadual.push({
+          nome: `ICMS (${dadosEmpresa.uf || 'UF'})`,
+          base: receita,
+          aliquota: icmsAliq,
+          valor: icms
+        });
+        impostos.total += icms;
+      }
+
       // ISS (municipal)
       const issAliquota = dadosEmpresa.issAliquota || 5;
       const iss = receita * (issAliquota / 100);
-      
+
       impostos.municipal.push({
         nome: 'ISS',
         base: receita,
         aliquota: issAliquota,
         valor: iss
       });
-      
-      impostos.total = pis + cofins + irpj + csll + iss;
-      
+
+      impostos.total += pis + cofins + irpj + csll + iss;
+
       // Verificar benefícios por NCM
       if (hasNCMBenefits(ncm)) {
         impostos.observacoes.push({
@@ -104,35 +131,56 @@ export function TaxBreakdown({
           texto: 'Este NCM pode ter benefícios fiscais específicos'
         });
       }
-      
+
     } else if (regime === 'real') {
       // Lucro Real - impostos sobre lucro efetivo
       const lucroReal = margem; // Simplificado
-      
+
       // PIS/COFINS (com possibilidade de créditos)
       const pisReal = receita * 0.0165;
       const cofinsReal = receita * 0.076;
-      
+
       impostos.federal.push(
         { nome: 'PIS', base: receita, aliquota: 1.65, valor: pisReal },
         { nome: 'COFINS', base: receita, aliquota: 7.6, valor: cofinsReal }
       );
-      
+
+      // IPI (federal)
+      const ipiAliq = dadosEmpresa.aliquotaIPI || 0;
+      if (ipiAliq > 0) {
+        const ipi = receita * (ipiAliq / 100);
+        impostos.federal.push({ nome: 'IPI', base: receita, aliquota: ipiAliq, valor: ipi });
+        impostos.total += ipi;
+      }
+
       // IRPJ/CSLL apenas se houver lucro
       if (lucroReal > 0) {
         const irpjReal = lucroReal * 0.15;
         const csllReal = lucroReal * 0.09;
-        
+
         impostos.federal.push(
           { nome: 'IRPJ', base: lucroReal, aliquota: 15, valor: irpjReal },
           { nome: 'CSLL', base: lucroReal, aliquota: 9, valor: csllReal }
         );
-        
+
         impostos.total += irpjReal + csllReal;
       }
-      
+
+      // ICMS (estadual)
+      const icmsAliq = dadosEmpresa.aliquotaICMS || 0;
+      if (icmsAliq > 0) {
+        const icms = receita * (icmsAliq / 100);
+        impostos.estadual.push({
+          nome: `ICMS (${dadosEmpresa.uf || 'UF'})`,
+          base: receita,
+          aliquota: icmsAliq,
+          valor: icms
+        });
+        impostos.total += icms;
+      }
+
       impostos.total += pisReal + cofinsReal;
-      
+
       // Adicionar observação sobre créditos
       impostos.observacoes.push({
         tipo: 'info',

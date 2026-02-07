@@ -22,14 +22,14 @@ function useLimitAlerts() {
         if (regime === 'mei' && receitaAnual > 65000) {
           result.push({
             tipo: 'warning',
-            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando perto do limite do MEI (R$ 81.000). Hora de avaliar a migração para Simples Nacional!`,
+            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando perto do limite do MEI (R$ 81.000). Avalie a migração para Simples Nacional.`,
             emoji: '',
           });
         }
         if (regime === 'simples' && receitaAnual > 4000000) {
           result.push({
             tipo: 'warning',
-            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Hora de avaliar o Lucro Presumido!`,
+            msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Avalie a transição para Lucro Presumido.`,
             emoji: '',
           });
         }
@@ -45,7 +45,7 @@ function useLimitAlerts() {
         if (rb > 0 && lucro < 0) {
           result.push({
             tipo: 'danger',
-            msg: `Os números indicam prejuízo de ${formatCurrency(Math.abs(lucro))}! É preciso revisar os preços de venda ou reduzir custos operacionais.`,
+            msg: `Os números indicam prejuízo de ${formatCurrency(Math.abs(lucro))}. É preciso revisar os preços de venda ou reduzir custos operacionais.`,
             emoji: '',
           });
         }
@@ -76,7 +76,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
     {
       id: 'wizard',
       emoji: '',
-      title: 'Quero Precificar!',
+      title: 'Calcular Preço',
       desc: 'Calcule o preço ideal do produto ou serviço em 5 passos',
       action: () => setShowWizard(true),
       highlight: true,
@@ -127,7 +127,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {nomeEmpresa ? `Olá, ${nomeEmpresa}!` : 'Bem-vindo ao PrecifiCALC!'}
+              {nomeEmpresa ? `Olá, ${nomeEmpresa}` : 'Bem-vindo ao PrecifiCALC'}
             </h1>
             <p className="text-slate-500 mt-1">
               Ferramenta completa para precificar produtos e serviços da empresa
@@ -168,7 +168,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
           >
             {action.highlight && (
               <div className="absolute -top-2 -right-2 bg-[#001a2d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                COMECE AQUI!
+                Comecar aqui
               </div>
             )}
             <span className="text-3xl block mb-2">{action.emoji}</span>

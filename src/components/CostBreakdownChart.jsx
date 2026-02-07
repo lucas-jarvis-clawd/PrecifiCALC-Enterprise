@@ -83,7 +83,7 @@ export default function CostBreakdownChart({ items, total, title, className = ''
       {total && total > 0 && (
         <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-            💰 Para cada R$ 1,00 de receita:
+            Para cada R$ 1,00 de receita:
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {processedItems.map((item, i) => (

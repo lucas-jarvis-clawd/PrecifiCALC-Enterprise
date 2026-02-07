@@ -78,7 +78,7 @@ export default function Configuracoes() {
     try {
       localStorage.setItem('precificalc_config', JSON.stringify(config));
       setStorageInfo(calcStorageSize());
-      toast.success('Configurações salvas com sucesso!');
+      toast.success('Configurações salvas com sucesso.');
     } catch {
       toast.error('Erro ao salvar configurações.');
     }

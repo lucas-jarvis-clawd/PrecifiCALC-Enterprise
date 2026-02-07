@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Target, Calculator, DollarSign, Clock, AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
@@ -7,15 +7,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const COLORS = ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981'];
 
-// Fallback helper functions for CPP, Fator R, sublimite
-const _calcCPP = (folha) => folha * 0.20;
-const _calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-const _getAnexoFR = (fr, anexo) => (anexo === 'V' && fr >= 0.28) ? 'III' : anexo;
-const _checkSublimite = (rbt12) => ({
-  dentroSimples: rbt12 <= 4800000,
-  dentroSublimite: rbt12 <= 3600000,
-  mensagem: rbt12 > 4800000 ? 'Excede limite Simples (R$ 4.8M)' : rbt12 > 3600000 ? 'Excede sublimite (R$ 3.6M). ISS/ICMS separados.' : null,
-});
+import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
+import PageHeader from '../components/PageHeader';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // Seasonality multipliers
 const sazonal = {
@@ -32,57 +26,36 @@ const thresholds = {
   servicos: { excelente: 25, boa: 15 },
 };
 
-const LS_KEY = 'precificalc_viabilidade';
-
 export default function AnaliseViabilidade() {
-  const [dados, setDados] = useState({
-    investimentoInicial: '', receitaMensal: '', custoFixoMensal: '', custoVariavelPercent: '',
-    atividade: 'servicos', regime: 'simples', anexo: 'III', rbt12: '',
-    issAliquota: '5', despesasDedutiveis: '', creditosPisCofins: '',
-    folhaMensal: '20000',
+  const [state, setState] = useLocalStorage('precificalc_viabilidade', {
+    dados: {
+      investimentoInicial: '', receitaMensal: '', custoFixoMensal: '', custoVariavelPercent: '',
+      atividade: 'servicos', regime: 'simples', anexo: 'III', rbt12: '',
+      issAliquota: '5', despesasDedutiveis: '', creditosPisCofins: '',
+      folhaMensal: '20000',
+    },
+    taxaCrescimento: 3, tipoSazonalidade: 'nenhuma', taxaDesconto: 12, segmento: 'servicos',
   });
   const [resultado, setResultado] = useState(null);
-  const [taxaCrescimento, setTaxaCrescimento] = useState(3);
-  const [tipoSazonalidade, setTipoSazonalidade] = useState('nenhuma');
-  const [taxaDesconto, setTaxaDesconto] = useState(12);
-  const [segmento, setSegmento] = useState('servicos');
-
-  // localStorage persistence - load
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.dados) setDados(data.dados);
-        if (data.taxaCrescimento !== undefined) setTaxaCrescimento(data.taxaCrescimento);
-        if (data.tipoSazonalidade !== undefined) setTipoSazonalidade(data.tipoSazonalidade);
-        if (data.taxaDesconto !== undefined) setTaxaDesconto(data.taxaDesconto);
-        if (data.segmento !== undefined) setSegmento(data.segmento);
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  // localStorage persistence - save
-  useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        dados, taxaCrescimento, tipoSazonalidade, taxaDesconto, segmento,
-      }));
-    } catch { /* ignore */ }
-  }, [dados, taxaCrescimento, tipoSazonalidade, taxaDesconto, segmento]);
+  const { dados, taxaCrescimento, tipoSazonalidade, taxaDesconto, segmento } = state;
+  const setDados = (v) => setState(prev => ({ ...prev, dados: typeof v === 'function' ? v(prev.dados) : v }));
+  const setTaxaCrescimento = (v) => setState(prev => ({ ...prev, taxaCrescimento: v }));
+  const setTipoSazonalidade = (v) => setState(prev => ({ ...prev, tipoSazonalidade: v }));
+  const setTaxaDesconto = (v) => setState(prev => ({ ...prev, taxaDesconto: v }));
+  const setSegmento = (v) => setState(prev => ({ ...prev, segmento: v }));
 
   // Fator R e Anexo Efetivo
   const folhaMensal = parseFloat(dados.folhaMensal) || 0;
   const rbt12Num = parseFloat(dados.rbt12) || 0;
-  const fatorR = dados.regime === 'simples' ? _calcFatorR(folhaMensal * 12, rbt12Num) : 0;
-  const anexoEfetivo = dados.regime === 'simples' ? _getAnexoFR(fatorR, dados.anexo) : dados.anexo;
+  const fatorR = dados.regime === 'simples' ? calcFatorR(folhaMensal * 12, rbt12Num) : 0;
+  const anexoEfetivo = dados.regime === 'simples' ? getAnexoPorFatorR(fatorR, dados.anexo) : dados.anexo;
   const migrouAnexo = dados.regime === 'simples' && dados.anexo === 'V' && anexoEfetivo === 'III';
 
   // CPP para Anexo IV
-  const cppAnexoIV = (dados.regime === 'simples' && anexoEfetivo === 'IV') ? _calcCPP(folhaMensal) : 0;
+  const cppAnexoIV = (dados.regime === 'simples' && anexoEfetivo === 'IV') ? calcCPPAnexoIV(folhaMensal) : 0;
 
   // Sublimite check
-  const sublimite = dados.regime === 'simples' ? _checkSublimite(rbt12Num) : null;
+  const sublimite = dados.regime === 'simples' ? checkSublimiteSimples(rbt12Num) : null;
 
   const calcularViabilidade = () => {
     const receita = parseFloat(dados.receitaMensal) || 0;
@@ -166,13 +139,7 @@ export default function AnaliseViabilidade() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <Target className="text-brand-600" size={22} />
-          Analise de Viabilidade
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Avalie a viabilidade do negocio com calculos tributarios reais</p>
-      </div>
+      <PageHeader icon={Target} title="Analise de Viabilidade" description="Avalie a viabilidade do negocio com calculos tributarios reais" />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <Card>
@@ -227,7 +194,7 @@ export default function AnaliseViabilidade() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Info size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor!)</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor)</p>
                   </div>
                 )}
               </div>

@@ -37,7 +37,7 @@ export function NotificationSetupBanner() {
 
     if (result === 'granted') {
       // Send welcome notification
-      sendNotification('🎉 Notificações ativadas!', {
+      sendNotification('Notificações ativadas.', {
         body: 'Você receberá lembretes de prazos tributários.',
         tag: 'welcome',
       });
@@ -77,7 +77,7 @@ export function NotificationSetupBanner() {
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               Receba alertas de prazos tributários: DAS, FGTS, ISS, PIS/COFINS e mais.
-              Nunca perca um vencimento!
+              Nunca perca um vencimento.
             </p>
 
             <div className="flex items-center gap-2 mt-3">

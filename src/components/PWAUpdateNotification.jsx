@@ -46,7 +46,7 @@ export function PWAUpdateNotification({ updateSW }) {
 
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold">Nova versão disponível!</h3>
+              <h3 className="text-sm font-bold">Nova versão disponível</h3>
               <button
                 onClick={handleDismiss}
                 className="p-1 rounded-lg hover:bg-white/20 transition-colors"

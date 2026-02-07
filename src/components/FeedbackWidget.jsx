@@ -102,7 +102,7 @@ export default function FeedbackWidget() {
             {step === 'type' && 'Como podemos melhorar?'}
             {step === 'form' && `${FEEDBACK_TYPES.find(t => t.id === feedbackType)?.label || 'Feedback'}`}
             {step === 'rating' && 'Avalie sua experiência'}
-            {step === 'done' && 'Obrigado!'}
+            {step === 'done' && 'Obrigado'}
           </h3>
           <p className="text-brand-200 text-xs mt-0.5">
             {step === 'type' && 'Seu feedback nos ajuda a melhorar'}
@@ -138,7 +138,7 @@ export default function FeedbackWidget() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Ou avalie rapidamente:</p>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => { setRating(5); setFeedbackType('elogio'); setMessage('Gostei muito!'); setStep('rating'); }}
+                    onClick={() => { setRating(5); setFeedbackType('elogio'); setMessage('Gostei muito'); setStep('rating'); }}
                     className="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
                   >
                     <ThumbsUp size={16} /> <span className="text-xs font-medium">Gostei</span>
@@ -256,7 +256,7 @@ export default function FeedbackWidget() {
               <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle size={32} className="text-emerald-500" />
               </div>
-              <h4 className="font-bold text-slate-800 dark:text-slate-200">Feedback registrado!</h4>
+              <h4 className="font-bold text-slate-800 dark:text-slate-200">Feedback registrado</h4>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Obrigado por ajudar a melhorar o PrecifiCALC. 
                 {email && ' Responderemos pelo email informado.'}

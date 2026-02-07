@@ -17,7 +17,7 @@ export default function Onboarding({ onComplete }) {
   const steps = [
     { id: 1, title: 'Dados iniciais', emoji: '' },
     { id: 2, title: 'Dados da empresa', emoji: '' },
-    { id: 3, title: 'Pronto!', emoji: '' },
+    { id: 3, title: 'Pronto', emoji: '' },
   ];
 
   const regimes = [
@@ -83,14 +83,14 @@ export default function Onboarding({ onComplete }) {
             <span className="text-4xl">{steps[currentStep - 1].emoji}</span>
           </div>
           <h1 className="text-2xl font-bold">
-            {currentStep === 1 && 'Bem-vindo ao PrecifiCALC!'}
+            {currentStep === 1 && 'Bem-vindo ao PrecifiCALC'}
             {currentStep === 2 && 'Dados da empresa'}
-            {currentStep === 3 && 'Tudo pronto!'}
+            {currentStep === 3 && 'Configuração concluída'}
           </h1>
           <p className="text-brand-100 mt-2 text-sm">
             {currentStep === 1 && 'Vamos calcular o preço ideal para os produtos da empresa'}
             {currentStep === 2 && 'Para calcular os impostos corretamente'}
-            {currentStep === 3 && 'Agora vamos descobrir o preço certo dos produtos!'}
+            {currentStep === 3 && 'Agora vamos descobrir o preço certo dos produtos.'}
           </p>
 
           {/* Progress */}
@@ -218,7 +218,7 @@ export default function Onboarding({ onComplete }) {
             <div className="space-y-5">
               <div className="text-center">
                 <div className="text-6xl mb-4"></div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Perfeito!</h3>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Resumo da configuração</h3>
                 <p className="text-slate-500">Agora vamos calcular o preço ideal dos produtos da empresa</p>
               </div>
 
@@ -236,7 +236,7 @@ export default function Onboarding({ onComplete }) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-                    <span className="text-brand-700">Clique em <strong>"Quero Precificar!"</strong> para descobrir o preço ideal dos produtos</span>
+                    <span className="text-brand-700">Clique em <strong>"Calcular Preço"</strong> para descobrir o preço ideal dos produtos</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="w-7 h-7 rounded-full bg-brand-400 text-white flex items-center justify-center text-xs font-bold">2</span>
@@ -275,7 +275,7 @@ export default function Onboarding({ onComplete }) {
               {currentStep === 3 ? (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Vamos calcular o preço ideal!
+                  Calcular preço ideal
                 </>
               ) : (
                 <>

@@ -14,15 +14,7 @@ import {
 } from '../data/taxData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 
-// Fallback helper functions
-const _calcCPP = (folha) => folha * 0.20;
-const _calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-const _getAnexoFR = (fr, anexo) => (anexo === 'V' && fr >= 0.28) ? 'III' : anexo;
-const _checkSublimite = (rbt12) => ({
-  dentroSimples: rbt12 <= 4800000,
-  dentroSublimite: rbt12 <= 3600000,
-  mensagem: rbt12 > 4800000 ? 'Faturamento ultrapassa R$ 4,8M (limite Simples)' : rbt12 > 3600000 ? 'Faturamento ultrapassa R$ 3,6M. ISS/ICMS separados.' : null,
-});
+import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
 
 const LS_KEY = 'precificalc_precificacao';
 
@@ -168,12 +160,12 @@ export default function Precificacao() {
     folhaMensal, adicoesLalur, exclusoesLalur, horasPorServico, custoHora, servicosMensal, precoMercado]);
 
   // Fator R and effective Anexo (translated: "Folha%" instead of "Fator R")
-  const folhaPercent = regime === 'simples' ? _calcFatorR(folhaMensal * 12, rbt12) : 0;
-  const anexoEfetivo = regime === 'simples' ? _getAnexoFR(folhaPercent, anexo) : anexo;
+  const folhaPercent = regime === 'simples' ? calcFatorR(folhaMensal * 12, rbt12) : 0;
+  const anexoEfetivo = regime === 'simples' ? getAnexoPorFatorR(folhaPercent, anexo) : anexo;
   const migrouAnexo = regime === 'simples' && anexo === 'V' && anexoEfetivo === 'III';
 
-  const cppAnexoIV = (regime === 'simples' && anexoEfetivo === 'IV') ? _calcCPP(folhaMensal) : 0;
-  const sublimite = regime === 'simples' ? _checkSublimite(rbt12) : null;
+  const cppAnexoIV = (regime === 'simples' && anexoEfetivo === 'IV') ? calcCPPAnexoIV(folhaMensal) : 0;
+  const sublimite = regime === 'simples' ? checkSublimiteSimples(rbt12) : null;
   const receitaMensalEfetiva = regime === 'simples' ? rbt12 / 12 : receitaMensal;
 
   const aliquotaEfetiva = useMemo(() => {
@@ -518,7 +510,7 @@ export default function Precificacao() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Boa! Fator R >= 28% — migrou pro Anexo III com imposto menor!</p>
+                    <p className="text-xs text-emerald-600">Fator R >= 28% — migrou para o Anexo III (imposto menor).</p>
                   </div>
                 )}
               </div>
@@ -562,7 +554,7 @@ export default function Precificacao() {
                   : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-300'
               }`}>
                 <p className="text-sm font-bold uppercase tracking-wide mb-2">
-                  {calculo.reverso.temLucro ? 'O mercado cobra o suficiente.' : 'Nesse preço, você teria PREJUÍZO.'}
+                  {calculo.reverso.temLucro ? 'O mercado cobra o suficiente.' : 'Nesse preço, você teria prejuízo.'}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -652,7 +644,7 @@ export default function Precificacao() {
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="text-red-500" size={24} />
                   <div>
-                    <p className="text-sm font-bold text-red-700">ABAIXO DISSO = PREJUÍZO</p>
+                    <p className="text-sm font-bold text-red-700">Abaixo deste valor = prejuízo</p>
                     <p className="text-xs text-red-500">Preço mínimo (margem zero, só cobre custos + impostos)</p>
                   </div>
                 </div>

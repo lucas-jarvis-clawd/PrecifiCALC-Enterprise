@@ -14,7 +14,7 @@ const STEPS = [
   { id: 2, title: 'Qual o custo de produção?', emoji: '' },
   { id: 3, title: 'Gastos fixos da empresa', emoji: '' },
   { id: 4, title: 'Dados da empresa', emoji: '' },
-  { id: 5, title: 'Preço ideal calculado!', emoji: '' },
+  { id: 5, title: 'Preço ideal calculado', emoji: '' },
 ];
 
 export default function WizardPrecificar({ onClose, onNavigate }) {
@@ -212,7 +212,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 rounded-t-2xl z-10">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-slate-800">Quero Precificar!</h2>
+            <h2 className="text-lg font-bold text-slate-800">Calcular Preço</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
           </div>
 
@@ -511,7 +511,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
               <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="text-red-500" size={20} />
-                  <span className="text-sm font-bold text-red-700">ABAIXO DISSO = PREJUÍZO</span>
+                  <span className="text-sm font-bold text-red-700">Abaixo deste valor = prejuízo</span>
                 </div>
                 <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(calculo.precoMinimo)}</p>
                 <p className="text-xs text-red-500 mt-1">Preço mínimo para não ter prejuízo (margem zero)</p>
@@ -544,7 +544,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                   {calculo.economiaAnual > 500 && (
                     <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
                       <p className="text-xs text-emerald-600">Economia anual no melhor regime vs pior:</p>
-                      <p className="text-xl font-bold text-emerald-700">{formatCurrency(calculo.economiaAnual)}/ano!</p>
+                      <p className="text-xl font-bold text-emerald-700">{formatCurrency(calculo.economiaAnual)}/ano</p>
                     </div>
                   )}
                 </div>
@@ -610,7 +610,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                 onClick={saveAndClose}
                 className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 shadow-lg"
               >
-                <CheckCircle size={16} /> Entendido!
+                <CheckCircle size={16} /> Entendido
               </button>
             </div>
           )}

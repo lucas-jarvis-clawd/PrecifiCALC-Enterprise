@@ -68,7 +68,7 @@ export function PWAInstallBanner() {
               </button>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-              Acesse offline direto da tela inicial. Funciona como app nativo!
+              Acesse offline direto da tela inicial. Funciona como app nativo.
             </p>
 
             <div className="flex items-center gap-2 mt-3">
@@ -171,7 +171,7 @@ export function IOSInstallGuide() {
           onClick={handleDismiss}
           className="w-full mt-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 rounded-xl transition-colors"
         >
-          Entendi, obrigado!
+          Entendi, obrigado
         </button>
       </div>
     </div>

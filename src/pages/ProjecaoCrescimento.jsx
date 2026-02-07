@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import { TrendingUp, DollarSign, AlertTriangle, Sparkles, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
@@ -7,50 +7,25 @@ import {
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
 } from '../data/taxData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
-
-const LS_KEY = 'precificalc_projecao';
+import PageHeader from '../components/PageHeader';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function ProjecaoCrescimento({ perfilEmpresa }) {
-  const [faturamentoAtual, setFaturamentoAtual] = useState(30000);
-  const [crescimentoMensal, setCrescimentoMensal] = useState(5);
-  const [regime, setRegime] = useState('simples');
-  const [tipoAtividade, setTipoAtividade] = useState('servicos');
-  const [custosFixos, setCustosFixos] = useState(10000);
-  const [margemCusto, setMargemCusto] = useState(40); // % da receita em custos variáveis
+  const [state, setState] = useLocalStorage('precificalc_projecao', {
+    faturamentoAtual: 30000, crescimentoMensal: 5, regime: 'simples',
+    tipoAtividade: 'servicos', custosFixos: 10000, margemCusto: 40,
+  });
+  const update = (field, value) => setState(prev => ({ ...prev, [field]: value }));
+  const { faturamentoAtual, crescimentoMensal, regime, tipoAtividade, custosFixos, margemCusto } = state;
 
-  // Load from profile
+  // Load from profile (overrides saved state)
   useEffect(() => {
     try {
       const perfil = perfilEmpresa || JSON.parse(localStorage.getItem('precificalc_perfil') || '{}');
-      if (perfil.receitaAnual) setFaturamentoAtual(Math.round(perfil.receitaAnual / 12));
-      if (perfil.regime) setRegime(perfil.regime);
+      if (perfil.receitaAnual) update('faturamentoAtual', Math.round(perfil.receitaAnual / 12));
+      if (perfil.regime) update('regime', perfil.regime);
     } catch {}
   }, [perfilEmpresa]);
-
-  // Load saved state
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
-        const d = JSON.parse(saved);
-        if (d.faturamentoAtual) setFaturamentoAtual(d.faturamentoAtual);
-        if (d.crescimentoMensal !== undefined) setCrescimentoMensal(d.crescimentoMensal);
-        if (d.regime) setRegime(d.regime);
-        if (d.tipoAtividade) setTipoAtividade(d.tipoAtividade);
-        if (d.custosFixos) setCustosFixos(d.custosFixos);
-        if (d.margemCusto !== undefined) setMargemCusto(d.margemCusto);
-      }
-    } catch {}
-  }, []);
-
-  // Save state
-  useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        faturamentoAtual, crescimentoMensal, regime, tipoAtividade, custosFixos, margemCusto,
-      }));
-    } catch {}
-  }, [faturamentoAtual, crescimentoMensal, regime, tipoAtividade, custosFixos, margemCusto]);
 
   const projecao = useMemo(() => {
     const meses = [];
@@ -128,7 +103,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
           alertas.push({
             tipo: 'mei_limite',
             mes: m,
-            msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o limite do MEI (R$ 81 mil). Hora de virar Simples Nacional!`,
+            msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o limite do MEI (R$ 81 mil). Avalie a migração para Simples Nacional.`,
             icon: '',
           });
         }
@@ -138,7 +113,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
           alertas.push({
             tipo: 'simples_limite',
             mes: m,
-            msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o Simples Nacional (R$ 4,8M). Prepare-se para Lucro Presumido!`,
+            msg: `No mês ${m}, seu faturamento anual (${formatCurrency(fatAnual)}) ultrapassa o Simples Nacional (R$ 4,8M). Avalie a transição para Lucro Presumido.`,
             icon: '',
           });
         }
@@ -165,13 +140,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <TrendingUp className="text-brand-600" size={22} />
-          Projeção de Crescimento
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Se seu negócio crescer, o que acontece com impostos e lucro?</p>
-      </div>
+      <PageHeader icon={TrendingUp} title="Projeção de Crescimento" description="Se seu negócio crescer, o que acontece com impostos e lucro?" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Inputs */}
@@ -181,7 +150,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <InputField
               label="Faturamento mensal atual"
               value={faturamentoAtual}
-              onChange={setFaturamentoAtual}
+              onChange={v => update('faturamentoAtual', v)}
               prefix="R$"
               step={5000}
               help="Quanto entra por mês"
@@ -189,7 +158,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <InputField
               label="Gastos fixos mensais"
               value={custosFixos}
-              onChange={setCustosFixos}
+              onChange={v => update('custosFixos', v)}
               prefix="R$"
               step={1000}
               help="Aluguel, salários, contador, etc."
@@ -197,7 +166,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <InputField
               label="Custos variáveis (% do faturamento)"
               value={margemCusto}
-              onChange={setMargemCusto}
+              onChange={v => update('margemCusto', v)}
               suffix="%"
               step={5}
               help="Material, comissões, frete"
@@ -205,7 +174,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <SelectField
               label="Tipo da empresa"
               value={regime}
-              onChange={setRegime}
+              onChange={v => update('regime', v)}
               options={[
                 { value: 'mei', label: 'MEI' },
                 { value: 'simples', label: 'Simples Nacional' },
@@ -216,7 +185,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <SelectField
               label="Atividade"
               value={tipoAtividade}
-              onChange={setTipoAtividade}
+              onChange={v => update('tipoAtividade', v)}
               options={[
                 { value: 'servicos', label: 'Serviços' },
                 { value: 'comercio', label: 'Comércio' },
@@ -230,7 +199,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
                 {quickScenarios.map(s => (
                   <button
                     key={s.value}
-                    onClick={() => setCrescimentoMensal(s.value)}
+                    onClick={() => update('crescimentoMensal', s.value)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
                       crescimentoMensal === s.value
                         ? 'bg-brand-100 border-2 border-brand-400 text-brand-700 font-medium'
@@ -244,7 +213,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
               <InputField
                 label="Ou defina seu crescimento (%/mês)"
                 value={crescimentoMensal}
-                onChange={setCrescimentoMensal}
+                onChange={v => update('crescimentoMensal', v)}
                 suffix="%"
                 step={1}
                 className="mt-3"
@@ -294,7 +263,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
                 <div key={i} className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                   <span className="text-2xl flex-shrink-0">{a.icon}</span>
                   <div>
-                    <p className="text-sm font-bold text-amber-700">Atenção no mês {a.mes}!</p>
+                    <p className="text-sm font-bold text-amber-700">Atenção no mês {a.mes}</p>
                     <p className="text-sm text-amber-600 mt-0.5">{a.msg}</p>
                   </div>
                 </div>
@@ -307,10 +276,10 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5 text-center">
               <p className="text-lg font-bold text-emerald-700">
                 Com {crescimentoMensal}% de crescimento ao mês, seu lucro sobe&nbsp;
-                <span className="text-emerald-800">{formatCurrency(projecao.crescimentoLucro)}/mês</span> em 1 ano!
+                <span className="text-emerald-800">{formatCurrency(projecao.crescimentoLucro)}/mês</span> em 1 ano.
               </p>
               <p className="text-sm text-emerald-600 mt-1">
-                Isso é {formatCurrency(projecao.crescimentoLucro * 12)} a mais por ano!
+                Isso é {formatCurrency(projecao.crescimentoLucro * 12)} a mais por ano.
               </p>
             </div>
           )}
@@ -319,7 +288,7 @@ export default function ProjecaoCrescimento({ perfilEmpresa }) {
               <p className="text-lg font-bold text-red-700">
                 Cenário de queda: seu lucro cai {formatCurrency(Math.abs(projecao.crescimentoLucro))}/mês em 1 ano.
               </p>
-              <p className="text-sm text-red-600 mt-1">Hora de repensar a estratégia!</p>
+              <p className="text-sm text-red-600 mt-1">Considere revisar a estratégia.</p>
             </div>
           )}
 

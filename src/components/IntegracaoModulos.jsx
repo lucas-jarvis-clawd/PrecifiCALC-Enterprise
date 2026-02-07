@@ -47,7 +47,7 @@ export function BotaoUsarNaProposta({
       {copiado ? (
         <>
           <Check size={16} />
-          <span>Enviado para Propostas!</span>
+          <span>Enviado para Propostas.</span>
         </>
       ) : (
         <>

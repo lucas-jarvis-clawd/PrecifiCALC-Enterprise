@@ -428,7 +428,7 @@ export default function LandingPage({ onStart, onDemo }) {
               className="group flex items-center gap-2 px-10 py-4 bg-white text-brand-700 text-lg font-bold rounded-2xl hover:bg-brand-50 transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
             >
               <Sparkles size={20} />
-              Começar Agora — É Grátis!
+              Começar Agora — Gratuito
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
             <button

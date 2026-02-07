@@ -39,7 +39,7 @@ export function PWAOfflineIndicator() {
       <div className="fixed top-0 left-0 right-0 z-[70] animate-slideDown">
         <div className="bg-emerald-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium shadow-lg">
           <Cloud size={16} />
-          <span>Conexão restaurada!</span>
+          <span>Conexão restaurada</span>
         </div>
       </div>
     );

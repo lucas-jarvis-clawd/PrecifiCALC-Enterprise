@@ -22,22 +22,29 @@ export function AdvancedPricingTab({ className = '' }) {
   const [quantidadeMensal, setQuantidadeMensal] = useState(100);
   const [margemDesejada, setMargemDesejada] = useState(30);
   const [regime, setRegime] = useState('simples');
-  
+
+  // Estados para localização e alíquotas manuais
+  const [uf, setUf] = useState('SP');
+  const [aliquotaICMS, setAliquotaICMS] = useState(18);
+  const [aliquotaIPI, setAliquotaIPI] = useState(0);
+
   // Estados específicos para NCM
   const [isMonophasic, setIsMonophasic] = useState(false);
   const [monophasicData, setMonophasicData] = useState(null);
   const [calculando, setCalculando] = useState(false);
-  
-  // Dados da empresa (simulados - na implementação real viria do contexto)
-  const [dadosEmpresa] = useState({
+
+  // Dados da empresa (derivados dos estados editáveis)
+  const dadosEmpresa = {
     rbt12: 600000,
     anexo: 'III',
     tipoAtividade: 'servicos',
     issAliquota: 5,
     folhaMensal: 20000,
     cidade: 'São Paulo',
-    uf: 'SP'
-  });
+    uf,
+    aliquotaICMS,
+    aliquotaIPI
+  };
 
   // Persistência no localStorage
   const LS_KEY = 'precificalc_precificacao_avancada';
@@ -54,6 +61,9 @@ export function AdvancedPricingTab({ className = '' }) {
         setQuantidadeMensal(data.quantidadeMensal || 100);
         setMargemDesejada(data.margemDesejada || 30);
         setRegime(data.regime || 'simples');
+        if (data.uf) setUf(data.uf);
+        if (data.aliquotaICMS !== undefined) setAliquotaICMS(data.aliquotaICMS);
+        if (data.aliquotaIPI !== undefined) setAliquotaIPI(data.aliquotaIPI);
       }
     } catch (error) {
       console.error('Erro ao carregar dados salvos:', error);
@@ -70,15 +80,18 @@ export function AdvancedPricingTab({ className = '' }) {
       quantidadeMensal,
       margemDesejada,
       regime,
+      uf,
+      aliquotaICMS,
+      aliquotaIPI,
       lastUpdated: new Date().toISOString()
     };
-    
+
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(dataToSave));
     } catch (error) {
       console.error('Erro ao salvar dados:', error);
     }
-  }, [ncm, tipoProduto, custoProduto, despesasFixas, quantidadeMensal, margemDesejada, regime]);
+  }, [ncm, tipoProduto, custoProduto, despesasFixas, quantidadeMensal, margemDesejada, regime, uf, aliquotaICMS, aliquotaIPI]);
 
   // Cálculo principal de precificação
   const calculoPrecificacao = useMemo(() => {
@@ -104,7 +117,7 @@ export function AdvancedPricingTab({ className = '' }) {
     const precoSemImpostos = custoTotalUnitario / (1 - margem / 100);
     
     // Calcular impostos baseado no regime e NCM
-    let impostos = calculateTaxByRegime(precoSemImpostos, regime, dadosEmpresa, isMonophasic, monophasicData);
+    let impostos = calculateTaxByRegime(precoSemImpostos, regime, dadosEmpresa, isMonophasic, monophasicData, tipoProduto);
     
     // Preço final incluindo impostos
     const precoFinal = precoSemImpostos + impostos.total;
@@ -137,7 +150,7 @@ export function AdvancedPricingTab({ className = '' }) {
       lucroMensal,
       margemRealMensal: lucroMensal > 0 ? (lucroMensal / receitaMensal) * 100 : 0
     };
-  }, [custoProduto, despesasFixas, quantidadeMensal, margemDesejada, regime, dadosEmpresa, isMonophasic, monophasicData]);
+  }, [custoProduto, despesasFixas, quantidadeMensal, margemDesejada, regime, uf, aliquotaICMS, aliquotaIPI, tipoProduto, isMonophasic, monophasicData]);
 
   const handleMonophasicChange = (isMonophase, data) => {
     setIsMonophasic(isMonophase);
@@ -246,7 +259,7 @@ export function AdvancedPricingTab({ className = '' }) {
 
               {/* Regime Tributário */}
               <div>
-                <LabelComTermoTecnico 
+                <LabelComTermoTecnico
                   termo="regime"
                   textoExplicativo="Forma de tributação da empresa"
                   required
@@ -262,6 +275,67 @@ export function AdvancedPricingTab({ className = '' }) {
                   ]}
                 />
               </div>
+
+              {/* Estado (UF) */}
+              <SelectField
+                label="Estado (UF)"
+                value={uf}
+                onChange={setUf}
+                help="Estado onde a empresa está estabelecida"
+                options={[
+                  { value: 'AC', label: 'AC - Acre' },
+                  { value: 'AL', label: 'AL - Alagoas' },
+                  { value: 'AM', label: 'AM - Amazonas' },
+                  { value: 'AP', label: 'AP - Amapá' },
+                  { value: 'BA', label: 'BA - Bahia' },
+                  { value: 'CE', label: 'CE - Ceará' },
+                  { value: 'DF', label: 'DF - Distrito Federal' },
+                  { value: 'ES', label: 'ES - Espírito Santo' },
+                  { value: 'GO', label: 'GO - Goiás' },
+                  { value: 'MA', label: 'MA - Maranhão' },
+                  { value: 'MG', label: 'MG - Minas Gerais' },
+                  { value: 'MS', label: 'MS - Mato Grosso do Sul' },
+                  { value: 'MT', label: 'MT - Mato Grosso' },
+                  { value: 'PA', label: 'PA - Pará' },
+                  { value: 'PB', label: 'PB - Paraíba' },
+                  { value: 'PE', label: 'PE - Pernambuco' },
+                  { value: 'PI', label: 'PI - Piauí' },
+                  { value: 'PR', label: 'PR - Paraná' },
+                  { value: 'RJ', label: 'RJ - Rio de Janeiro' },
+                  { value: 'RN', label: 'RN - Rio Grande do Norte' },
+                  { value: 'RO', label: 'RO - Rondônia' },
+                  { value: 'RR', label: 'RR - Roraima' },
+                  { value: 'RS', label: 'RS - Rio Grande do Sul' },
+                  { value: 'SC', label: 'SC - Santa Catarina' },
+                  { value: 'SE', label: 'SE - Sergipe' },
+                  { value: 'SP', label: 'SP - São Paulo' },
+                  { value: 'TO', label: 'TO - Tocantins' }
+                ]}
+              />
+
+              {/* Alíquota ICMS */}
+              <InputField
+                type="number"
+                label="Alíquota ICMS (%)"
+                value={aliquotaICMS}
+                onChange={setAliquotaICMS}
+                step="0.1"
+                min={0}
+                max={30}
+                help="Alíquota interna de ICMS do estado — varia por UF e produto (ex: SP 18%, RJ 20%)"
+              />
+
+              {/* Alíquota IPI */}
+              <InputField
+                type="number"
+                label="Alíquota IPI (%)"
+                value={aliquotaIPI}
+                onChange={setAliquotaIPI}
+                step="0.1"
+                min={0}
+                max={100}
+                help="Alíquota de IPI conforme NCM na TIPI — 0% para serviços e muitos produtos"
+              />
             </CardBody>
           </Card>
 
@@ -394,10 +468,11 @@ export function AdvancedPricingTab({ className = '' }) {
 }
 
 // Função auxiliar para calcular impostos por regime
-function calculateTaxByRegime(precoBase, regime, dadosEmpresa, isMonophasic, monophasicData) {
+function calculateTaxByRegime(precoBase, regime, dadosEmpresa, isMonophasic, monophasicData, tipoProduto) {
   let impostos = {
     items: [],
-    total: 0
+    total: 0,
+    observacoes: []
   };
 
   // Se for produto monofásico, usar cálculo específico
@@ -428,21 +503,48 @@ function calculateTaxByRegime(precoBase, regime, dadosEmpresa, isMonophasic, mon
     const impostoSimples = precoBase * (aliquota / 100);
     impostos.items.push({ nome: 'Simples Nacional', valor: impostoSimples });
     impostos.total = impostoSimples;
+    impostos.observacoes.push('ICMS e IPI já estão incluídos na alíquota do DAS');
+    if (tipoProduto === 'produto') {
+      impostos.observacoes.push('Para produtos industrializados, o IPI pode ser cobrado separadamente em operações interestaduais');
+    }
     
   } else if (regime === 'presumido') {
     const pis = precoBase * 0.0065;
     const cofins = precoBase * 0.03;
     const issAliquota = dadosEmpresa.issAliquota || 5;
     const iss = precoBase * (issAliquota / 100);
-    
+    const icmsAliq = dadosEmpresa.aliquotaICMS || 0;
+    const icms = precoBase * (icmsAliq / 100);
+    const ipiAliq = dadosEmpresa.aliquotaIPI || 0;
+    const ipi = precoBase * (ipiAliq / 100);
+
     impostos.items.push(
       { nome: 'PIS', valor: pis },
       { nome: 'COFINS', valor: cofins },
       { nome: 'ISS', valor: iss }
     );
-    
-    impostos.total = pis + cofins + iss;
-    
+    if (icms > 0) impostos.items.push({ nome: 'ICMS', valor: icms });
+    if (ipi > 0) impostos.items.push({ nome: 'IPI', valor: ipi });
+
+    impostos.total = pis + cofins + iss + icms + ipi;
+
+  } else if (regime === 'real') {
+    const pis = precoBase * 0.0165;
+    const cofins = precoBase * 0.076;
+    const icmsAliq = dadosEmpresa.aliquotaICMS || 0;
+    const icms = precoBase * (icmsAliq / 100);
+    const ipiAliq = dadosEmpresa.aliquotaIPI || 0;
+    const ipi = precoBase * (ipiAliq / 100);
+
+    impostos.items.push(
+      { nome: 'PIS', valor: pis },
+      { nome: 'COFINS', valor: cofins }
+    );
+    if (icms > 0) impostos.items.push({ nome: 'ICMS', valor: icms });
+    if (ipi > 0) impostos.items.push({ nome: 'IPI', valor: ipi });
+
+    impostos.total = pis + cofins + icms + ipi;
+
   } else if (regime === 'mei') {
     // MEI tem valor fixo mensal, não por unidade
     impostos.total = 0; // Para simplicidade
