@@ -3,24 +3,18 @@ import { Calculator, AlertTriangle, Info, BookOpen, HelpCircle } from 'lucide-re
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { InfoTip } from '../components/Tooltip';
+import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 import {
   formatCurrency, formatPercent,
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
-  simplesNacional, mei,
+  calcDIFAL, icmsInternoPorEstado,
+  simplesNacional, mei, lucroPresumido, lucroReal,
 } from '../data/taxData';
 
-// Defensive imports for functions the other agent is adding
-let calcCPPAnexoIV = (folha) => folha * 0.20;
-let calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-let getAnexoPorFatorR = (fr, anexo) => (fr >= 0.28 && anexo === 'V') ? 'III' : anexo;
-let checkSublimiteSimples = (rbt12) => {
-    const dentroSimples = rbt12 <= 4800000;
-    const dentroSublimite = rbt12 <= 3600000;
-    let mensagem = null;
-    if (!dentroSimples) mensagem = 'Receita excede o limite do Simples Nacional (R$ 4.800.000).';
-    else if (!dentroSublimite) mensagem = 'Receita excede o sublimite estadual/municipal (R$ 3.600.000). ISS e ICMS devem ser recolhidos separadamente conforme legislação do estado/município.';
-    return { dentroSimples, dentroSublimite, mensagem };
-};
+import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
+
+const UF_OPTIONS = Object.keys(icmsInternoPorEstado).sort().map(uf => ({ value: uf, label: uf }));
 
 const STORAGE_KEY = 'precificalc_simulador';
 
@@ -46,12 +40,24 @@ export default function SimuladorTributario() {
   const [creditosPisCofins, setCreditosPisCofins] = useState(saved?.creditosPisCofins ?? 10000);
   const [despesasOperacionais, setDespesasOperacionais] = useState(saved?.despesasOperacionais ?? 15000);
 
+  // Lucro Real: apuração mensal por estimativa + prejuízo fiscal
+  const [apuracaoMensal, setApuracaoMensal] = useState(saved?.apuracaoMensal ?? false);
+  const [prejuizoFiscal, setPrejuizoFiscal] = useState(saved?.prejuizoFiscal ?? 0);
+
   // New fields: Folha / Fator R / LALUR
   const [folhaMensal, setFolhaMensal] = useState(saved?.folhaMensal ?? 10000);
   const [folha12Meses, setFolha12Meses] = useState(saved?.folha12Meses ?? 120000);
   const [usarFolha12Auto, setUsarFolha12Auto] = useState(saved?.usarFolha12Auto ?? true);
   const [adicoesLalur, setAdicoesLalur] = useState(saved?.adicoesLalur ?? 0);
   const [exclusoesLalur, setExclusoesLalur] = useState(saved?.exclusoesLalur ?? 0);
+
+  // DIFAL - Venda interestadual
+  const [vendaInterestadual, setVendaInterestadual] = useState(saved?.vendaInterestadual ?? false);
+  const [ufOrigem, setUfOrigem] = useState(saved?.ufOrigem || 'SP');
+  const [ufDestino, setUfDestino] = useState(saved?.ufDestino || 'RJ');
+
+  // Sublimite UF (for Simples)
+  const [estadoEmpresa, setEstadoEmpresa] = useState(saved?.estadoEmpresa || '');
 
   // Sync folha12Meses when usarFolha12Auto is on
   useEffect(() => {
@@ -66,11 +72,15 @@ export default function SimuladorTributario() {
       regime, receitaMensal, rbt12, anexo, atividadeMEI, tipoAtividade,
       issAliquota, despesasDedutiveis, creditosPisCofins, despesasOperacionais,
       folhaMensal, folha12Meses, usarFolha12Auto, adicoesLalur, exclusoesLalur,
+      vendaInterestadual, ufOrigem, ufDestino, estadoEmpresa,
+      apuracaoMensal, prejuizoFiscal,
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }, [regime, receitaMensal, rbt12, anexo, atividadeMEI, tipoAtividade, issAliquota,
     despesasDedutiveis, creditosPisCofins, despesasOperacionais, folhaMensal,
-    folha12Meses, usarFolha12Auto, adicoesLalur, exclusoesLalur]);
+    folha12Meses, usarFolha12Auto, adicoesLalur, exclusoesLalur,
+    vendaInterestadual, ufOrigem, ufDestino, estadoEmpresa,
+    apuracaoMensal, prejuizoFiscal]);
 
   useEffect(() => { persistState(); }, [persistState]);
 
@@ -86,11 +96,11 @@ export default function SimuladorTributario() {
     return getAnexoPorFatorR(fatorR, anexo);
   }, [regime, fatorR, anexo]);
 
-  // Sublimite check
+  // Sublimite check (with UF if provided)
   const sublimite = useMemo(() => {
     if (regime !== 'simples') return { dentroSimples: true, dentroSublimite: true, mensagem: null };
-    return checkSublimiteSimples(rbt12);
-  }, [regime, rbt12]);
+    return checkSublimiteSimples(rbt12, estadoEmpresa || null);
+  }, [regime, rbt12, estadoEmpresa]);
 
   // CPP for Anexo IV
   const cppAnexoIV = useMemo(() => {
@@ -98,7 +108,46 @@ export default function SimuladorTributario() {
     return calcCPPAnexoIV(folhaMensal);
   }, [regime, anexoEfetivo, folhaMensal]);
 
+  // DIFAL calculation
+  const difalResult = useMemo(() => {
+    if (!vendaInterestadual) return null;
+    const valorVenda = regime === 'simples' ? rbt12 / 12 : receitaMensal;
+    return calcDIFAL(valorVenda, ufOrigem, ufDestino);
+  }, [vendaInterestadual, regime, rbt12, receitaMensal, ufOrigem, ufDestino]);
+
+  // Faixa change alert for Simples Nacional
+  const faixaAlert = useMemo(() => {
+    if (regime !== 'simples') return null;
+    const anexoData = simplesNacional.anexos[anexoEfetivo];
+    if (!anexoData) return null;
+    const faixas = anexoData.faixas;
+    const currentFaixa = faixas.find(f => rbt12 >= f.de && rbt12 <= f.ate);
+    if (!currentFaixa) return null;
+    const currentIndex = faixas.indexOf(currentFaixa);
+    if (currentIndex >= faixas.length - 1) return null;
+    const nextFaixa = faixas[currentIndex + 1];
+    const distancia = currentFaixa.ate - rbt12;
+    const threshold = currentFaixa.ate * 0.10;
+    if (distancia > threshold) return null;
+    return {
+      distancia,
+      faixaAtual: currentIndex + 1,
+      proximaFaixa: currentIndex + 2,
+      aliquotaProximaFaixa: nextFaixa.aliquota,
+    };
+  }, [regime, rbt12, anexoEfetivo]);
+
   const receitaMensalEfetiva = regime === 'simples' ? rbt12 / 12 : receitaMensal;
+
+  // Prejuízo fiscal compensation (Lei 9.065/95, Art. 15: limit 30% of taxable profit)
+  const prejuizoCompensado = useMemo(() => {
+    if (regime !== 'real' || prejuizoFiscal <= 0) return 0;
+    const rm = receitaMensal;
+    const lucroContabil = rm - despesasDedutiveis;
+    const lucroTributavel = lucroContabil + adicoesLalur - exclusoesLalur;
+    if (lucroTributavel <= 0) return 0;
+    return Math.min(prejuizoFiscal, lucroTributavel * 0.30);
+  }, [regime, receitaMensal, despesasDedutiveis, adicoesLalur, exclusoesLalur, prejuizoFiscal]);
 
   const resultado = useMemo(() => {
     const receitaAnual = regime === 'simples' ? rbt12 : receitaMensal * 12;
@@ -107,10 +156,84 @@ export default function SimuladorTributario() {
       case 'mei': return { tipo: 'mei', data: calcMEI(receitaMensal, atividadeMEI) };
       case 'simples': return { tipo: 'simples', data: calcSimplesTax(receitaAnual, anexoEfetivo) };
       case 'presumido': return { tipo: 'presumido', data: calcLucroPresumido(rm, tipoAtividade, issAliquota / 100) };
-      case 'real': return { tipo: 'real', data: calcLucroReal(rm, despesasDedutiveis, creditosPisCofins, issAliquota / 100, adicoesLalur, exclusoesLalur) };
+      case 'real': {
+        if (apuracaoMensal) {
+          // Monthly estimation using presunção percentages (like Lucro Presumido)
+          const presuncao = lucroPresumido.presuncao[tipoAtividade] || lucroPresumido.presuncao.servicos;
+          const baseIRPJ = rm * presuncao.irpj;
+          const baseCSLL = rm * presuncao.csll;
+
+          // Apply prejuízo fiscal compensation to the presunção bases
+          const baseIRPJAjustada = Math.max(0, baseIRPJ - prejuizoCompensado);
+          const baseCSLLAjustada = Math.max(0, baseCSLL - prejuizoCompensado);
+
+          // IRPJ: 15% + additional 10% above R$20k/month
+          let irpjMensal = baseIRPJAjustada * lucroReal.irpj.aliquota;
+          if (baseIRPJAjustada > lucroReal.irpj.limiteAdicionalMensal) {
+            irpjMensal += (baseIRPJAjustada - lucroReal.irpj.limiteAdicionalMensal) * lucroReal.irpj.adicional;
+          }
+
+          // CSLL: 9%
+          const csllMensal = baseCSLLAjustada * lucroReal.csll.aliquota;
+
+          // PIS/COFINS non-cumulative (same as regular Lucro Real)
+          const pisBruto = rm * lucroReal.pis.aliquota;
+          const cofinsBruto = rm * lucroReal.cofins.aliquota;
+          const creditoPis = creditosPisCofins * lucroReal.pis.aliquota;
+          const creditoCofins = creditosPisCofins * lucroReal.cofins.aliquota;
+          const pisMensal = Math.max(0, pisBruto - creditoPis);
+          const cofinsMensal = Math.max(0, cofinsBruto - creditoCofins);
+
+          // ISS
+          const isServico = !['comercio', 'industria', 'transporteCarga', 'revendaCombustiveis'].includes(tipoAtividade);
+          const issMensal = isServico ? rm * (issAliquota / 100) : 0;
+
+          const totalMensal = irpjMensal + csllMensal + pisMensal + cofinsMensal + issMensal;
+
+          return {
+            tipo: 'real',
+            estimativaMensal: true,
+            data: {
+              regime: 'Lucro Real (Estimativa Mensal)',
+              lucroMensal: baseIRPJ, // presunção base for display
+              irpj: { baseMensal: baseIRPJAjustada, valorMensal: irpjMensal, temAdicional: baseIRPJAjustada > lucroReal.irpj.limiteAdicionalMensal },
+              csll: { baseMensal: baseCSLLAjustada, valorMensal: csllMensal },
+              pis: { bruto: pisBruto, creditos: creditoPis, valorMensal: pisMensal },
+              cofins: { bruto: cofinsBruto, creditos: creditoCofins, valorMensal: cofinsMensal },
+              iss: { aliquota: issAliquota / 100, valorMensal: issMensal },
+              totalMensal,
+              totalAnual: totalMensal * 12,
+              aliquotaEfetiva: rm > 0 ? totalMensal / rm : 0,
+              receitaMensal: rm,
+              presuncao: presuncao,
+              prejuizoCompensado,
+            },
+          };
+        }
+
+        // Standard quarterly Lucro Real with prejuízo fiscal adjustment
+        const despesasAjustadas = despesasDedutiveis + prejuizoCompensado;
+        const data = calcLucroReal(rm, despesasAjustadas, creditosPisCofins, issAliquota / 100, adicoesLalur, exclusoesLalur);
+        if (data) {
+          data.prejuizoCompensado = prejuizoCompensado;
+        }
+        return { tipo: 'real', estimativaMensal: false, data };
+      }
       default: return null;
     }
-  }, [regime, receitaMensal, rbt12, anexoEfetivo, atividadeMEI, tipoAtividade, issAliquota, despesasDedutiveis, creditosPisCofins, adicoesLalur, exclusoesLalur]);
+  }, [regime, receitaMensal, rbt12, anexoEfetivo, atividadeMEI, tipoAtividade, issAliquota, despesasDedutiveis, creditosPisCofins, adicoesLalur, exclusoesLalur, apuracaoMensal, prejuizoCompensado]);
+
+  // Validation
+  const validationErrors = useMemo(() => {
+    const errors = {};
+    if (regime !== 'simples' && receitaMensal <= 0) errors.receitaMensal = 'Receita mensal deve ser maior que zero';
+    if (regime === 'simples' && rbt12 <= 0) errors.rbt12 = 'RBT12 deve ser maior que zero';
+    if (folhaMensal < 0) errors.folhaMensal = 'Folha de pagamento não pode ser negativa';
+    if (regime !== 'simples' && rbt12 > 0 && rbt12 < receitaMensal) {
+      errors.rbt12Cross = 'RBT12 (faturamento de 12 meses) é menor que 1 mês de receita — valor possivelmente incorreto';
+    }
+    return errors;
+  }, [receitaMensal, rbt12, folhaMensal, regime]);
 
   const impostoMensalBase = resultado?.data && !resultado.data.excedeLimite && !resultado.data.migracao
     ? (resultado.tipo === 'mei' ? resultado.data.dasFixo : resultado.data.valorMensal || resultado.data.totalMensal || 0)
@@ -125,21 +248,44 @@ export default function SimuladorTributario() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <Calculator className="text-brand-600" size={22} />
-          Simulador Tributário
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Calcule a carga tributária da empresa em qualquer regime brasileiro</p>
-      </div>
+      <PageHeader icon={Calculator} title="Simulador Tributário" description="Calcule a carga tributária da empresa em qualquer regime brasileiro" />
+      <DisclaimerBanner />
+
+      {/* Validation warnings */}
+      {Object.keys(validationErrors).length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-amber-700 font-medium">Atenção: valores de entrada podem estar incorretos</p>
+            <ul className="text-xs text-amber-600 mt-1 space-y-0.5">
+              {Object.values(validationErrors).map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Sublimite warning banner */}
       {sublimite.mensagem && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
           <div>
-            <p className="text-amber-700 font-medium text-sm">Atenção ao Sublimite</p>
-            <p className="text-amber-600 text-sm mt-0.5">{sublimite.mensagem}</p>
+            <p className="text-amber-700 dark:text-amber-400 font-medium text-sm">Atenção ao Sublimite</p>
+            <p className="text-amber-600 dark:text-amber-500 text-sm mt-0.5">{sublimite.mensagem}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Faixa change alert */}
+      {faixaAlert && (
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+          <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={18} />
+          <div>
+            <p className="text-blue-700 dark:text-blue-400 font-medium text-sm">Próximo da mudança de faixa</p>
+            <p className="text-blue-600 dark:text-blue-500 text-sm mt-0.5">
+              Atenção: mais {formatCurrency(faixaAlert.distancia)} de receita bruta e você muda para a faixa {faixaAlert.proximaFaixa} (alíquota nominal de {formatPercent(faixaAlert.aliquotaProximaFaixa)}).
+            </p>
           </div>
         </div>
       )}
@@ -159,7 +305,7 @@ export default function SimuladorTributario() {
               <div>
                 <div className="flex items-center gap-1 mb-1">
                   <label className="text-xs font-medium text-slate-600">RBT12 (Faturamento últimos 12 meses)</label>
-                  <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. A Receita Federal usa esse valor para definir em qual faixa do Simples Nacional a empresa se enquadra e qual será a alíquota do imposto." />
+                  <InfoTip text="RBT12 = Receita Bruta Total dos últimos 12 meses. A Receita Federal usa esse valor para definir em qual faixa do Simples Nacional a empresa se enquadra e qual será a alíquota do tributo." />
                 </div>
                 <InputField
                   value={rbt12}
@@ -184,6 +330,26 @@ export default function SimuladorTributario() {
 
             <InputField label="Despesas Operacionais (mensal)" value={despesasOperacionais} onChange={setDespesasOperacionais} prefix="R$" step={1000} min={0} help="Aluguel, folha, insumos, etc." />
 
+            {/* DIFAL - Venda interestadual */}
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={vendaInterestadual}
+                  onChange={(e) => setVendaInterestadual(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Venda interestadual?</span>
+                <InfoTip text="Se a empresa vende para consumidores finais em outros estados, deve pagar o DIFAL (Diferencial de Alíquota de ICMS). EC 87/2015 + LC 190/2022." />
+              </label>
+              {vendaInterestadual && (
+                <div className="mt-3 space-y-3">
+                  <SelectField label="UF de Origem" value={ufOrigem} onChange={setUfOrigem} options={UF_OPTIONS} />
+                  <SelectField label="UF de Destino" value={ufDestino} onChange={setUfDestino} options={UF_OPTIONS} />
+                </div>
+              )}
+            </div>
+
             {regime === 'mei' && (
               <SelectField label="Tipo de Atividade" value={atividadeMEI} onChange={setAtividadeMEI} options={[
                 { value: 'comercio', label: 'Comércio / Indústria' },
@@ -194,6 +360,14 @@ export default function SimuladorTributario() {
 
             {regime === 'simples' && (
               <>
+                <SelectField
+                  label="Estado da empresa (UF)"
+                  value={estadoEmpresa}
+                  onChange={setEstadoEmpresa}
+                  options={[{ value: '', label: 'Selecione (para sublimite)' }, ...UF_OPTIONS]}
+                  help="Define o sublimite estadual de ISS/ICMS no DAS"
+                />
+
                 <SelectField label="Anexo do Simples Nacional" value={anexo} onChange={setAnexo}
                   options={Object.entries(simplesNacional.anexos).map(([key, val]) => ({ value: key, label: val.nome }))}
                   help={simplesNacional.anexos[anexo]?.descricao} />
@@ -238,7 +412,7 @@ export default function SimuladorTributario() {
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
                       Fator R (% da folha sobre faturamento)
-                      <InfoTip text="Fator R = total de folha de pagamento dos últimos 12 meses ÷ RBT12. Se o Fator R for ≥ 28%, empresas do Anexo V migram para o Anexo III, pagando menos imposto." />
+                      <InfoTip text="Fator R = total de folha de pagamento dos últimos 12 meses ÷ RBT12. Se o Fator R for ≥ 28%, empresas do Anexo V migram para o Anexo III, pagando menos tributo." />
                     </span>
                     <span className={`text-sm font-semibold font-mono ${fatorR >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                       {(fatorR * 100).toFixed(2)}%
@@ -285,46 +459,99 @@ export default function SimuladorTributario() {
 
             {regime === 'real' && (
               <>
-                <InputField label="Despesas Dedutíveis (mensal)" value={despesasDedutiveis} onChange={setDespesasDedutiveis} prefix="R$" step={1000} help="Despesas dedutíveis para IRPJ/CSLL" />
+                {/* Apuração toggle: Trimestral vs Mensal (estimativa) */}
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-1">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Apuração</span>
+                    <InfoTip text="Trimestral: IRPJ/CSLL sobre lucro real apurado a cada trimestre. Mensal (estimativa): recolhimento mensal usando percentuais de presunção, com ajuste anual via balancete." />
+                  </div>
+                  <div className="flex rounded-md overflow-hidden border border-slate-200 dark:border-slate-700">
+                    <button
+                      onClick={() => setApuracaoMensal(false)}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${!apuracaoMensal ? 'bg-brand-600 text-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                    >
+                      Trimestral
+                    </button>
+                    <button
+                      onClick={() => setApuracaoMensal(true)}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${apuracaoMensal ? 'bg-brand-600 text-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                    >
+                      Mensal (estimativa)
+                    </button>
+                  </div>
+                  {apuracaoMensal && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
+                      Estimativa mensal baseada em presunção. O ajuste anual é feito via balancete de redução/suspensão.
+                    </p>
+                  )}
+                </div>
+
+                {!apuracaoMensal && (
+                  <>
+                    <InputField label="Despesas Dedutíveis (mensal)" value={despesasDedutiveis} onChange={setDespesasDedutiveis} prefix="R$" step={1000} help="Despesas dedutíveis para IRPJ/CSLL" />
+
+                    {/* LALUR Fields */}
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-1">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <BookOpen className="text-slate-400" size={14} />
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">LALUR (Ajustes do Lucro Real)</span>
+                        <InfoTip text="LALUR = Livro de Apuração do Lucro Real. É onde se faz ajustes no lucro contábil para chegar no lucro tributável. Adições aumentam o lucro tributável; exclusões diminuem." />
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex items-center gap-1 mb-1">
+                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Adições ao LALUR</label>
+                            <InfoTip text="Valores que devem ser SOMADOS ao lucro contábil para fins de tributo. Ex: multas fiscais, despesas não dedutíveis, brindes." />
+                          </div>
+                          <InputField
+                            value={adicoesLalur}
+                            onChange={setAdicoesLalur}
+                            prefix="R$"
+                            step={500}
+                            min={0}
+                            help="Despesas não dedutíveis, multas, etc."
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1 mb-1">
+                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Exclusões do LALUR</label>
+                            <InfoTip text="Valores que podem ser SUBTRAÍDOS do lucro contábil para fins de tributo. Ex: dividendos recebidos, incentivos fiscais, receitas não tributáveis." />
+                          </div>
+                          <InputField
+                            value={exclusoesLalur}
+                            onChange={setExclusoesLalur}
+                            prefix="R$"
+                            step={500}
+                            min={0}
+                            help="Receitas não tributáveis, incentivos fiscais"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <InputField label="Base de Créditos PIS/COFINS" value={creditosPisCofins} onChange={setCreditosPisCofins} prefix="R$" step={1000} help="Compras que geram crédito" />
 
-                {/* LALUR Fields */}
-                <div className="border-t border-slate-200 pt-3 mt-1">
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <BookOpen className="text-slate-400" size={14} />
-                    <span className="text-xs font-medium text-slate-600">LALUR (Ajustes do Lucro Real)</span>
-                    <InfoTip text="LALUR = Livro de Apuração do Lucro Real. É onde se faz ajustes no lucro contábil para chegar no lucro tributável. Adições aumentam o lucro tributável; exclusões diminuem." />
+                {/* Prejuízo Fiscal */}
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-1">
+                  <div className="flex items-center gap-1 mb-1">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Prejuízo fiscal a compensar</label>
+                    <InfoTip text="Prejuízo fiscal acumulado de exercícios anteriores. Pode ser compensado com limite de 30% do lucro do período (Lei 9.065/95, Art. 15)." />
                   </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <label className="text-xs font-medium text-slate-600">Adições ao LALUR</label>
-                        <InfoTip text="Valores que devem ser SOMADOS ao lucro contábil para fins de imposto. Ex: multas fiscais, despesas não dedutíveis, brindes." />
-                      </div>
-                      <InputField
-                        value={adicoesLalur}
-                        onChange={setAdicoesLalur}
-                        prefix="R$"
-                        step={500}
-                        min={0}
-                        help="Despesas não dedutíveis, multas, etc."
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <label className="text-xs font-medium text-slate-600">Exclusões do LALUR</label>
-                        <InfoTip text="Valores que podem ser SUBTRAÍDOS do lucro contábil para fins de imposto. Ex: dividendos recebidos, incentivos fiscais, receitas não tributáveis." />
-                      </div>
-                      <InputField
-                        value={exclusoesLalur}
-                        onChange={setExclusoesLalur}
-                        prefix="R$"
-                        step={500}
-                        min={0}
-                        help="Receitas não tributáveis, incentivos fiscais"
-                      />
-                    </div>
-                  </div>
+                  <InputField
+                    value={prejuizoFiscal}
+                    onChange={setPrejuizoFiscal}
+                    prefix="R$"
+                    step={1000}
+                    min={0}
+                    help="Valor acumulado de prejuízos fiscais anteriores"
+                  />
+                  {prejuizoCompensado > 0 && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5">
+                      Prejuízo compensado: {formatCurrency(prejuizoCompensado)} (limite de 30% do lucro do período)
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -340,6 +567,32 @@ export default function SimuladorTributario() {
                 <StatCard icon={Calculator} label="Alíquota Efetiva" value={formatPercent(impostoMensal / receitaMensalEfetiva)} color="blue" />
                 <StatCard icon={Calculator} label="Lucro Líquido" value={formatCurrency(lucroLiquido)} subvalue={`${((lucroLiquido / receitaMensalEfetiva) * 100).toFixed(1)}% da receita`} color={lucroLiquido > 0 ? 'green' : 'red'} />
               </div>
+
+              {/* DIFAL result */}
+              {difalResult && difalResult.aplicavel && (
+                <Card>
+                  <CardHeader><h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm">DIFAL - Diferencial de Alíquota (EC 87/2015)</h2></CardHeader>
+                  <CardBody className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">Valor da operação</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(difalResult.valorOperacao)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">Alíquota interestadual ({difalResult.ufOrigem} → {difalResult.ufDestino})</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-mono">{formatPercent(difalResult.aliquotaInterestadual)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">Alíquota interna {difalResult.ufDestino}</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-mono">{formatPercent(difalResult.aliquotaInterna)}</span>
+                    </div>
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between text-sm">
+                      <span className="text-slate-800 dark:text-slate-200 font-medium">DIFAL a recolher</span>
+                      <span className="text-red-600 dark:text-red-400 font-bold font-mono">{formatCurrency(difalResult.difal)}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">100% destinado ao estado de destino ({difalResult.ufDestino}). Base: {difalResult.baseLegal}</p>
+                  </CardBody>
+                </Card>
+              )}
 
               {/* CPP Anexo IV Warning */}
               {cppAnexoIV > 0 && (
@@ -402,11 +655,12 @@ export default function SimuladorTributario() {
                       )}
 
                       <p className="text-xs text-slate-400 mb-2">Distribuição aproximada do DAS:</p>
-                      <div className="grid grid-cols-2 gap-1">
-                        {Object.entries(simplesNacional.anexos[anexoEfetivo].distribuicao).map(([imposto, pct]) => (
-                          <div key={imposto} className="flex justify-between text-xs">
-                            <span className="text-slate-500">{imposto}</span>
-                            <span className="text-slate-700 font-mono">{formatCurrency(resultado.data.valorMensal * pct)}</span>
+                      <div className="space-y-1">
+                        {Object.entries(simplesNacional.anexos[anexoEfetivo].distribuicaoPorFaixa[resultado.data.faixa - 1]).map(([imposto, pct]) => (
+                          <div key={imposto} className="flex items-center text-xs gap-2">
+                            <span className="text-slate-500 w-16">{imposto}</span>
+                            <span className="text-slate-400 font-mono w-14 text-right">{(pct * 100).toFixed(2)}%</span>
+                            <span className="text-slate-700 font-mono ml-auto">{formatCurrency(resultado.data.valorMensal * pct)}</span>
                           </div>
                         ))}
                       </div>
@@ -425,7 +679,30 @@ export default function SimuladorTributario() {
                       <Row label="= Lucro Líquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
                     </div>
                   )}
-                  {resultado.tipo === 'real' && (
+                  {resultado.tipo === 'real' && resultado.estimativaMensal && (
+                    <div className="space-y-2">
+                      <div className="px-2 py-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-700 dark:text-blue-400 mb-2">
+                        Apuração por estimativa mensal (presunção)
+                      </div>
+                      <Row label="Receita Bruta Mensal" value={formatCurrency(receitaMensalEfetiva)} />
+                      <Row label={`Base IRPJ (presunção ${(resultado.data.presuncao.irpj * 100).toFixed(0)}%)`} value={formatCurrency(resultado.data.irpj.baseMensal + resultado.data.prejuizoCompensado)} />
+                      <Row label={`Base CSLL (presunção ${(resultado.data.presuncao.csll * 100).toFixed(0)}%)`} value={formatCurrency(resultado.data.csll.baseMensal + resultado.data.prejuizoCompensado)} />
+                      {resultado.data.prejuizoCompensado > 0 && (
+                        <Row label="(-) Prejuízo compensado (30%)" value={formatCurrency(resultado.data.prejuizoCompensado)} negative />
+                      )}
+                      <Divider />
+                      <Row label="IRPJ (15% + adicional 10%)" value={formatCurrency(resultado.data.irpj.valorMensal)} />
+                      <Row label="CSLL (9%)" value={formatCurrency(resultado.data.csll.valorMensal)} />
+                      <Row label="PIS (1,65% não-cumulativo)" value={formatCurrency(resultado.data.pis.valorMensal)} sub={`Créditos: ${formatCurrency(resultado.data.pis.creditos)}`} />
+                      <Row label="COFINS (7,60% não-cumulativo)" value={formatCurrency(resultado.data.cofins.valorMensal)} sub={`Créditos: ${formatCurrency(resultado.data.cofins.creditos)}`} />
+                      <Row label={`ISS (${issAliquota}%)`} value={formatCurrency(resultado.data.iss.valorMensal)} />
+                      <Divider />
+                      <Row label="Total Tributos Mensal" value={formatCurrency(resultado.data.totalMensal)} highlight />
+                      <Row label="(-) Despesas Operacionais" value={formatCurrency(despesasOperacionais)} negative />
+                      <Row label="= Lucro Líquido Mensal" value={formatCurrency(lucroLiquido)} highlight />
+                    </div>
+                  )}
+                  {resultado.tipo === 'real' && !resultado.estimativaMensal && (
                     <div className="space-y-2">
                       <Row label="Receita Bruta Mensal" value={formatCurrency(receitaMensalEfetiva)} />
                       <Row label="(-) Despesas Dedutíveis" value={formatCurrency(despesasDedutiveis)} negative />
@@ -434,6 +711,9 @@ export default function SimuladorTributario() {
                           <Row label="(+) Adições LALUR" value={formatCurrency(adicoesLalur)} />
                           <Row label="(-) Exclusões LALUR" value={formatCurrency(exclusoesLalur)} negative />
                         </>
+                      )}
+                      {resultado.data.prejuizoCompensado > 0 && (
+                        <Row label="(-) Prejuízo compensado (30%)" value={formatCurrency(resultado.data.prejuizoCompensado)} negative />
                       )}
                       <Row label="= Lucro Tributável" value={formatCurrency(resultado.data.lucroMensal)} highlight />
                       <Divider />
