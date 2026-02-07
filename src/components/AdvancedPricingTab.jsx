@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Calculator, Zap, TrendingUp, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from './Card';
-import { SelectField, InputField } from './InputField';
+import InputField, { SelectField } from './InputField';
 import { LabelComTermoTecnico } from './TermoTecnico';
 import NCMInput from './NCMInput';
 import TaxBreakdown from './TaxBreakdown';

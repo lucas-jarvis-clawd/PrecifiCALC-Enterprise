@@ -1,5 +1,5 @@
 // 📊 Performance Widget - Real-time monitoring para desenvolvimento
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Activity, Zap, Database, Gauge, ChevronDown, ChevronUp } from 'lucide-react';
 
 const PerformanceWidget = () => {

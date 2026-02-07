@@ -1,4 +1,4 @@
-import React from 'react';
+// React importado automaticamente pelo Vite
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,

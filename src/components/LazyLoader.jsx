@@ -1,5 +1,5 @@
 // 🚀 Lazy Loader with Performance Tracking & Intelligent Preloading
-import React, { Suspense, useState, useEffect, useRef } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { Loader2, AlertTriangle, RotateCcw } from 'lucide-react';
 
 // 📊 Performance tracker for lazy loading

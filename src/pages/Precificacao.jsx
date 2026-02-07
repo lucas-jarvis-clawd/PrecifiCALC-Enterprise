@@ -802,7 +802,6 @@ export default function Precificacao() {
           </Card>
         </div>
       </div>
-              </div>
             </TabPanel>
 
             {/* Aba Precificação Avançada */}

@@ -304,8 +304,7 @@ export default defineConfig({
           __DEV__: false
         },
         
-        // Remove comentários
-        comments: false,
+        // Remove comentários via drop_console instead of comments option
         
         // Otimizações específicas
         pure_funcs: ['console.log', 'console.debug', 'console.info'],
@@ -319,7 +318,7 @@ export default defineConfig({
       },
       
       format: {
-        comments: false
+        // Remove comments in format options
       }
     },
     

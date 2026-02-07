@@ -10,33 +10,17 @@ import {
 } from '../data/taxData';
 
 // Defensive imports for functions the other agent is adding
-let calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples;
-try {
-  const td = await import('../data/taxData');
-  calcCPPAnexoIV = td.calcCPPAnexoIV || ((folha) => folha * 0.20);
-  calcFatorR = td.calcFatorR || ((folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0);
-  getAnexoPorFatorR = td.getAnexoPorFatorR || ((fr, anexo) => (fr >= 0.28 && anexo === 'V') ? 'III' : anexo);
-  checkSublimiteSimples = td.checkSublimiteSimples || ((rbt12) => {
+let calcCPPAnexoIV = (folha) => folha * 0.20;
+let calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
+let getAnexoPorFatorR = (fr, anexo) => (fr >= 0.28 && anexo === 'V') ? 'III' : anexo;
+let checkSublimiteSimples = (rbt12) => {
     const dentroSimples = rbt12 <= 4800000;
     const dentroSublimite = rbt12 <= 3600000;
     let mensagem = null;
     if (!dentroSimples) mensagem = 'Receita excede o limite do Simples Nacional (R$ 4.800.000).';
     else if (!dentroSublimite) mensagem = 'Receita excede o sublimite estadual/municipal (R$ 3.600.000). ISS e ICMS devem ser recolhidos separadamente conforme legislação do estado/município.';
     return { dentroSimples, dentroSublimite, mensagem };
-  });
-} catch {
-  calcCPPAnexoIV = (folha) => folha * 0.20;
-  calcFatorR = (folha12, rbt12) => rbt12 > 0 ? folha12 / rbt12 : 0;
-  getAnexoPorFatorR = (fr, anexo) => (fr >= 0.28 && anexo === 'V') ? 'III' : anexo;
-  checkSublimiteSimples = (rbt12) => {
-    const dentroSimples = rbt12 <= 4800000;
-    const dentroSublimite = rbt12 <= 3600000;
-    let mensagem = null;
-    if (!dentroSimples) mensagem = 'Receita excede o limite do Simples Nacional (R$ 4.800.000).';
-    else if (!dentroSublimite) mensagem = 'Receita excede o sublimite estadual/municipal (R$ 3.600.000). ISS e ICMS devem ser recolhidos separadamente conforme legislação do estado/município.';
-    return { dentroSimples, dentroSublimite, mensagem };
-  };
-}
+};
 
 const STORAGE_KEY = 'precificalc_simulador';
 
