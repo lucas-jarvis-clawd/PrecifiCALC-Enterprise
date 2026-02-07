@@ -20,3 +20,4 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+/* Build otimizado Sat Feb  7 01:03:34 UTC 2026 */
