@@ -24,22 +24,22 @@ const TERMOS_TECNICOS = {
   },
   mei: {
     termo: "MEI",
-    explicacao: "Microempreendedor Individual - regime para quem fatura até R$ 81 mil por ano com impostos fixos",
+    explicacao: "Microempreendedor Individual - regime para quem fatura até R$ 81 mil por ano com tributos fixos",
     exemploUso: "No MEI você paga valor fixo mensal (cerca de R$ 70), independente do quanto vendeu",
   },
   simples: {
     termo: "Simples Nacional",
     explicacao: "Regime tributário simplificado para empresas que faturam até R$ 4,8 milhões por ano",
-    exemploUso: "No Simples, você paga uma guia única (DAS) que inclui vários impostos",
+    exemploUso: "No Simples, você paga uma guia única (DAS) que inclui vários tributos",
   },
   presumido: {
     termo: "Lucro Presumido",
-    explicacao: "Regime onde o governo presume quanto você lucrou e cobra impostos sobre essa estimativa",
+    explicacao: "Regime onde o governo presume quanto você lucrou e cobra tributos sobre essa estimativa",
     exemploUso: "Se você é prestador de serviços, o governo presume que 32% da receita é lucro",
   },
   real: {
     termo: "Lucro Real",
-    explicacao: "Regime onde os impostos são calculados sobre o lucro real da empresa (receitas - despesas)",
+    explicacao: "Regime onde os tributos são calculados sobre o lucro real da empresa (receitas - despesas)",
     exemploUso: "Você só paga IRPJ se realmente tiver lucro no período",
   },
 
@@ -83,7 +83,7 @@ const TERMOS_TECNICOS = {
   },
   ebitda: {
     termo: "EBITDA",
-    explicacao: "Lucro operacional antes de juros, impostos sobre o lucro, depreciação e amortização",
+    explicacao: "Lucro operacional antes de juros, tributos sobre o lucro, depreciação e amortização",
     exemploUso: "É o lucro 'puro' do seu negócio, sem considerar financiamentos e contabilizações",
   },
   prolabore: {
@@ -92,7 +92,7 @@ const TERMOS_TECNICOS = {
     exemploUso: "Diferente da distribuição de lucros, o pró-labore tem desconto de INSS",
   },
 
-  // Impostos Específicos
+  // Tributos Específicos
   iss: {
     termo: "ISS",
     explicacao: "Imposto sobre Serviços - pago ao município onde o serviço é prestado",
@@ -115,7 +115,7 @@ const TERMOS_TECNICOS = {
   },
   irpj: {
     termo: "IRPJ",
-    explicacao: "Imposto de Renda Pessoa Jurídica - imposto sobre o lucro da empresa",
+    explicacao: "Imposto de Renda Pessoa Jurídica - tributo sobre o lucro da empresa",
     exemploUso: "No Presumido é 15% sobre o lucro presumido, no Real é 15% sobre o lucro real",
   },
   csll: {
@@ -137,12 +137,12 @@ const TERMOS_TECNICOS = {
   },
   aliquotaEfetiva: {
     termo: "Alíquota Efetiva",
-    explicacao: "Percentual real de impostos que você paga sobre cada venda",
-    exemploUso: "Se vende R$ 1000 e paga R$ 80 de impostos, sua alíquota efetiva é 8%",
+    explicacao: "Percentual real de tributos que você paga sobre cada venda",
+    exemploUso: "Se vende R$ 1000 e paga R$ 80 de tributos, sua alíquota efetiva é 8%",
   },
   baseCalculo: {
     termo: "Base de Cálculo",
-    explicacao: "Valor sobre o qual o imposto é calculado",
+    explicacao: "Valor sobre o qual o tributo é calculado",
     exemploUso: "Para calcular PIS de 0,65%, a base é toda a receita da empresa",
   },
   vpl: {

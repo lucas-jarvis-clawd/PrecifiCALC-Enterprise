@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(du:*)",
+      "Bash(del ANALISE_COMPLETA_WEBAPP.md AUDITORIA_PRECIFICALC.md AUDITORIA_TRIBUTARIA_COMPLETA.md CASOS_USO_TRIBUTARIOS.md CHANGELOG_IMPLEMENTACAO.md \"CORREÇÕES_APLICADAS.md\" DOCUMENTACAO_TECNICA.md DOCUMENTATION.md MANUAL.md MANUAL_TECNICO_CONTADORES.md OPERACAO_OVERNIGHT.md PUBLICO_ALVO.md README_REVOLUCIONARIO.md RELATORIO_FINAL_MISSAO_TRIBUTARIA.md WORKFLOW_DESENVOLVIMENTO.md)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(python:*)",
+      "Bash(while read f)",
+      "Bash(done)",
+      "Bash(test:*)",
+      "WebSearch",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm run dev:*)",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "Bash(git push:*)"
+    ]
+  }
+}

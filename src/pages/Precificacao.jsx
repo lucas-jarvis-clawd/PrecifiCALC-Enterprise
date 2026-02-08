@@ -8,15 +8,22 @@ import { BotaoUsarNaProposta, BotaoImportarCustos, NotificacaoDadosDisponiveis }
 import { CalculationLoader, ButtonLoading } from '../components/LoadingStates';
 import TabsContainer, { TabPanel } from '../components/TabsContainer';
 import AdvancedPricingTab from '../components/AdvancedPricingTab';
+import MarkupCalculatorTab from '../components/MarkupCalculatorTab';
+import DisclaimerBanner from '../components/DisclaimerBanner';
+import PageHeader from '../components/PageHeader';
 import {
   formatCurrency, formatPercent,
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
+  calcRetencoes, calcDIFAL, icmsInternoPorEstado,
 } from '../data/taxData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 
+import OrientacaoNF from '../components/OrientacaoNF';
 import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
 
 const LS_KEY = 'precificalc_precificacao';
+
+const UF_OPTIONS = Object.keys(icmsInternoPorEstado).sort().map(uf => ({ value: uf, label: uf }));
 
 export default function Precificacao() {
   const [modo, setModo] = useState('normal'); // 'normal', 'hora', 'reverso'
@@ -45,10 +52,32 @@ export default function Precificacao() {
   // Reverse pricing fields
   const [precoMercado, setPrecoMercado] = useState(200);
 
+  // Retencoes toggle
+  const [clienteRetemTributos, setClienteRetemTributos] = useState(false);
+
+  // DIFAL toggle for interstate sales
+  const [vendaInterestadual, setVendaInterestadual] = useState(false);
+  const [ufOrigem, setUfOrigem] = useState('SP');
+  const [ufDestino, setUfDestino] = useState('RJ');
+
+  // ICMS-ST toggle
+  const [produtoComST, setProdutoComST] = useState(false);
+  const [mvaPercent, setMvaPercent] = useState(40);
+
   // UI State
   const [calculando, setCalculando] = useState(false);
   const [mostrarNotificacaoCustos, setMostrarNotificacaoCustos] = useState(false);
   const [dadosEnviadosParaProposta, setDadosEnviadosParaProposta] = useState(false);
+
+  // Validation
+  const validationErrors = useMemo(() => {
+    const errors = {};
+    if (custoProduto <= 0) errors.custoProduto = 'O custo deve ser maior que zero';
+    if (despesasFixas < 0) errors.despesasFixas = 'Gastos fixos não podem ser negativos';
+    if (margemDesejada < 0 || margemDesejada > 99) errors.margemDesejada = 'Margem deve estar entre 0% e 99%';
+    return errors;
+  }, [custoProduto, despesasFixas, margemDesejada]);
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   // Import costs and check for available data
   useEffect(() => {
@@ -143,6 +172,12 @@ export default function Precificacao() {
         if (data.custoHora !== undefined) setCustoHora(data.custoHora);
         if (data.servicosMensal !== undefined) setServicosMensal(data.servicosMensal);
         if (data.precoMercado !== undefined) setPrecoMercado(data.precoMercado);
+        if (data.clienteRetemTributos !== undefined) setClienteRetemTributos(data.clienteRetemTributos);
+        if (data.vendaInterestadual !== undefined) setVendaInterestadual(data.vendaInterestadual);
+        if (data.ufOrigem !== undefined) setUfOrigem(data.ufOrigem);
+        if (data.ufDestino !== undefined) setUfDestino(data.ufDestino);
+        if (data.produtoComST !== undefined) setProdutoComST(data.produtoComST);
+        if (data.mvaPercent !== undefined) setMvaPercent(data.mvaPercent);
       }
     } catch {}
   }, []);
@@ -153,11 +188,13 @@ export default function Precificacao() {
         modo, tipo, custoProduto, despesasFixas, despesasVariaveisPercent, margemDesejada,
         regime, anexo, tipoAtividade, issAliquota, rbt12, receitaMensal, quantidadeMensal,
         folhaMensal, adicoesLalur, exclusoesLalur, horasPorServico, custoHora, servicosMensal, precoMercado,
+        clienteRetemTributos, vendaInterestadual, ufOrigem, ufDestino, produtoComST, mvaPercent,
       }));
     } catch {}
   }, [modo, tipo, custoProduto, despesasFixas, despesasVariaveisPercent, margemDesejada,
     regime, anexo, tipoAtividade, issAliquota, rbt12, receitaMensal, quantidadeMensal,
-    folhaMensal, adicoesLalur, exclusoesLalur, horasPorServico, custoHora, servicosMensal, precoMercado]);
+    folhaMensal, adicoesLalur, exclusoesLalur, horasPorServico, custoHora, servicosMensal, precoMercado,
+    clienteRetemTributos, vendaInterestadual, ufOrigem, ufDestino, produtoComST, mvaPercent]);
 
   // Fator R and effective Anexo (translated: "Folha%" instead of "Fator R")
   const folhaPercent = regime === 'simples' ? calcFatorR(folhaMensal * 12, rbt12) : 0;
@@ -168,11 +205,30 @@ export default function Precificacao() {
   const sublimite = regime === 'simples' ? checkSublimiteSimples(rbt12) : null;
   const receitaMensalEfetiva = regime === 'simples' ? rbt12 / 12 : receitaMensal;
 
+  // Retencoes calculation
+  const retencoesResult = useMemo(() => {
+    if (!clienteRetemTributos) return null;
+    return calcRetencoes(receitaMensalEfetiva);
+  }, [clienteRetemTributos, receitaMensalEfetiva]);
+
+  // DIFAL calculation
+  const difalResult = useMemo(() => {
+    if (!vendaInterestadual) return null;
+    return calcDIFAL(receitaMensalEfetiva, ufOrigem, ufDestino);
+  }, [vendaInterestadual, receitaMensalEfetiva, ufOrigem, ufDestino]);
+
+  // MEI DAS is a fixed monthly cost (~R$82-87), not a proportional tax rate
+  const meiDasFixo = useMemo(() => {
+    if (regime !== 'mei') return 0;
+    const r = calcMEI(receitaMensalEfetiva, tipoAtividade === 'comercio' ? 'comercio' : 'servicos');
+    return r && !r.excedeLimite ? r.dasFixo : 0;
+  }, [regime, receitaMensalEfetiva, tipoAtividade]);
+
   const aliquotaEfetiva = useMemo(() => {
     switch (regime) {
       case 'mei': {
-        const r = calcMEI(receitaMensalEfetiva, tipoAtividade === 'comercio' ? 'comercio' : 'servicos');
-        return r && !r.excedeLimite ? r.aliquotaEfetiva : 0;
+        // MEI DAS is fixed (~R$82-87/month), handled as fixed cost via meiDasFixo
+        return 0;
       }
       case 'simples': {
         const r = calcSimplesTax(rbt12, anexoEfetivo);
@@ -203,15 +259,29 @@ export default function Precificacao() {
 
     const custoUnitario = custoUnitarioBase;
     const despVariavelUnitario = custoUnitarioBase * (despesasVariaveisPercent / 100);
-    const custoFixoUnitario = qtdEfetiva > 0 ? despesasFixas / qtdEfetiva : 0;
+    // For MEI, add DAS as a fixed monthly cost distributed across units
+    const despesasFixasEfetivas = despesasFixas + meiDasFixo;
+    const custoFixoUnitario = qtdEfetiva > 0 ? despesasFixasEfetivas / qtdEfetiva : 0;
     const custoTotal = custoUnitario + despVariavelUnitario + custoFixoUnitario;
 
     const denominador = 1 - aliquotaEfetiva - (margemDesejada / 100);
-    const precoVenda = denominador > 0 ? custoTotal / denominador : custoTotal * 2;
+    const denominadorInviavel = denominador <= 0;
+    const precoVendaBase = denominadorInviavel ? 0 : custoTotal / denominador;
+
+    // ICMS-ST calculation
+    let icmsSTValor = 0;
+    let icmsSTBase = 0;
+    if (produtoComST && precoVendaBase > 0) {
+      const aliqICMSInterna = icmsInternoPorEstado[ufOrigem] || 0.18;
+      icmsSTBase = precoVendaBase * (1 + mvaPercent / 100);
+      const icmsProprio = precoVendaBase * aliqICMSInterna;
+      icmsSTValor = Math.max(0, icmsSTBase * aliqICMSInterna - icmsProprio);
+    }
+    const precoVenda = precoVendaBase + icmsSTValor;
 
     const impostoUnitario = precoVenda * aliquotaEfetiva;
     const cppUnitario = qtdEfetiva > 0 ? cppAnexoIV / qtdEfetiva : 0;
-    const impostoTotalUnitario = impostoUnitario + cppUnitario;
+    const impostoTotalUnitario = impostoUnitario + cppUnitario + icmsSTValor;
     const lucroUnitario = precoVenda - custoTotal - impostoTotalUnitario;
     const margemReal = precoVenda > 0 ? (lucroUnitario / precoVenda) * 100 : 0;
     const markup = custoUnitario > 0 ? ((precoVenda - custoUnitario) / custoUnitario) * 100 : 0;
@@ -222,7 +292,7 @@ export default function Precificacao() {
     const impostosMensal = impostoTotalUnitario * qtdEfetiva;
 
     const margemContribuicao = precoVenda - custoUnitario - despVariavelUnitario - impostoTotalUnitario;
-    const pontoEquilibrioQtd = margemContribuicao > 0 ? Math.ceil(despesasFixas / margemContribuicao) : 0;
+    const pontoEquilibrioQtd = margemContribuicao > 0 ? Math.ceil(despesasFixasEfetivas / margemContribuicao) : 0;
     const pontoEquilibrioReceita = pontoEquilibrioQtd * precoVenda;
 
     // Preço por hora
@@ -274,7 +344,7 @@ export default function Precificacao() {
     const labels = { mei: 'MEI', simples: 'Simples', presumido: 'L. Presumido', real: 'L. Real' };
     Object.entries(regimeCalcs).forEach(([reg, aliq]) => {
       const den = 1 - aliq - (margemDesejada / 100);
-      const preco = den > 0 ? custoTotal / den : custoTotal * 2;
+      const preco = den > 0 ? custoTotal / den : 0;
       comparativoPrecos.push({
         regime: labels[reg],
         preco,
@@ -290,11 +360,12 @@ export default function Precificacao() {
       receitaMensal: recMensal, lucroMensal, lucroAnual, impostosMensal,
       pontoEquilibrioQtd, pontoEquilibrioReceita, margemContribuicao,
       precoHora, precoMinimo, reverso, comparativoPrecos,
-      qtdEfetiva,
+      qtdEfetiva, denominadorInviavel,
+      icmsSTValor, icmsSTBase, produtoComST, mvaPercent: produtoComST ? mvaPercent : 0,
     };
-  }, [custoProduto, despesasFixas, despesasVariaveisPercent, margemDesejada, aliquotaEfetiva,
+  }, [custoProduto, despesasFixas, meiDasFixo, despesasVariaveisPercent, margemDesejada, aliquotaEfetiva,
     quantidadeMensal, cppAnexoIV, modo, custoHora, horasPorServico, servicosMensal, precoMercado,
-    rbt12, receitaMensalEfetiva, tipoAtividade, issAliquota, regime]);
+    rbt12, receitaMensalEfetiva, tipoAtividade, issAliquota, regime, produtoComST, mvaPercent, ufOrigem]);
 
   // Sensitivity chart data
   const chartData = useMemo(() => {
@@ -310,16 +381,8 @@ export default function Precificacao() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header da Página */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <Tags className="text-brand-600" size={22} />
-          Formar Preço de Venda
-        </h1>
-        <p className="text-sm text-slate-600 mt-1">
-          Calcule o preço ideal para seus produtos e serviços
-        </p>
-      </div>
+      <PageHeader icon={Tags} title="Formar Preço de Venda" description="Calcule o preço ideal para seus produtos e serviços" />
+      <DisclaimerBanner />
 
       {/* Sistema de Abas */}
       <TabsContainer defaultTab="normal">
@@ -328,7 +391,7 @@ export default function Precificacao() {
             {/* Aba Precificação Padrão */}
             <TabPanel value="normal" activeTab={activeTab}>
               <div className="space-y-6">
-        <p className="text-slate-500 text-sm mt-1">Descubra o preço certo considerando seus custos, impostos e lucro desejado</p>
+        <p className="text-slate-500 text-sm mt-1">Descubra o preço certo considerando seus custos, tributos e lucro desejado</p>
       </div>
 
       {/* Mode selector */}
@@ -386,7 +449,7 @@ export default function Precificacao() {
               <>
                 <div className="p-3 bg-violet-50 border border-violet-200 rounded-lg">
                   <p className="text-sm text-violet-700 font-medium">Quanto o mercado cobra por esse serviço/produto?</p>
-                  <p className="text-xs text-violet-500 mt-1">Vamos calcular se vale a pena pra você nesse preço</p>
+                  <p className="text-xs text-violet-500 mt-1">Análise de viabilidade com base no preço praticado pelo mercado</p>
                 </div>
                 <InputField label="Preço do mercado" value={precoMercado} onChange={setPrecoMercado} prefix="R$" step={10} />
                 <SelectField label="Tipo" value={tipo} onChange={setTipo} options={[
@@ -401,23 +464,37 @@ export default function Precificacao() {
                   { value: 'servico', label: 'Serviço' },
                   { value: 'produto', label: 'Produto / Mercadoria' },
                 ]} />
-                <InputField
-                  label={tipo === 'produto' ? 'Custo do produto (unitário)' : 'Custo do serviço (unitário)'}
-                  value={custoProduto} onChange={setCustoProduto} prefix="R$" step={10}
-                  help="Material + mão de obra direta"
-                />
+                <div>
+                  <InputField
+                    label={tipo === 'produto' ? 'Custo do produto (unitário)' : 'Custo do serviço (unitário)'}
+                    value={custoProduto} onChange={setCustoProduto} prefix="R$" step={10}
+                    help="Material + mão de obra direta"
+                    className={validationErrors.custoProduto ? 'border-red-400' : ''}
+                  />
+                  {validationErrors.custoProduto && <p className="text-xs text-red-500 mt-1">{validationErrors.custoProduto}</p>}
+                </div>
               </>
             )}
 
-            <InputField label="Gastos fixos mensais" value={despesasFixas} onChange={setDespesasFixas} prefix="R$" step={500}
-              help="Aluguel, salários, contador, internet, etc." />
+            <div>
+              <InputField label="Gastos fixos mensais" value={despesasFixas} onChange={setDespesasFixas} prefix="R$" step={500}
+                help="Aluguel, salários, contador, internet, etc."
+                className={validationErrors.despesasFixas ? 'border-red-400' : ''}
+              />
+              {validationErrors.despesasFixas && <p className="text-xs text-red-500 mt-1">{validationErrors.despesasFixas}</p>}
+            </div>
             <InputField label="Gastos variáveis (% do custo)" value={despesasVariaveisPercent} onChange={setDespesasVariaveisPercent} suffix="%" step={1}
               help="Comissões, frete, embalagem" />
             {modo !== 'hora' && (
               <InputField label="Quantidade mensal estimada" value={quantidadeMensal} onChange={setQuantidadeMensal} step={10} min={1} />
             )}
             {modo !== 'reverso' && (
-              <InputField label="Margem de lucro desejada" value={margemDesejada} onChange={setMargemDesejada} suffix="%" min={1} max={80} step={1} />
+              <div>
+                <InputField label="Margem de lucro desejada" value={margemDesejada} onChange={setMargemDesejada} suffix="%" min={1} max={80} step={1}
+                  className={validationErrors.margemDesejada ? 'border-red-400' : ''}
+                />
+                {validationErrors.margemDesejada && <p className="text-xs text-red-500 mt-1">{validationErrors.margemDesejada}</p>}
+              </div>
             )}
 
             {/* Notificação de dados disponíveis em Custos */}
@@ -442,6 +519,15 @@ export default function Precificacao() {
                   ]} />
                 </LabelComTermoTecnico>
                 
+                {regime === 'mei' && meiDasFixo > 0 && (
+                  <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <Info size={14} className="text-blue-600 flex-shrink-0" />
+                      <p className="text-xs text-blue-700">DAS MEI: {formatCurrency(meiDasFixo)}/mês (fixo, incluído nos gastos fixos)</p>
+                    </div>
+                  </div>
+                )}
+
                 {regime === 'simples' && (
                   <>
                     <LabelComTermoTecnico termo="anexo" textoExplicativo="Categoria da atividade">
@@ -478,8 +564,8 @@ export default function Precificacao() {
                   </>
                 )}</div>
               {regime !== 'simples' && (
-                <InputField label="Faturamento mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} className="mt-3"
-                  help={`Imposto efetivo: ${formatPercent(aliquotaEfetiva)}`} />
+                <InputField label="Receita Bruta (Faturamento) mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} className="mt-3"
+                  help={`Tributo efetivo: ${formatPercent(aliquotaEfetiva)}`} />
               )}
               {(regime === 'presumido' || regime === 'real') && (
                 <>
@@ -497,7 +583,7 @@ export default function Precificacao() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500 flex items-center gap-1">
                     Fator R (% da folha sobre faturamento)
-                    <InfoTip text="Fator R = Folha de Pagamento ÷ Faturamento 12 meses. Se ≥ 28%, empresas do Anexo V migram para o Anexo III (imposto menor)." />
+                    <InfoTip text="Fator R = Folha de Pagamento ÷ Faturamento 12 meses. Se ≥ 28%, empresas do Anexo V migram para o Anexo III (tributo menor)." />
                   </span>
                   <span className={`text-xs font-medium ${folhaPercent >= 0.28 ? 'text-emerald-600' : 'text-slate-700'}`}>
                     {(folhaPercent * 100).toFixed(2)}%
@@ -510,7 +596,7 @@ export default function Precificacao() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R >= 28% — migrou para o Anexo III (imposto menor).</p>
+                    <p className="text-xs text-emerald-600">Fator R >= 28% — migrou para o Anexo III (tributo menor).</p>
                   </div>
                 )}
               </div>
@@ -540,6 +626,59 @@ export default function Precificacao() {
                 </div>
               </div>
             )}
+
+            {/* Retencoes toggle */}
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={clienteRetemTributos}
+                  onChange={(e) => setClienteRetemTributos(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Cliente retém tributos?</span>
+                <InfoTip text="Quando a empresa presta serviços para PJ, o cliente pode reter IRRF (1,5%), CSRF (4,65% acima de R$ 5 mil) e ISS na fonte. Isso reduz o valor líquido recebido." />
+              </label>
+            </div>
+
+            {/* DIFAL toggle */}
+            <div className="mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={vendaInterestadual}
+                  onChange={(e) => setVendaInterestadual(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Venda interestadual? (DIFAL)</span>
+              </label>
+              {vendaInterestadual && (
+                <div className="mt-3 space-y-3">
+                  <SelectField label="UF de Origem" value={ufOrigem} onChange={setUfOrigem} options={UF_OPTIONS} />
+                  <SelectField label="UF de Destino" value={ufDestino} onChange={setUfDestino} options={UF_OPTIONS} />
+                </div>
+              )}
+            </div>
+
+            {/* ICMS-ST toggle */}
+            <div className="mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={produtoComST}
+                  onChange={(e) => setProdutoComST(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Produto com Substituição Tributária (ICMS-ST)?</span>
+                <InfoTip text="Na ST, o ICMS de toda a cadeia é recolhido antecipadamente. O MVA (Margem de Valor Agregado) é aplicado sobre o preço para calcular o ICMS-ST." />
+              </label>
+              {produtoComST && (
+                <div className="mt-3">
+                  <InputField label="MVA/IVA-ST (%)" value={mvaPercent} onChange={setMvaPercent} suffix="%" min={0} max={200} step={1}
+                    help="Margem de Valor Agregado definida pelo estado (varia por produto)" />
+                </div>
+              )}
+            </div>
           </CardBody>
         </Card>
 
@@ -594,8 +733,37 @@ export default function Precificacao() {
             </>
           )}
 
+          {/* Inviable denomination warning */}
+          {calculo.denominadorInviavel && modo !== 'reverso' && (
+            <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <AlertTriangle className="text-red-600" size={24} />
+                <h3 className="text-base font-bold text-red-700">Cálculo inviável</h3>
+              </div>
+              <p className="text-sm text-red-600">
+                A soma da margem desejada ({margemDesejada}%) com a carga tributária ({(aliquotaEfetiva * 100).toFixed(1)}%) excede 100%.
+                Reduza a margem desejada ou altere o regime tributário.
+              </p>
+            </div>
+          )}
+
+          {/* Validation warning */}
+          {hasValidationErrors && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-amber-700 font-medium">Atenção: valores de entrada podem estar incorretos</p>
+                <ul className="text-xs text-amber-600 mt-1 space-y-0.5">
+                  {Object.values(validationErrors).map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* NORMAL & HOURLY MODE RESULTS */}
-          {modo !== 'reverso' && (
+          {modo !== 'reverso' && !calculo.denominadorInviavel && (
             <>
               {/* Main stat cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -645,7 +813,7 @@ export default function Precificacao() {
                   <AlertTriangle className="text-red-500" size={24} />
                   <div>
                     <p className="text-sm font-bold text-red-700">Abaixo deste valor = prejuízo</p>
-                    <p className="text-xs text-red-500">Preço mínimo (margem zero, só cobre custos + impostos)</p>
+                    <p className="text-xs text-red-500">Preço mínimo (margem zero, só cobre custos + tributos)</p>
                   </div>
                 </div>
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(calculo.precoMinimo)}</p>
@@ -686,7 +854,7 @@ export default function Precificacao() {
             <Card>
               <CardHeader>
                 <h2 className="text-slate-800 font-medium text-sm">Preço em cada tipo de empresa</h2>
-                <p className="text-xs text-slate-400">Mesmo produto, mesmo lucro, imposto diferente</p>
+                <p className="text-xs text-slate-400">Mesmo produto, mesmo lucro, tributo diferente</p>
               </CardHeader>
               <CardBody>
                 <div className="space-y-2">
@@ -701,7 +869,7 @@ export default function Precificacao() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-slate-800">{formatCurrency(c.preco)}</span>
-                        <span className="text-xs text-slate-400 ml-2">({(c.aliquota * 100).toFixed(1)}% imposto)</span>
+                        <span className="text-xs text-slate-400 ml-2">({(c.aliquota * 100).toFixed(1)}% tributo)</span>
                       </div>
                     </div>
                   ))}
@@ -718,9 +886,12 @@ export default function Precificacao() {
                 <PriceRow label="Custo direto" value={calculo.custoUnitario} total={calculo.precoVenda} color="bg-red-500" />
                 <PriceRow label="Gastos variáveis" value={calculo.despVariavelUnitario} total={calculo.precoVenda} color="bg-amber-500" />
                 <PriceRow label="Rateio dos fixos" value={calculo.custoFixoUnitario} total={calculo.precoVenda} color="bg-orange-500" />
-                <PriceRow label="Impostos" value={calculo.impostoUnitario} total={calculo.precoVenda} color="bg-violet-500" />
+                <PriceRow label="Tributos" value={calculo.impostoUnitario} total={calculo.precoVenda} color="bg-violet-500" />
                 {cppAnexoIV > 0 && (
                   <PriceRow label="INSS patronal (Anexo IV)" value={calculo.cppUnitario} total={calculo.precoVenda} color="bg-rose-500" />
+                )}
+                {calculo.icmsSTValor > 0 && (
+                  <PriceRow label={`ICMS-ST (MVA ${calculo.mvaPercent}%)`} value={calculo.icmsSTValor} total={calculo.precoVenda} color="bg-pink-500" />
                 )}
                 <PriceRow label="Lucro do produto" value={calculo.lucroUnitario} total={calculo.precoVenda} color="bg-emerald-500" />
                 <div className="border-t border-slate-200 pt-2 flex justify-between">
@@ -731,10 +902,10 @@ export default function Precificacao() {
 
               <div className="mt-4 p-3 bg-slate-50 rounded-md">
                 <p className="text-xs text-slate-500">
-                  <span className="text-slate-700 font-medium">Fórmula:</span> Preço = Custo Total ÷ (1 - Imposto% - Lucro%)
+                  <span className="text-slate-700 font-medium">Fórmula:</span> Preço = Custo Total ÷ (1 - Tributo% - Lucro%)
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {formatCurrency(calculo.custoTotal)} ÷ (1 - {(aliquotaEfetiva * 100).toFixed(2)}% - {margemDesejada}%) = {formatCurrency(calculo.precoVenda)}
+                  {formatCurrency(calculo.custoTotal)} ÷ (1 - {(aliquotaEfetiva * 100).toFixed(1)}% - {margemDesejada}%) = {formatCurrency(calculo.precoVenda)}
                 </p>
               </div>
             </CardBody>
@@ -750,7 +921,7 @@ export default function Precificacao() {
             <CardBody>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                 <div>
-                  <p className="text-slate-400 text-xs">Faturamento</p>
+                  <p className="text-slate-400 text-xs">Receita Bruta (Faturamento)</p>
                   <p className="text-slate-800 font-medium">{formatCurrency(calculo.receitaMensal)}</p>
                 </div>
                 <div>
@@ -758,7 +929,7 @@ export default function Precificacao() {
                   <p className="text-slate-800 font-medium">{formatCurrency(calculo.custoTotal * calculo.qtdEfetiva)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs">Impostos</p>
+                  <p className="text-slate-400 text-xs">Tributos</p>
                   <p className="text-red-600 font-medium">{formatCurrency(calculo.impostosMensal)}</p>
                 </div>
                 <div>
@@ -773,25 +944,120 @@ export default function Precificacao() {
             </CardBody>
           </Card>
 
+          {/* Retencoes result */}
+          {retencoesResult && (
+            <Card>
+              <CardHeader><h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm">Retenções na Fonte (cliente retém)</h2></CardHeader>
+              <CardBody className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">Valor bruto do serviço</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(retencoesResult.valorBruto)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">IRRF retido (1,5%)</span>
+                  <span className="text-red-600 dark:text-red-400 font-mono">-{formatCurrency(retencoesResult.retencoes.irrf.valor)}</span>
+                </div>
+                {retencoesResult.retencoes.csrf.aplicavel ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">CSLL retido (1%)</span>
+                      <span className="text-red-600 dark:text-red-400 font-mono">-{formatCurrency(retencoesResult.retencoes.csrf.csll)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">PIS retido (0,65%)</span>
+                      <span className="text-red-600 dark:text-red-400 font-mono">-{formatCurrency(retencoesResult.retencoes.csrf.pis)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">COFINS retido (3%)</span>
+                      <span className="text-red-600 dark:text-red-400 font-mono">-{formatCurrency(retencoesResult.retencoes.csrf.cofins)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-400">CSRF dispensada (pagamento até R$ 5.000 - IN RFB 1.234/2012)</p>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">ISS retido (5%)</span>
+                  <span className="text-red-600 dark:text-red-400 font-mono">-{formatCurrency(retencoesResult.retencoes.issRetido.valor)}</span>
+                </div>
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-800 dark:text-slate-200 font-medium">Valor líquido recebido</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">{formatCurrency(retencoesResult.valorLiquido)}</span>
+                  </div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total retido: {formatCurrency(retencoesResult.totalRetencoes)} ({formatPercent(retencoesResult.totalRetencoes / retencoesResult.valorBruto)})</p>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* DIFAL result */}
+          {difalResult && difalResult.aplicavel && (
+            <Card>
+              <CardHeader><h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm">DIFAL - Diferencial de Alíquota (EC 87/2015)</h2></CardHeader>
+              <CardBody className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">Alíquota interestadual ({difalResult.ufOrigem} → {difalResult.ufDestino})</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-mono">{formatPercent(difalResult.aliquotaInterestadual)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">Alíquota interna {difalResult.ufDestino}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-mono">{formatPercent(difalResult.aliquotaInterna)}</span>
+                </div>
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between text-sm">
+                  <span className="text-slate-800 dark:text-slate-200 font-medium">DIFAL a recolher (mensal)</span>
+                  <span className="text-red-600 dark:text-red-400 font-bold font-mono">{formatCurrency(difalResult.difal)}</span>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
           {/* Sensitivity chart */}
           <Card>
             <CardHeader><h2 className="text-slate-800 font-medium text-sm">E se eu quiser mais lucro?</h2></CardHeader>
             <CardBody>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="margem" tick={{ fill: '#64748b', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v.toFixed(0)}`} />
-                  <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Preço']} />
-                  <Bar dataKey="preco" radius={[3, 3, 0, 0]} fill="#cbd5e1">
-                    {chartData.map((entry, i) => (
-                      <Cell key={i} fill={entry.atual ? '#4f46e5' : '#cbd5e1'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div role="img" aria-label="Gráfico: preço de venda por margem de lucro desejada">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="margem" tick={{ fill: '#64748b', fontSize: 11 }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v.toFixed(0)}`} />
+                    <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Preço']} />
+                    <Bar dataKey="preco" radius={[3, 3, 0, 0]} fill="#cbd5e1">
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.atual ? '#4f46e5' : '#cbd5e1'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <details className="mt-2">
+                <summary className="text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                  Ver dados em tabela
+                </summary>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-1 px-2">Margem</th>
+                        <th className="text-right py-1 px-2">Preço de Venda</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chartData.map((row) => (
+                        <tr key={row.margem} className={`border-b border-slate-100 dark:border-slate-700 ${row.atual ? 'bg-brand-50 dark:bg-brand-950/20 font-medium' : ''}`}>
+                          <td className="py-1 px-2 text-slate-700 dark:text-slate-300">{row.margem}</td>
+                          <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(row.preco)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
             </CardBody>
           </Card>
+
+          {/* Orientação para Nota Fiscal */}
+          <OrientacaoNF regime={regime} tipoAtividade={tipoAtividade} />
         </div>
       </div>
             </TabPanel>
@@ -799,6 +1065,11 @@ export default function Precificacao() {
             {/* Aba Precificação Avançada */}
             <TabPanel value="advanced" activeTab={activeTab}>
               <AdvancedPricingTab />
+            </TabPanel>
+
+            {/* Aba Markup sobre CMV */}
+            <TabPanel value="markup" activeTab={activeTab}>
+              <MarkupCalculatorTab />
             </TabPanel>
           </>
         )}

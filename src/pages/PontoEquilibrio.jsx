@@ -12,6 +12,7 @@ import {
 
 import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
 import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function PontoEquilibrio() {
@@ -96,7 +97,8 @@ export default function PontoEquilibrio() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <PageHeader icon={Scale} title="Ponto de Equilibrio" description="Determine a receita minima para cobrir custos e comecar a lucrar" />
+      <PageHeader icon={Scale} title="Ponto de Equilibrio" description="Determine a receita mínima para cobrir custos e começar a lucrar" />
+      <DisclaimerBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Parametros */}
@@ -155,7 +157,7 @@ export default function PontoEquilibrio() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Sparkles size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor)</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (tributo menor)</p>
                   </div>
                 )}
               </div>
@@ -236,21 +238,50 @@ export default function PontoEquilibrio() {
               <p className="text-slate-400 text-xs mt-0.5">O ponto onde as linhas se cruzam e o ponto de equilibrio</p>
             </CardHeader>
             <CardBody>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={resultado.chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="quantidade" tick={{ fill: '#64748b', fontSize: 11 }} label={{ value: 'Quantidade', position: 'bottom', fill: '#94a3b8', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    contentStyle={tt}
-                    formatter={(v, name) => [formatCurrency(v), name === 'receita' ? 'Receita' : name === 'custoTotal' ? 'Custo Total' : 'Lucro']}
-                    labelFormatter={(v) => `${v} unidades`}
-                  />
-                  <ReferenceLine x={resultado.peQuantidade} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: 'PE', fill: '#f59e0b', fontSize: 11 }} />
-                  <Area type="monotone" dataKey="receita" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.08} strokeWidth={2} name="Receita" />
-                  <Area type="monotone" dataKey="custoTotal" stroke="#ef4444" fill="#ef4444" fillOpacity={0.08} strokeWidth={2} name="Custo Total" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div role="img" aria-label="Gráfico: receita vs custos totais por quantidade vendida">
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={resultado.chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="quantidade" tick={{ fill: '#64748b', fontSize: 11 }} label={{ value: 'Quantidade', position: 'bottom', fill: '#94a3b8', fontSize: 11 }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip
+                      contentStyle={tt}
+                      formatter={(v, name) => [formatCurrency(v), name === 'receita' ? 'Receita' : name === 'custoTotal' ? 'Custo Total' : 'Lucro']}
+                      labelFormatter={(v) => `${v} unidades`}
+                    />
+                    <ReferenceLine x={resultado.peQuantidade} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: 'PE', fill: '#f59e0b', fontSize: 11 }} />
+                    <Area type="monotone" dataKey="receita" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.08} strokeWidth={2} name="Receita" />
+                    <Area type="monotone" dataKey="custoTotal" stroke="#ef4444" fill="#ef4444" fillOpacity={0.08} strokeWidth={2} name="Custo Total" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <details className="mt-2">
+                <summary className="text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                  Ver dados em tabela
+                </summary>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-1 px-2">Quantidade</th>
+                        <th className="text-right py-1 px-2">Receita</th>
+                        <th className="text-right py-1 px-2">Custo Total</th>
+                        <th className="text-right py-1 px-2">Lucro</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resultado.chartData.map((row) => (
+                        <tr key={row.quantidade} className={`border-b border-slate-100 dark:border-slate-700 ${row.quantidade === resultado.peQuantidade ? 'bg-amber-50 dark:bg-amber-950/20 font-medium' : ''}`}>
+                          <td className="py-1 px-2 text-slate-700 dark:text-slate-300">{row.quantidade}</td>
+                          <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(row.receita)}</td>
+                          <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(row.custoTotal)}</td>
+                          <td className={`py-1 px-2 text-right font-mono ${row.lucro >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(row.lucro)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
             </CardBody>
           </Card>
         </div>

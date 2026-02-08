@@ -3,6 +3,8 @@ import { FileSpreadsheet, TrendingUp, TrendingDown, DollarSign } from 'lucide-re
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { formatCurrency } from '../data/taxData';
+import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 
 // Componente DRELine movido para fora do render
 const DRELine = ({ label, value, level = 0, bold = false, highlight = false }) => {
@@ -92,20 +94,16 @@ export default function DRE() {
     const ll = rai - ir;
     return { rb, ded, rl, cpv: cpv * mult, lb, despOp, ebitda, dep: depreciacao * mult, ebit, rf: resultadoFinanceiro * mult, rai, ir, ll,
       margemBruta: rb > 0 ? (lb / rb) * 100 : 0,
-      margemOp: rb > 0 ? (ebitda / rb) * 100 : 0,
+      margemOp: rb > 0 ? (ebit / rb) * 100 : 0,
+      margemEbitda: rb > 0 ? (ebitda / rb) * 100 : 0,
       margemLiquida: rb > 0 ? (ll / rb) * 100 : 0,
     };
   }, [receitaBruta, impostosSobreVendas, devolucoes, cpv, despAdmin, despPessoal, despComerciais, outrasDespesas, depreciacao, resultadoFinanceiro, irpjCsll, mult]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <FileSpreadsheet className="text-brand-600" size={22} />
-          DRE - Demonstrativo de Resultado
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Demonstrativo de Resultado do Exercício simplificado</p>
-      </div>
+      <PageHeader icon={FileSpreadsheet} title="DRE - Demonstrativo de Resultado" description="Demonstrativo de Resultado do Exercício simplificado" />
+      <DisclaimerBanner />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={DollarSign} label="Receita Líquida" value={formatCurrency(calc.rl)} color="blue" />
@@ -169,13 +167,17 @@ export default function DRE() {
             <DRELine label={calc.ll >= 0 ? 'Lucro Líquido' : 'Prejuízo Líquido'} value={calc.ll} bold highlight />
 
             {/* Margins */}
-            <div className="mt-6 grid grid-cols-3 gap-4">
+            <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-slate-50 rounded-md">
                 <p className="text-slate-400 text-xs mb-1">Margem Bruta</p>
                 <p className={`text-lg font-semibold ${calc.margemBruta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{calc.margemBruta.toFixed(1)}%</p>
               </div>
               <div className="text-center p-3 bg-slate-50 rounded-md">
-                <p className="text-slate-400 text-xs mb-1">Margem Operacional</p>
+                <p className="text-slate-400 text-xs mb-1">Margem EBITDA</p>
+                <p className={`text-lg font-semibold ${calc.margemEbitda >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{calc.margemEbitda.toFixed(1)}%</p>
+              </div>
+              <div className="text-center p-3 bg-slate-50 rounded-md">
+                <p className="text-slate-400 text-xs mb-1">Margem Operacional (EBIT)</p>
                 <p className={`text-lg font-semibold ${calc.margemOp >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{calc.margemOp.toFixed(1)}%</p>
               </div>
               <div className="text-center p-3 bg-slate-50 rounded-md">

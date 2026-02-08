@@ -200,9 +200,9 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
   };
 
   const regimeOptions = [
-    { id: 'mei', label: 'MEI', desc: 'Faturamento até R$ 81 mil/ano', emoji: '' },
-    { id: 'simples', label: 'Simples Nacional', desc: 'Faturamento até R$ 4,8 milhões/ano', emoji: '' },
-    { id: 'presumido', label: 'Lucro Presumido', desc: 'Faturamento até R$ 78 milhões/ano', emoji: '' },
+    { id: 'mei', label: 'MEI', desc: 'Receita Bruta (Faturamento) até R$ 81 mil/ano', emoji: '' },
+    { id: 'simples', label: 'Simples Nacional', desc: 'Receita Bruta (Faturamento) até R$ 4,8 milhões/ano', emoji: '' },
+    { id: 'presumido', label: 'Lucro Presumido', desc: 'Receita Bruta (Faturamento) até R$ 78 milhões/ano', emoji: '' },
     { id: 'real', label: 'Lucro Real', desc: 'Sem limite de faturamento', emoji: '' },
   ];
 
@@ -401,7 +401,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
           {step === 4 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-slate-800">Dados da empresa</h3>
-              <p className="text-slate-500">Para calcular os impostos corretamente</p>
+              <p className="text-slate-500">Para calcular os tributos corretamente</p>
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">Tipo da empresa (regime tributário):</label>
@@ -432,7 +432,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  Faturamento mensal da empresa (aproximado)
+                  Receita Bruta (Faturamento) mensal da empresa (aproximado)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
@@ -536,7 +536,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-slate-800">{formatCurrency(c.preco)}</span>
-                          <span className="text-xs text-slate-400 ml-2">({(c.aliquota * 100).toFixed(1)}% imposto)</span>
+                          <span className="text-xs text-slate-400 ml-2">({(c.aliquota * 100).toFixed(1)}% tributo)</span>
                         </div>
                       </div>
                     ))}
@@ -563,7 +563,7 @@ export default function WizardPrecificar({ onClose, onNavigate }) {
                     <span className="font-medium">{formatCurrency(calculo.custoFixoUnit)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">+ Impostos ({(calculo.aliquotaEfetiva * 100).toFixed(1)}%)</span>
+                    <span className="text-slate-600">+ Tributos ({(calculo.aliquotaEfetiva * 100).toFixed(1)}%)</span>
                     <span className="font-medium text-red-600">{formatCurrency(calculo.impostos)}</span>
                   </div>
                   <div className="flex justify-between">

@@ -15,7 +15,6 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom'],
           'vendor-charts': ['recharts'],
           'vendor-utils': ['lucide-react'],
-          'features-export': ['xlsx'],
         },
       },
     },

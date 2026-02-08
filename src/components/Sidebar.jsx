@@ -21,22 +21,25 @@ import {
   Sun,
   Moon,
   HelpCircle,
+  Users,
+  Banknote,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProgressBadge } from './ProgressBar';
 
 const menuItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard', shortLabel: 'Dashboard', tooltip: 'Visão geral do seu negócio', section: 'visao_geral' },
-  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário', shortLabel: 'Simulador', tooltip: 'Calcule impostos em cada regime', section: 'visao_geral' },
-  { path: '/comparativo', icon: BarChart3, label: 'Comparativo de Regimes', shortLabel: 'Comparativo', tooltip: 'Compare impostos entre MEI, Simples, Presumido e Real', section: 'visao_geral' },
+  { path: '/simulador', icon: Calculator, label: 'Simulador Tributário', shortLabel: 'Simulador', tooltip: 'Calcule tributos em cada regime', section: 'visao_geral' },
+  { path: '/comparativo', icon: BarChart3, label: 'Comparativo de Regimes', shortLabel: 'Comparativo', tooltip: 'Compare tributos entre MEI, Simples, Presumido e Real', section: 'visao_geral' },
   { path: '/precificacao', icon: Tags, label: 'Precificação', shortLabel: 'Precificação', tooltip: 'Calcule o preço ideal de venda', section: 'precificacao' },
   { path: '/custos', icon: Wallet, label: 'Custos Operacionais', shortLabel: 'Custos', tooltip: 'Gastos fixos e variáveis do negócio', section: 'precificacao' },
   { path: '/equilibrio', icon: Scale, label: 'Ponto de Equilíbrio', shortLabel: 'Equilíbrio', tooltip: 'Mínimo que precisa vender para não ter prejuízo', section: 'precificacao' },
   { path: '/projecao', icon: TrendingUp, label: 'Projeção de Crescimento', shortLabel: 'Projeção', tooltip: 'Simule o impacto de crescer no futuro', section: 'analise' },
   { path: '/viabilidade', icon: Target, label: 'Análise de Viabilidade', shortLabel: 'Viabilidade', tooltip: 'ROI, payback e viabilidade do negócio', section: 'analise' },
   { path: '/dre', icon: FileSpreadsheet, label: 'DRE (Resultado Mensal)', shortLabel: 'DRE', tooltip: 'Demonstração do Resultado: entradas, saídas e lucro', section: 'analise' },
-  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento Tributário', shortLabel: 'Enquadramento', tooltip: 'Descubra o melhor tipo de empresa pra você', section: 'extras' },
-  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal', shortLabel: 'Calendário', tooltip: 'Datas de impostos e obrigações', section: 'extras' },
+  { path: '/otimizador-prolabore', icon: Users, label: 'Otimizador Pró-labore', shortLabel: 'Pró-labore', tooltip: 'Divisão ideal entre pró-labore e distribuição de lucros', section: 'extras' },
+  { path: '/enquadramento', icon: UserCheck, label: 'Enquadramento', shortLabel: 'Enquadramento', tooltip: 'Identifique o melhor regime tributário para a empresa', section: 'extras' },
+  { path: '/calendario', icon: CalendarDays, label: 'Calendário Fiscal', shortLabel: 'Calendário', tooltip: 'Datas de tributos e obrigações', section: 'extras' },
   { path: '/propostas', icon: FileText, label: 'Propostas Comerciais', shortLabel: 'Propostas', tooltip: 'Gere propostas profissionais para clientes', section: 'extras' },
   { path: '/relatorios', icon: FileDown, label: 'Relatórios', shortLabel: 'Relatórios', tooltip: 'Exporte relatórios e análises', section: 'extras' },
   { path: '/configuracoes', icon: Settings, label: 'Configurações', shortLabel: 'Config.', tooltip: 'Dados da empresa e preferências', section: 'extras' },
@@ -83,6 +86,7 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
           <button
             onClick={onMobileClose}
             className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors touch-manipulation"
+            aria-label="Fechar menu"
           >
             <X size={18} />
           </button>
@@ -91,7 +95,7 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
 
       {/* Progress Badge */}
       {(isOpen || isMobile) && (
-        <div className="px-2 pt-2 flex-shrink-0">
+        <div className="px-2 pt-2 flex-shrink-0" title="Módulos utilizados">
           <ProgressBadge />
         </div>
       )}
@@ -125,7 +129,7 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
                       title={!isOpen && !isMobile ? item.tooltip || item.label : undefined}
                     >
                       {({ isActive }) => (
-                        <>
+                        <span aria-current={isActive ? 'page' : undefined} className="contents">
                           <Icon
                             size={18}
                             className={`flex-shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}`}
@@ -133,7 +137,7 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
                           {(isOpen || isMobile) && (
                             <span className="text-sm font-medium truncate">{item.label}</span>
                           )}
-                        </>
+                        </span>
                       )}
                     </NavLink>
                   );
@@ -163,6 +167,7 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
           <button
             onClick={onToggle}
             className="flex items-center justify-center h-10 w-full text-slate-500 hover:text-white transition-colors"
+            aria-label={isOpen ? 'Recolher menu lateral' : 'Expandir menu lateral'}
           >
             {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
           </button>

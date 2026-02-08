@@ -361,7 +361,7 @@ export function AdvancedPricingTab({ className = '' }) {
                 <StatCard
                   title="Preço de Venda"
                   value={formatCurrency(calculoPrecificacao.precoFinal)}
-                  subtitle="Por unidade (com impostos)"
+                  subtitle="Por unidade (com tributos)"
                   icon={TrendingUp}
                   variant="success"
                 />
@@ -369,7 +369,7 @@ export function AdvancedPricingTab({ className = '' }) {
                 <StatCard
                   title="Margem Real"
                   value={formatPercent(calculoPrecificacao.margemReal)}
-                  subtitle="Após todos os impostos"
+                  subtitle="Após todos os tributos"
                   icon={calculoPrecificacao.margemReal >= margemDesejada ? CheckCircle : AlertTriangle}
                   variant={calculoPrecificacao.margemReal >= margemDesejada ? "success" : "warning"}
                 />
@@ -403,7 +403,7 @@ export function AdvancedPricingTab({ className = '' }) {
                       <span className="text-sm font-bold">{formatCurrency(calculoPrecificacao.custoTotalUnitario)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Impostos</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Tributos</span>
                       <span className="text-sm font-medium text-red-600 dark:text-red-400">
                         {formatCurrency(calculoPrecificacao.impostos.total)}
                       </span>
@@ -430,7 +430,7 @@ export function AdvancedPricingTab({ className = '' }) {
                       <span className="text-sm font-medium">{formatCurrency(calculoPrecificacao.custoTotalMensal)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">(-) Impostos</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">(-) Tributos</span>
                       <span className="text-sm font-medium text-red-600 dark:text-red-400">
                         {formatCurrency(calculoPrecificacao.impostosMensal)}
                       </span>

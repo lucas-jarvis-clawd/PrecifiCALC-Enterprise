@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { BarChart3, Award, Save, Trash2, FolderOpen, AlertTriangle, Info } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { BarChart3, Award, Save, Trash2, FolderOpen, AlertTriangle, Info, Calculator, TrendingUp } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { calcSimplesTax, calcMEI, calcLucroPresumido, calcLucroReal, formatCurrency, formatPercent, simplesNacional } from '../data/taxData';
@@ -7,6 +7,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Cartes
 
 import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
 import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 const STORAGE_KEY = 'precificalc_comparativo';
@@ -58,19 +60,29 @@ export default function ComparativoRegimes() {
     savedState?.folhaMensal ?? (custosData?.custoFolha ?? 10000)
   );
 
+  // Growth simulation
+  const [crescimentoAtivo, setCrescimentoAtivo] = useState(savedState?.crescimentoAtivo ?? false);
+  const [crescimentoPercent, setCrescimentoPercent] = useState(savedState?.crescimentoPercent ?? 20);
+
   // Scenario management state
   const [cenarios, setCenarios] = useState(loadCenarios);
   const [nomeCenario, setNomeCenario] = useState('');
   const [showSalvar, setShowSalvar] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null, nome: '' });
+
+  // Undo toast state
+  const [undoItem, setUndoItem] = useState(null);
+  const undoTimerRef = useRef(null);
 
   // Persist input state to localStorage
   const persistState = useCallback(() => {
     const state = {
       receitaMensal, rbt12, tipoAtividade, anexo, issAliquota,
       despesasPercent, creditosPercent, folhaMensal,
+      crescimentoAtivo, crescimentoPercent,
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
-  }, [receitaMensal, rbt12, tipoAtividade, anexo, issAliquota, despesasPercent, creditosPercent, folhaMensal]);
+  }, [receitaMensal, rbt12, tipoAtividade, anexo, issAliquota, despesasPercent, creditosPercent, folhaMensal, crescimentoAtivo, crescimentoPercent]);
 
   useEffect(() => { persistState(); }, [persistState]);
 
@@ -88,32 +100,28 @@ export default function ComparativoRegimes() {
     return calcCPPAnexoIV(folhaMensal);
   }, [anexoEfetivo, folhaMensal]);
 
-  const comparativo = useMemo(() => {
-    const receitaAnual = rbt12;
-    const rm = receitaMensal;
+  function calcComparativo(rm, ra, effAnexo, cppVal) {
     const despesas = rm * (despesasPercent / 100);
     const creditos = rm * (creditosPercent / 100);
     const resultados = [];
 
-    if (receitaAnual <= 81000) {
+    if (ra <= 81000) {
       const r = calcMEI(rm, 'servicos');
       if (r && !r.excedeLimite) resultados.push({ regime: 'MEI', impostoMensal: r.dasFixo, impostoAnual: r.dasAnual, aliquotaEfetiva: r.aliquotaEfetiva, liquidoMensal: rm - r.dasFixo, color: COLORS[0] });
     }
-    if (receitaAnual <= 4800000) {
-      const r = calcSimplesTax(receitaAnual, anexoEfetivo);
+    if (ra <= 4800000) {
+      const r = calcSimplesTax(ra, effAnexo);
       if (r && !r.excedeLimite && !r.migracao) {
         let impostoTotal = r.valorMensal;
-        let label = `Simples (${anexoEfetivo})`;
-        // Add CPP for Anexo IV
-        if (anexoEfetivo === 'IV') {
-          impostoTotal += cppAnexoIV;
+        let label = `Simples (${effAnexo})`;
+        if (effAnexo === 'IV') {
+          impostoTotal += cppVal;
           label += ' + CPP';
         }
-        // Note if Fator R caused annexo change
-        if (anexoEfetivo !== anexo) {
+        if (effAnexo !== anexo) {
           label += ` [Fator R]`;
         }
-        resultados.push({ regime: label, impostoMensal: impostoTotal, impostoAnual: impostoTotal * 12, aliquotaEfetiva: impostoTotal / (receitaAnual / 12), liquidoMensal: (receitaAnual / 12) - impostoTotal, color: COLORS[1] });
+        resultados.push({ regime: label, impostoMensal: impostoTotal, impostoAnual: impostoTotal * 12, aliquotaEfetiva: impostoTotal / (ra / 12), liquidoMensal: (ra / 12) - impostoTotal, color: COLORS[1] });
       }
     }
     const lp = calcLucroPresumido(rm, tipoAtividade, issAliquota / 100);
@@ -123,7 +131,32 @@ export default function ComparativoRegimes() {
 
     resultados.sort((a, b) => a.impostoMensal - b.impostoMensal);
     return resultados;
+  }
+
+  const comparativo = useMemo(() => {
+    return calcComparativo(receitaMensal, rbt12, anexoEfetivo, cppAnexoIV);
   }, [receitaMensal, rbt12, tipoAtividade, anexo, anexoEfetivo, issAliquota, despesasPercent, creditosPercent, cppAnexoIV, folhaMensal]);
+
+  // Growth simulation
+  const comparativoCrescimento = useMemo(() => {
+    if (!crescimentoAtivo) return null;
+    const fator = 1 + crescimentoPercent / 100;
+    const rmCrescido = receitaMensal * fator;
+    const raCrescido = rbt12 * fator;
+
+    // Recalculate Fator R and Anexo Efetivo with new revenue
+    const folha12Crescido = folhaMensal * 12;
+    const fatorRCrescido = raCrescido > 0 ? calcFatorR(folha12Crescido, raCrescido) : 0;
+    const anexoEfetivoCrescido = getAnexoPorFatorR(fatorRCrescido, anexo);
+    const cppCrescido = anexoEfetivoCrescido === 'IV' ? calcCPPAnexoIV(folhaMensal) : 0;
+
+    return calcComparativo(rmCrescido, raCrescido, anexoEfetivoCrescido, cppCrescido);
+  }, [crescimentoAtivo, crescimentoPercent, receitaMensal, rbt12, tipoAtividade, anexo, issAliquota, despesasPercent, creditosPercent, folhaMensal]);
+
+  const regimeMudouComCrescimento = useMemo(() => {
+    if (!comparativoCrescimento || comparativoCrescimento.length === 0 || comparativo.length === 0) return false;
+    return comparativo[0].regime !== comparativoCrescimento[0].regime;
+  }, [comparativo, comparativoCrescimento]);
 
   const evolucao = useMemo(() => {
     return [5000, 10000, 20000, 30000, 50000, 80000, 100000, 150000, 200000, 300000, 400000].map((rm) => {
@@ -189,14 +222,33 @@ export default function ComparativoRegimes() {
   }
 
   function excluirCenario(id) {
+    const idx = cenarios.findIndex(c => c.id === id);
+    if (idx === -1) return;
+    const item = cenarios[idx];
     const updated = cenarios.filter(c => c.id !== id);
     setCenarios(updated);
     saveCenarios(updated);
+    setUndoItem({ item, idx });
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setUndoItem(null), 5000);
+  }
+
+  function handleUndo() {
+    if (undoItem) {
+      setCenarios(prev => {
+        const restored = [...prev.slice(0, undoItem.idx), undoItem.item, ...prev.slice(undoItem.idx)];
+        saveCenarios(restored);
+        return restored;
+      });
+      setUndoItem(null);
+      clearTimeout(undoTimerRef.current);
+    }
   }
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <PageHeader icon={BarChart3} title="Comparar Impostos" description="Descubra qual regime tributário paga menos imposto para esta empresa" />
+      <PageHeader icon={BarChart3} title="Comparar Tributos" description="Descubra qual regime tributário paga menos tributo para esta empresa" />
+      <DisclaimerBanner />
 
       {/* Sublimite warning */}
       {sublimite.mensagem && (
@@ -212,7 +264,7 @@ export default function ComparativoRegimes() {
       <Card>
         <CardBody>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <InputField label="Receita Bruta Mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Faturamento mensal da empresa" />
+            <InputField label="Receita Bruta Mensal" value={receitaMensal} onChange={setReceitaMensal} prefix="R$" step={5000} help="Receita Bruta (Faturamento) mensal da empresa" />
             <InputField label="RBT12 (Faturamento últimos 12 meses)" value={rbt12} onChange={setRbt12} prefix="R$" step={10000} help="Receita Bruta Total acumulada — define a faixa no Simples" />
             <SelectField label="Atividade da empresa" value={tipoAtividade} onChange={setTipoAtividade} options={[
               { value: 'servicos', label: 'Serviços' }, { value: 'comercio', label: 'Comércio' }, { value: 'industria', label: 'Indústria' },
@@ -223,8 +275,8 @@ export default function ComparativoRegimes() {
             ]} />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <InputField label="ISS do município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Imposto municipal da empresa" />
-            <InputField label="Despesas dedutíveis (% do faturamento)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Gastos que abaixam o imposto no L. Real" />
+            {tipoAtividade === 'servicos' && <InputField label="ISS do município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Tributo municipal da empresa" />}
+            <InputField label="Despesas dedutíveis (% do faturamento)" value={despesasPercent} onChange={setDespesasPercent} suffix="%" min={0} max={95} step={5} help="Gastos que abaixam o tributo no L. Real" />
             <InputField label="Créditos de PIS/COFINS (%)" value={creditosPercent} onChange={setCreditosPercent} suffix="%" min={0} max={80} step={5} help="Compras que geram crédito no L. Real" />
             <InputField label="Folha de Pagamento Mensal" value={folhaMensal} onChange={setFolhaMensal} prefix="R$" step={1000} min={0} help="Salários + encargos — usado para CPP (Anexo IV) e Fator R" />
           </div>
@@ -240,7 +292,7 @@ export default function ComparativoRegimes() {
             {showFatorRInfo && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                 <Info size={14} />
-                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (imposto menor)</span>
+                <span>Fator R ≥ 28% → usa Anexo III ao invés do V (tributo menor)</span>
               </div>
             )}
             {anexoEfetivo !== anexo && (
@@ -270,7 +322,7 @@ export default function ComparativoRegimes() {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-slate-400 text-xs">Imposto efetivo</p>
+              <p className="text-slate-400 text-xs">Tributo efetivo</p>
               <p className="text-brand-600 font-bold">{formatPercent(melhor.aliquotaEfetiva)}</p>
             </div>
             <div className="text-right">
@@ -322,19 +374,46 @@ export default function ComparativoRegimes() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Quanto de imposto em cada tipo</h2></CardHeader>
+          <CardHeader><h2 className="text-slate-800 font-medium text-sm">Quanto de tributo em cada tipo</h2></CardHeader>
           <CardBody>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={comparativo} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="regime" tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Tributo Mensal']} />
-                <Bar dataKey="impostoMensal" radius={[4, 4, 0, 0]}>
-                  {comparativo.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div role="img" aria-label="Gráfico: tributo mensal por regime tributário">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={comparativo} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="regime" tick={{ fill: '#64748b', fontSize: 12 }} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={tt} formatter={(v) => [formatCurrency(v), 'Tributo Mensal']} />
+                  <Bar dataKey="impostoMensal" radius={[4, 4, 0, 0]}>
+                    {comparativo.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <details className="mt-2">
+              <summary className="text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                Ver dados em tabela
+              </summary>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="text-left py-1 px-2">Regime</th>
+                      <th className="text-right py-1 px-2">Tributo Mensal</th>
+                      <th className="text-right py-1 px-2">Alíquota Efetiva</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparativo.map((item, i) => (
+                      <tr key={i} className="border-b border-slate-100 dark:border-slate-700">
+                        <td className="py-1 px-2 text-slate-700 dark:text-slate-300">{item.regime}</td>
+                        <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(item.impostoMensal)}</td>
+                        <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{formatPercent(item.aliquotaEfetiva)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
           </CardBody>
         </Card>
 
@@ -372,24 +451,145 @@ export default function ComparativoRegimes() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-slate-800 font-medium text-sm">Alíquota Efetiva (% real de imposto) por Faturamento</h2>
-          <p className="text-slate-400 text-xs mt-0.5">Como o percentual de imposto muda conforme a receita cresce</p>
+          <h2 className="text-slate-800 font-medium text-sm">Alíquota Efetiva (% real de tributo) por Receita Bruta (Faturamento)</h2>
+          <p className="text-slate-400 text-xs mt-0.5">Como o percentual de tributo muda conforme a receita cresce</p>
         </CardHeader>
         <CardBody>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={evolucao} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="receita" tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${v.toFixed(0)}%`} />
-              <Tooltip contentStyle={tt} formatter={(v) => [`${v.toFixed(2)}%`, '']} labelFormatter={(v) => `Receita: ${formatCurrency(v)}/mês`} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Line type="monotone" dataKey="MEI" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
-              <Line type="monotone" dataKey={evolucaoAnexoKey} stroke={COLORS[1]} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
-              <Line type="monotone" dataKey="L. Presumido" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="L. Real" stroke={COLORS[3]} strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div role="img" aria-label="Gráfico: alíquota efetiva por receita bruta mensal em cada regime">
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={evolucao} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="receita" tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${v.toFixed(1)}%`} />
+                <Tooltip contentStyle={tt} formatter={(v) => [`${v.toFixed(1)}%`, '']} labelFormatter={(v) => `Receita: ${formatCurrency(v)}/mês`} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="MEI" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+                <Line type="monotone" dataKey={evolucaoAnexoKey} stroke={COLORS[1]} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+                <Line type="monotone" dataKey="L. Presumido" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="L. Real" stroke={COLORS[3]} strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <details className="mt-2">
+            <summary className="text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+              Ver dados em tabela
+            </summary>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="text-left py-1 px-2">Receita</th>
+                    <th className="text-right py-1 px-2">MEI</th>
+                    <th className="text-right py-1 px-2">{evolucaoAnexoKey}</th>
+                    <th className="text-right py-1 px-2">L. Presumido</th>
+                    <th className="text-right py-1 px-2">L. Real</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evolucao.map((row, i) => (
+                    <tr key={i} className="border-b border-slate-100 dark:border-slate-700">
+                      <td className="py-1 px-2 text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(row.receita)}</td>
+                      <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{row.MEI != null ? `${row.MEI.toFixed(1)}%` : '-'}</td>
+                      <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{row[evolucaoAnexoKey] != null ? `${row[evolucaoAnexoKey].toFixed(1)}%` : '-'}</td>
+                      <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{row['L. Presumido'] != null ? `${row['L. Presumido'].toFixed(1)}%` : '-'}</td>
+                      <td className="py-1 px-2 text-right text-slate-700 dark:text-slate-300 font-mono">{row['L. Real'] != null ? `${row['L. Real'].toFixed(1)}%` : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </CardBody>
+      </Card>
+
+      {/* Growth simulation */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+              <TrendingUp size={14} className="text-slate-400" />
+              Simular crescimento
+            </h2>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={crescimentoAtivo}
+                onChange={(e) => setCrescimentoAtivo(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              />
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Ativar</span>
+            </label>
+          </div>
+        </CardHeader>
+        {crescimentoAtivo && (
+          <CardBody className="space-y-4">
+            <div className="flex items-end gap-4">
+              <SelectField
+                label="Percentual de crescimento"
+                value={crescimentoPercent}
+                onChange={(v) => setCrescimentoPercent(Number(v))}
+                options={[
+                  { value: 10, label: '10%' },
+                  { value: 20, label: '20%' },
+                  { value: 30, label: '30%' },
+                  { value: 50, label: '50%' },
+                  { value: 100, label: '100%' },
+                ]}
+              />
+              <div className="pb-1">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  Receita projetada: {formatCurrency(receitaMensal * (1 + crescimentoPercent / 100))}/mês
+                  ({formatCurrency(rbt12 * (1 + crescimentoPercent / 100))}/ano)
+                </p>
+              </div>
+            </div>
+
+            {regimeMudouComCrescimento && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={16} />
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  O regime mais vantajoso <strong>muda</strong> com o crescimento: de <strong>{comparativo[0]?.regime}</strong> para <strong>{comparativoCrescimento[0]?.regime}</strong>.
+                </p>
+              </div>
+            )}
+
+            {comparativoCrescimento && comparativoCrescimento.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Current */}
+                <div>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Atual ({formatCurrency(receitaMensal)}/mês)</p>
+                  <div className="space-y-1.5">
+                    {comparativo.map((item, i) => (
+                      <div key={i} className={`flex items-center justify-between p-2.5 rounded-md border ${i === 0 ? 'border-brand-200 dark:border-brand-700 bg-brand-50/50 dark:bg-brand-950/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-5 h-5 rounded text-[10px] flex items-center justify-center font-semibold ${i === 0 ? 'bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>{i + 1}</span>
+                          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{item.regime}</span>
+                        </div>
+                        <span className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">{formatCurrency(item.impostoMensal)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* With growth */}
+                <div>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Com crescimento de {crescimentoPercent}% ({formatCurrency(receitaMensal * (1 + crescimentoPercent / 100))}/mês)</p>
+                  <div className="space-y-1.5">
+                    {comparativoCrescimento.map((item, i) => (
+                      <div key={i} className={`flex items-center justify-between p-2.5 rounded-md border ${i === 0 ? 'border-emerald-200 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-5 h-5 rounded text-[10px] flex items-center justify-center font-semibold ${i === 0 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>{i + 1}</span>
+                          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{item.regime}</span>
+                        </div>
+                        <span className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">{formatCurrency(item.impostoMensal)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardBody>
+        )}
       </Card>
 
       {/* Saved Scenarios */}
@@ -426,7 +626,7 @@ export default function ComparativoRegimes() {
                       <FolderOpen size={16} />
                     </button>
                     <button
-                      onClick={() => excluirCenario(cenario.id)}
+                      onClick={() => setDeleteConfirm({ open: true, id: cenario.id, nome: cenario.nome })}
                       className="p-1.5 text-red-400 hover:bg-red-50 rounded-md transition-colors"
                       title="Excluir cenário"
                     >
@@ -438,6 +638,35 @@ export default function ComparativoRegimes() {
             </div>
           </CardBody>
         </Card>
+      )}
+
+      {/* Empty state when no results */}
+      {comparativo.length === 0 && (
+        <Card className="flex items-center justify-center h-40">
+          <div className="text-center">
+            <Calculator size={32} className="text-slate-300 mx-auto mb-2" />
+            <p className="text-slate-400 text-sm">Nenhum regime disponível para os parâmetros informados.</p>
+            <p className="text-slate-400 text-xs mt-1">Ajuste a receita ou o RBT12 para ver os resultados.</p>
+          </div>
+        </Card>
+      )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.open}
+        title="Excluir cenário?"
+        message={`Excluir "${deleteConfirm.nome}"?`}
+        confirmLabel="Excluir"
+        onConfirm={() => { excluirCenario(deleteConfirm.id); setDeleteConfirm({ open: false, id: null, nome: '' }); }}
+        onCancel={() => setDeleteConfirm({ open: false, id: null, nome: '' })}
+      />
+
+      {undoItem && (
+        <div className="fixed bottom-4 right-4 z-50 bg-slate-800 dark:bg-slate-700 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fadeIn">
+          <span className="text-sm">Item excluído.</span>
+          <button onClick={handleUndo} className="text-sm font-medium text-brand-400 hover:text-brand-300">
+            Desfazer
+          </button>
+        </div>
       )}
     </div>
   );

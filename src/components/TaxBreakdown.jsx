@@ -214,7 +214,7 @@ export function TaxBreakdown({
           Breakdown Tributário por NCM
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Impostos específicos para NCM {ncm} no regime {regime}
+          Tributos específicos para NCM {ncm} no regime {regime}
         </p>
       </CardHeader>
       
@@ -229,7 +229,7 @@ export function TaxBreakdown({
                 </span>
               </TermoTecnico>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Percentual real de impostos sobre a receita
+                Percentual real de tributos sobre a receita
               </p>
             </div>
             <div className="text-right">
@@ -237,18 +237,18 @@ export function TaxBreakdown({
                 {formatPercent(taxCalculation.aliquotaEfetiva)}
               </div>
               <div className="text-sm text-slate-600 dark:text-slate-400">
-                {formatCurrency(taxCalculation.total)} de impostos
+                {formatCurrency(taxCalculation.total)} de tributos
               </div>
             </div>
           </div>
         </div>
 
-        {/* Impostos Federais */}
+        {/* Tributos Federais */}
         {taxCalculation.federal.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              Impostos Federais
+              Tributos Federais
             </h4>
             <div className="space-y-2">
               {taxCalculation.federal.map((imposto, index) => (
@@ -277,12 +277,12 @@ export function TaxBreakdown({
           </div>
         )}
 
-        {/* Impostos Estaduais */}
+        {/* Tributos Estaduais */}
         {taxCalculation.estadual.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              Impostos Estaduais
+              Tributos Estaduais
             </h4>
             <div className="space-y-2">
               {taxCalculation.estadual.map((imposto, index) => (
@@ -306,12 +306,12 @@ export function TaxBreakdown({
           </div>
         )}
 
-        {/* Impostos Municipais */}
+        {/* Tributos Municipais */}
         {taxCalculation.municipal.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              Impostos Municipais
+              Tributos Municipais
             </h4>
             <div className="space-y-2">
               {taxCalculation.municipal.map((imposto, index) => (

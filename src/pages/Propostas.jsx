@@ -1,64 +1,81 @@
-import { useState, useRef, useEffect } from 'react';
-import { FileText, Download, Plus, Trash2, Building, User } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { FileText, Download, Plus, Trash2, Building, User, Save, Upload } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { formatCurrency } from '../data/taxData';
+import PageHeader from '../components/PageHeader';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function Propostas() {
-  const [empresa, setEmpresa] = useState({
-    nome: '',
-    cnpj: '',
-    responsavel: '',
-    telefone: '',
-    email: '',
-    segmento: 'comercio',
+  const [state, setState] = useLocalStorage('precificalc_propostas', {
+    empresa: { nome: '', cnpj: '', responsavel: '', telefone: '', email: '', segmento: 'comercio' },
+    cliente: { nome: '', cnpj: '', contato: '', email: '' },
+    itens: [
+      { id: 1, produto: 'Produto/Serviço A', descricao: 'Descrição detalhada do item', quantidade: 10, valorUnitario: 250, tipo: 'produto' },
+      { id: 2, produto: 'Produto/Serviço B', descricao: 'Descrição detalhada do item', quantidade: 5, valorUnitario: 500, tipo: 'produto' },
+      { id: 3, produto: 'Serviço de instalação', descricao: 'Instalação e configuração', quantidade: 1, valorUnitario: 1500, tipo: 'servico' },
+    ],
+    desconto: 0, validade: 15, condicaoPagamento: '30dias',
+    observacoes: 'Valores sujeitos a alteração sem aviso prévio.\nFrete não incluso, cotado separadamente.\nGarantia conforme especificações de cada produto.',
   });
-
-  const [cliente, setCliente] = useState({
-    nome: '',
-    cnpj: '',
-    contato: '',
-    email: '',
-  });
-
-  const [itens, setItens] = useState([
-    { id: 1, produto: 'Produto/Serviço A', descricao: 'Descrição detalhada do item', quantidade: 10, valorUnitario: 250, tipo: 'produto' },
-    { id: 2, produto: 'Produto/Serviço B', descricao: 'Descrição detalhada do item', quantidade: 5, valorUnitario: 500, tipo: 'produto' },
-    { id: 3, produto: 'Serviço de instalação', descricao: 'Instalação e configuração', quantidade: 1, valorUnitario: 1500, tipo: 'servico' },
-  ]);
-
-  const [desconto, setDesconto] = useState(0);
-  const [validade, setValidade] = useState(15);
-  const [condicaoPagamento, setCondicaoPagamento] = useState('30dias');
-  const [observacoes, setObservacoes] = useState(
-    'Valores sujeitos a alteração sem aviso prévio.\nFrete não incluso, cotado separadamente.\nGarantia conforme especificações de cada produto.'
-  );
+  const { empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes } = state;
+  const setEmpresa = (v) => setState(prev => ({ ...prev, empresa: typeof v === 'function' ? v(prev.empresa) : v }));
+  const setCliente = (v) => setState(prev => ({ ...prev, cliente: typeof v === 'function' ? v(prev.cliente) : v }));
+  const setItens = (v) => setState(prev => ({ ...prev, itens: typeof v === 'function' ? v(prev.itens) : v }));
+  const setDesconto = (v) => setState(prev => ({ ...prev, desconto: v }));
+  const setValidade = (v) => setState(prev => ({ ...prev, validade: v }));
+  const setCondicaoPagamento = (v) => setState(prev => ({ ...prev, condicaoPagamento: v }));
+  const setObservacoes = (v) => setState(prev => ({ ...prev, observacoes: v }));
 
   const previewRef = useRef(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null, nome: '' });
 
-  // Load saved data from localStorage on mount
+  // Undo toast state
+  const [undoItem, setUndoItem] = useState(null);
+  const undoTimerRef = useRef(null);
+
+  // ─── Draft System ─────────────────────────────────────────
+  const DRAFTS_KEY = 'precificalc_propostas_rascunhos';
+  const MAX_DRAFTS = 10;
+
+  const [rascunhos, setRascunhos] = useState([]);
+
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('precificalc_propostas');
-      if (saved) {
-        const d = JSON.parse(saved);
-        if (d.empresa) setEmpresa(d.empresa);
-        if (d.cliente) setCliente(d.cliente);
-        if (d.itens && d.itens.length > 0) setItens(d.itens);
-        if (d.desconto !== undefined) setDesconto(d.desconto);
-        if (d.validade !== undefined) setValidade(d.validade);
-        if (d.condicaoPagamento) setCondicaoPagamento(d.condicaoPagamento);
-        if (d.observacoes !== undefined) setObservacoes(d.observacoes);
-      }
-    } catch { /* ignore */ }
+      const raw = localStorage.getItem(DRAFTS_KEY);
+      if (raw) setRascunhos(JSON.parse(raw));
+    } catch { /* empty */ }
   }, []);
 
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('precificalc_propostas', JSON.stringify({
-      empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes,
-    }));
-  }, [empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes]);
+  function saveDraftsToStorage(drafts) {
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+    setRascunhos(drafts);
+  }
+
+  function salvarRascunho() {
+    const draft = {
+      id: Date.now(),
+      data: new Date().toLocaleDateString('pt-BR'),
+      timestamp: Date.now(),
+      nome: cliente.nome || empresa.nome || 'Rascunho',
+      state: { empresa, cliente, itens, desconto, validade, condicaoPagamento, observacoes },
+    };
+    let updated = [draft, ...rascunhos];
+    if (updated.length > MAX_DRAFTS) {
+      updated = updated.slice(0, MAX_DRAFTS);
+    }
+    saveDraftsToStorage(updated);
+  }
+
+  function carregarRascunho(draft) {
+    setState(prev => ({ ...prev, ...draft.state }));
+  }
+
+  function excluirRascunho(id) {
+    const updated = rascunhos.filter(r => r.id !== id);
+    saveDraftsToStorage(updated);
+  }
 
   const subtotal = itens.reduce((s, i) => s + (i.quantidade * i.valorUnitario), 0);
   const descontoValor = subtotal * (desconto / 100);
@@ -69,7 +86,22 @@ export default function Propostas() {
   }
 
   function removeItem(id) {
+    const idx = itens.findIndex(i => i.id === id);
+    if (idx !== -1) {
+      const item = itens[idx];
+      setUndoItem({ item, idx });
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = setTimeout(() => setUndoItem(null), 5000);
+    }
     setItens(itens.filter(i => i.id !== id));
+  }
+
+  function handleUndo() {
+    if (undoItem) {
+      setItens(prev => [...prev.slice(0, undoItem.idx), undoItem.item, ...prev.slice(undoItem.idx)]);
+      setUndoItem(null);
+      clearTimeout(undoTimerRef.current);
+    }
   }
 
   function updateItem(id, field, value) {
@@ -127,13 +159,7 @@ export default function Propostas() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <FileText className="text-brand-600" size={22} />
-          Gerador de Propostas Comerciais
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Crie propostas comerciais de produtos e serviços para enviar aos clientes</p>
-      </div>
+      <PageHeader icon={FileText} title="Gerador de Propostas Comerciais" description="Crie propostas comerciais de produtos e serviços para enviar aos clientes" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Dados da Empresa */}
@@ -220,7 +246,7 @@ export default function Propostas() {
                     {formatCurrency(item.quantidade * item.valorUnitario)}
                   </td>
                   <td className="px-4 py-2">
-                    <button onClick={() => removeItem(item.id)} className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors">
+                    <button onClick={() => setDeleteConfirm({ open: true, id: item.id, nome: item.produto || 'Item' })} className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </td>
@@ -269,12 +295,52 @@ export default function Propostas() {
         </CardBody>
       </Card>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        <button onClick={salvarRascunho}
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm">
+          <Save size={16} /> Salvar como Rascunho
+        </button>
         <button onClick={printProposta}
           className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-md font-medium hover:bg-brand-700 transition-colors">
           <Download size={16} /> Gerar PDF / Imprimir
         </button>
       </div>
+
+      {/* Rascunhos Salvos */}
+      {rascunhos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+              <Save size={16} className="text-slate-400" />
+              Rascunhos salvos ({rascunhos.length}/{MAX_DRAFTS})
+            </h2>
+          </CardHeader>
+          <div className="divide-y divide-slate-100 dark:divide-slate-700">
+            {rascunhos.map(draft => (
+              <div key={draft.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{draft.nome || 'Rascunho'}</p>
+                  <p className="text-xs text-slate-400">{draft.data}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => carregarRascunho(draft)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
+                  >
+                    <Upload size={12} /> Carregar
+                  </button>
+                  <button
+                    onClick={() => excluirRascunho(draft.id)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    <Trash2 size={12} /> Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Hidden Print Preview */}
       <div className="hidden">
@@ -369,6 +435,24 @@ export default function Propostas() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.open}
+        title="Excluir item?"
+        message={`Excluir "${deleteConfirm.nome}"?`}
+        confirmLabel="Excluir"
+        onConfirm={() => { removeItem(deleteConfirm.id); setDeleteConfirm({ open: false, id: null, nome: '' }); }}
+        onCancel={() => setDeleteConfirm({ open: false, id: null, nome: '' })}
+      />
+
+      {undoItem && (
+        <div className="fixed bottom-4 right-4 z-50 bg-slate-800 dark:bg-slate-700 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fadeIn">
+          <span className="text-sm">Item excluído.</span>
+          <button onClick={handleUndo} className="text-sm font-medium text-brand-400 hover:text-brand-300">
+            Desfazer
+          </button>
+        </div>
+      )}
     </div>
   );
 }

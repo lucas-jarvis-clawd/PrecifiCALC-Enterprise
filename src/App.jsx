@@ -24,6 +24,7 @@ import {
   LazyCalendarioFiscal,
   LazyEnquadramento,
   LazyProjecaoCrescimento,
+  LazyOtimizadorProLabore,
 } from './components/LazyPages';
 
 // Responsive hook with performance optimization
@@ -122,6 +123,7 @@ const App = memo(() => {
       enquadramento: '/enquadramento',
       relatorios: '/relatorios',
       configuracoes: '/configuracoes',
+      'otimizador-prolabore': '/otimizador-prolabore',
     };
 
     const targetRoute = routeMap[pageId] || '/';
@@ -225,6 +227,12 @@ const App = memo(() => {
   return (
     <StrictMode>
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg"
+        >
+          Pular para o conteudo
+        </a>
         <Sidebar
           isOpen={sidebarOpen}
           onToggle={handleSidebarToggle}
@@ -233,7 +241,7 @@ const App = memo(() => {
           onMobileClose={handleMobileMenuClose}
         />
 
-        <main className={`flex-1 overflow-y-auto transition-all duration-200 ${mainMarginClass}`}>
+        <main id="main-content" className={`flex-1 overflow-y-auto transition-all duration-200 ${mainMarginClass}`}>
 
           {isMobile && (
             <div className="sticky top-0 z-30 glass border-b border-slate-200 dark:border-slate-700 px-4 h-14 flex items-center gap-3 shadow-sm safe-top">
@@ -386,7 +394,15 @@ const App = memo(() => {
                   />
                 }
               />
-
+              <Route
+                path="/otimizador-prolabore"
+                element={
+                  <LazyOtimizadorProLabore
+                    onNavigate={handleNavigate}
+                    perfilEmpresa={perfilEmpresa}
+                  />
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>

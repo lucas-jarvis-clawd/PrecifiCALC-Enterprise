@@ -25,3 +25,6 @@ dist-ssr
 
 nul
 
+# Archives and backups
+*.tar.gz
+*.backup

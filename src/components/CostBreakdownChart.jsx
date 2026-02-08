@@ -18,7 +18,8 @@ const COLORS = [
  * @param {number} total - total reference value (e.g., receita)
  * @param {string} title - optional heading
  */
-export default function CostBreakdownChart({ items, total, title, className = '' }) {
+export default function CostBreakdownChart({ items, total, title, className = '', formatValue }) {
+  const fmt = formatValue || formatCurrency;
   const processedItems = useMemo(() => {
     if (!items || items.length === 0) return [];
     const t = total || items.reduce((acc, i) => acc + Math.abs(i.value || 0), 0);
@@ -48,11 +49,11 @@ export default function CostBreakdownChart({ items, total, title, className = ''
             key={i}
             className={`${item.color.bg} flex items-center justify-center transition-all duration-500 relative group cursor-default`}
             style={{ width: `${item.percent}%` }}
-            title={`${item.label}: ${formatCurrency(item.value)} (${item.percent.toFixed(1)}%)`}
+            title={`${item.label}: ${fmt(item.value)} (${item.percent.toFixed(1)}%)`}
           >
             {item.percent > 8 && (
               <span className="text-[10px] sm:text-xs font-medium text-white truncate px-1">
-                {item.percent.toFixed(0)}%
+                {item.percent.toFixed(1)}%
               </span>
             )}
           </div>
@@ -69,7 +70,7 @@ export default function CostBreakdownChart({ items, total, title, className = ''
             </div>
             <div className="text-right flex-shrink-0">
               <span className={`text-xs font-semibold ${item.color.text} font-mono`}>
-                {formatCurrency(item.value)}
+                {fmt(item.value)}
               </span>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">
                 ({item.percent.toFixed(1)}%)
@@ -79,8 +80,8 @@ export default function CostBreakdownChart({ items, total, title, className = ''
         ))}
       </div>
 
-      {/* "Para cada R$1,00" breakdown */}
-      {total && total > 0 && (
+      {/* "Para cada R$1,00" breakdown - only in currency mode */}
+      {!formatValue && total && total > 0 && (
         <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
             Para cada R$ 1,00 de receita:

@@ -60,7 +60,7 @@ export default function PoliticaPrivacidade({ onBack }) {
               <li>Nome da empresa</li>
               <li>CNPJ (opcional)</li>
               <li>Regime tributário</li>
-              <li>Faturamento e custos estimados</li>
+              <li>Receita Bruta (Faturamento) e custos estimados</li>
               <li>Atividade econômica</li>
               <li>Dados de produtos e serviços para precificação</li>
             </ul>

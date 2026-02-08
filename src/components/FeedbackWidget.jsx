@@ -92,13 +92,16 @@ export default function FeedbackWidget() {
       {/* Panel */}
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
         className={`fixed bottom-20 right-5 z-[90] w-[340px] max-h-[480px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 ${
           isOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
         }`}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-4 text-white">
-          <h3 className="font-bold text-sm">
+          <h3 id="feedback-title" className="font-bold text-sm">
             {step === 'type' && 'Como podemos melhorar?'}
             {step === 'form' && `${FEEDBACK_TYPES.find(t => t.id === feedbackType)?.label || 'Feedback'}`}
             {step === 'rating' && 'Avalie sua experiência'}
@@ -225,7 +228,7 @@ export default function FeedbackWidget() {
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {rating === 0 && 'Toque nas estrelas para avaliar'}
-                {rating === 1 && 'Vamos melhorar.'}
+                {rating === 1 && 'Agradecemos o retorno.'}
                 {rating === 2 && 'Entendido, temos trabalho a fazer.'}
                 {rating === 3 && 'Razoável, mas pode melhorar.'}
                 {rating === 4 && 'Muito bom. Obrigado.'}

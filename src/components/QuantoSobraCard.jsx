@@ -6,7 +6,7 @@ import { formatCurrency } from '../data/taxData';
  * "QUANTO SOBRA NO BOLSO" — Giant card showing the entrepreneur's real net profit.
  * Reads data from localStorage (simulador, custos, precificacao) and calculates.
  */
-export default function QuantoSobraCard({ perfilEmpresa }) {
+export default function QuantoSobraCard({ perfilEmpresa, onNavigate }) {
   const [dados, setDados] = useState(null);
 
   useEffect(() => {
@@ -96,10 +96,18 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
         <div className="text-center">
           <span className="text-4xl"></span>
           <h3 className="text-lg font-bold text-slate-600 mt-2">Lucro Líquido do Empresário</h3>
-          <p className="text-slate-400 text-xs mt-0.5">(Quanto sobra para a empresa após todos os gastos e impostos)</p>
+          <p className="text-slate-400 text-xs mt-0.5">(Resultado líquido após todos os custos e tributos)</p>
           <p className="text-slate-500 text-sm mt-2">
             Use o botão <strong>"Calcular Preço"</strong> para descobrir
           </p>
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('precificacao')}
+              className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline transition-colors"
+            >
+              Ir para Precificação &rarr;
+            </button>
+          )}
         </div>
       </div>
     );
@@ -128,7 +136,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
             Lucro Líquido do Empresário
           </h3>
           <p className="text-[10px] text-slate-500">
-            (Quanto sobra para a empresa após todos os gastos e impostos)
+            (Resultado líquido após todos os custos e tributos)
           </p>
         </div>
       </div>
@@ -186,7 +194,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
             <div
               className="bg-red-400 flex items-center justify-center"
               style={{ width: `${(dados.impostos / dados.faturamentoMensal) * 100}%` }}
-              title={`Impostos: ${formatCurrency(dados.impostos)}`}
+              title={`Tributos: ${formatCurrency(dados.impostos)}`}
             />
           )}
           <div
@@ -198,7 +206,7 @@ export default function QuantoSobraCard({ perfilEmpresa }) {
         <div className="flex items-center gap-4 mt-2 text-xs">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400" /> Fixos</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> Variáveis</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> Impostos</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> Tributos</span>
           <span className="flex items-center gap-1">
             <span className={`w-2 h-2 rounded-full ${isPositive ? 'bg-emerald-500' : 'bg-red-500'}`} />
             {isPositive ? 'Lucro' : 'Prejuízo'}

@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import {
-  Tags, BarChart3, Wallet, Target, Scale, ArrowRight, TrendingUp,
-  AlertTriangle, Zap, DollarSign, Clock, ShoppingBag, Calculator,
-} from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Search } from 'lucide-react';
 import { Card, CardBody } from '../components/Card';
-import { formatCurrency } from '../data/taxData';
+import { formatCurrency, formatPercent, simplesNacional } from '../data/taxData';
 import QuantoSobraCard from '../components/QuantoSobraCard';
 import WizardPrecificar from '../components/WizardPrecificar';
+import PageHeader from '../components/PageHeader';
+import HistoricoCalcMensal from '../components/HistoricoCalcMensal';
 
 function useLimitAlerts() {
   const [alerts, setAlerts] = useState([]);
@@ -32,6 +31,31 @@ function useLimitAlerts() {
             msg: `O faturamento anual da empresa (${formatCurrency(receitaAnual)}) está chegando ao limite do Simples (R$ 4,8 milhões). Avalie a transição para Lucro Presumido.`,
             emoji: '',
           });
+        }
+        // Faixa change alert for Simples Nacional
+        if (regime === 'simples' && d.rbt12) {
+          const rbt12 = d.rbt12;
+          const anexo = d.anexo || 'III';
+          const anexoData = simplesNacional.anexos[anexo];
+          if (anexoData) {
+            const faixas = anexoData.faixas;
+            const currentFaixa = faixas.find(f => rbt12 >= f.de && rbt12 <= f.ate);
+            if (currentFaixa) {
+              const idx = faixas.indexOf(currentFaixa);
+              if (idx < faixas.length - 1) {
+                const distancia = currentFaixa.ate - rbt12;
+                const threshold = currentFaixa.ate * 0.10;
+                if (distancia <= threshold) {
+                  const nextFaixa = faixas[idx + 1];
+                  result.push({
+                    tipo: 'warning',
+                    msg: `Atenção: mais ${formatCurrency(distancia)} de receita bruta e a empresa muda para a faixa ${idx + 2} do ${anexoData.nome} (alíquota nominal de ${formatPercent(nextFaixa.aliquota)}).`,
+                    emoji: '',
+                  });
+                }
+              }
+            }
+          }
         }
       }
       const dre = localStorage.getItem('precificalc_dre');
@@ -62,6 +86,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
   const alerts = useLimitAlerts();
   const [showWizard, setShowWizard] = useState(false);
   const [nomeEmpresa, setNomeEmpresa] = useState('');
+  const [moduleBusca, setModuleBusca] = useState('');
 
   useEffect(() => {
     try {
@@ -91,8 +116,8 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
     {
       id: 'comparativo',
       emoji: '',
-      title: 'Comparar Impostos',
-      desc: 'Qual regime tributário paga menos imposto?',
+      title: 'Comparar Tributos',
+      desc: 'Qual regime tributário paga menos tributo?',
       action: () => onNavigate('comparativo'),
     },
     {
@@ -110,9 +135,9 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
     { id: 'viabilidade', emoji: '', title: 'Viabilidade do Negócio', desc: 'ROI, payback e projeção do investimento' },
     { id: 'dre', emoji: '', title: 'Resultado Mensal (DRE)', desc: 'Quanto entrou, quanto saiu, quanto sobrou no negócio' },
     { id: 'enquadramento', emoji: '', title: 'Melhor Regime Tributário', desc: 'MEI, Simples, Presumido ou Real — qual se encaixa?' },
-    { id: 'simulador', emoji: '', title: 'Simular Impostos', desc: 'Calcule a carga tributária em cada regime' },
+    { id: 'simulador', emoji: '', title: 'Simular Tributos', desc: 'Calcule a carga tributária em cada regime' },
     { id: 'propostas', emoji: '', title: 'Criar Proposta', desc: 'Monte uma proposta comercial profissional' },
-    { id: 'calendario', emoji: '', title: 'Calendário Fiscal', desc: 'Datas de pagamento de impostos e obrigações' },
+    { id: 'calendario', emoji: '', title: 'Calendário Fiscal', desc: 'Datas de pagamento de tributos e obrigações' },
   ];
 
   return (
@@ -122,19 +147,11 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
         <WizardPrecificar onClose={() => setShowWizard(false)} onNavigate={onNavigate} />
       )}
 
-      {/* Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              {nomeEmpresa ? `Olá, ${nomeEmpresa}` : 'Bem-vindo ao PrecifiCALC'}
-            </h1>
-            <p className="text-slate-500 mt-1">
-              Ferramenta completa para precificar produtos e serviços da empresa
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={LayoutDashboard}
+        title={nomeEmpresa ? `Olá, ${nomeEmpresa}` : 'Bem-vindo ao PrecifiCALC'}
+        description="Ferramenta completa para precificar produtos e serviços da empresa"
+      />
 
       {/* Alerts */}
       {alerts.length > 0 && (
@@ -156,10 +173,10 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
       )}
 
       {/* QUANTO SOBRA NO BOLSO - The star of the show */}
-      <QuantoSobraCard perfilEmpresa={perfilEmpresa} />
+      <QuantoSobraCard perfilEmpresa={perfilEmpresa} onNavigate={onNavigate} />
 
       {/* Quick Actions - Big buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickActions.map((action) => (
           <button
             key={action.id}
@@ -168,7 +185,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
           >
             {action.highlight && (
               <div className="absolute -top-2 -right-2 bg-[#001a2d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                Comecar aqui
+                Começar aqui
               </div>
             )}
             <span className="text-3xl block mb-2">{action.emoji}</span>
@@ -183,21 +200,52 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
 
       {/* Other modules */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">Mais ferramentas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {modules.map((mod) => (
-            <button
-              key={mod.id}
-              onClick={() => onNavigate(mod.id)}
-              className="text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-[#1e3a5f] hover:shadow-md transition-all group"
-            >
-              <span className="text-2xl block mb-2">{mod.emoji}</span>
-              <h3 className="text-[#1a2332] font-semibold text-sm mb-1 group-hover:text-[#1e3a5f]">{mod.title}</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">{mod.desc}</p>
-            </button>
-          ))}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Mais ferramentas</h2>
+          <div className="relative">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={moduleBusca}
+              onChange={(e) => setModuleBusca(e.target.value)}
+              placeholder="Buscar modulo..."
+              className="w-48 pl-8 pr-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+            />
+          </div>
         </div>
+        {(() => {
+          const filteredModules = modules.filter(mod => {
+            if (!moduleBusca) return true;
+            const q = moduleBusca.toLowerCase();
+            return mod.title.toLowerCase().includes(q) || mod.desc.toLowerCase().includes(q);
+          });
+          if (filteredModules.length === 0) {
+            return (
+              <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
+                Nenhum modulo encontrado.
+              </div>
+            );
+          }
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {filteredModules.map((mod) => (
+                <button
+                  key={mod.id}
+                  onClick={() => onNavigate(mod.id)}
+                  className="text-left bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-[#1e3a5f] hover:shadow-md transition-all group"
+                >
+                  <span className="text-2xl block mb-2">{mod.emoji}</span>
+                  <h3 className="text-[#1a2332] dark:text-slate-200 font-semibold text-sm mb-1 group-hover:text-[#1e3a5f]">{mod.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">{mod.desc}</p>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
       </div>
+
+      {/* Historico Mensal */}
+      <HistoricoCalcMensal />
 
       {/* Simple regime summary - no jargon */}
       <Card>
@@ -210,8 +258,8 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
             <thead>
               <tr className="border-b border-slate-100">
                 <th className="text-left px-5 py-3">Tipo</th>
-                <th className="text-left px-5 py-3">Faturamento máximo/ano</th>
-                <th className="text-left px-5 py-3">Imposto aproximado</th>
+                <th className="text-left px-5 py-3">Receita Bruta (Faturamento) máximo/ano</th>
+                <th className="text-left px-5 py-3">Tributo aproximado</th>
                 <th className="text-left px-5 py-3">Pra quem é</th>
               </tr>
             </thead>
@@ -226,7 +274,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
                 <td className="px-5 py-3 text-[#1a2332] font-semibold">Simples Nacional</td>
                 <td className="px-5 py-3">R$ 4,8 milhões</td>
                 <td className="px-5 py-3 text-[#1e3a5f] font-medium">4% a 33% do faturamento</td>
-                <td className="px-5 py-3">Maioria dos pequenos negócios, imposto numa guia só</td>
+                <td className="px-5 py-3">Maioria dos pequenos negócios, tributo numa guia só</td>
               </tr>
               <tr className="hover:bg-slate-50">
                 <td className="px-5 py-3 text-[#1a2332] font-semibold">Lucro Presumido</td>

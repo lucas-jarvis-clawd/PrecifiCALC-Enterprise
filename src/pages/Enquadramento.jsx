@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { UserCheck, CheckCircle2, XCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
-import { formatCurrency } from '../data/taxData';
+import { formatCurrency, calcSimplesTax } from '../data/taxData';
+import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 
 const atividadeOptions = [
   { value: 'comercio', label: 'Comércio' },
@@ -29,7 +31,7 @@ function scoreRegimes({ receitaAnual, atividade, numSocios, numFuncionarios, fol
       pros.push('Dentro do limite de faturamento (R$ 81.000/ano)');
     } else {
       score -= 100;
-      contras.push('Faturamento excede o limite MEI');
+      contras.push('Receita Bruta (Faturamento) excede o limite MEI');
     }
     if (numSocios <= 1) {
       score += 15;
@@ -81,7 +83,7 @@ function scoreRegimes({ receitaAnual, atividade, numSocios, numFuncionarios, fol
       pros.push('Dentro do limite do Simples Nacional (R$ 4,8 milhões/ano)');
     } else {
       score -= 100;
-      contras.push('Faturamento excede o limite do Simples Nacional');
+      contras.push('Receita Bruta (Faturamento) excede o limite do Simples Nacional');
     }
 
     if (receitaAnual <= 360000) {
@@ -136,7 +138,7 @@ function scoreRegimes({ receitaAnual, atividade, numSocios, numFuncionarios, fol
       pros.push('Dentro do limite do Lucro Presumido (R$ 78 milhões/ano)');
     } else {
       score -= 100;
-      contras.push('Faturamento excede o limite do Lucro Presumido');
+      contras.push('Receita Bruta (Faturamento) excede o limite do Lucro Presumido');
     }
 
     if (margemLucro > 30) {
@@ -280,20 +282,50 @@ export default function Enquadramento() {
 
   const melhor = resultados[0];
 
+  // --- MEI → Simples Transition Simulator ---
+  const [receitaMei, setReceitaMei] = useState(60000);
+  const [crescimentoMei, setCrescimentoMei] = useState(15);
+
+  const transicaoMei = useMemo(() => {
+    if (!permiteMei) return [];
+    const LIMITE_MEI = 81000;
+    const LIMITE_EXCESSO = 97200; // 20% above
+    const rows = [];
+    for (let ano = 1; ano <= 3; ano++) {
+      const receitaProjetada = receitaMei * Math.pow(1 + crescimentoMei / 100, ano);
+      let regime = 'MEI';
+      let observacao = 'Dentro do limite MEI';
+
+      if (receitaProjetada > LIMITE_EXCESSO) {
+        regime = 'Simples Nacional';
+        observacao = 'Ultrapassou 20% do limite \u2014 multa proporcional + Simples retroativo';
+      } else if (receitaProjetada > LIMITE_MEI) {
+        regime = 'Simples Nacional';
+        observacao = 'Desenquadra do MEI';
+      }
+
+      let estimativaSimplesAnual = 0;
+      if (receitaProjetada > LIMITE_MEI) {
+        const result = calcSimplesTax(receitaProjetada, 'III');
+        if (result && !result.erro && !result.excedeLimite && !result.migracao) {
+          estimativaSimplesAnual = result.valorAnual;
+        }
+      }
+
+      rows.push({ ano, receitaProjetada, regime, observacao, estimativaSimplesAnual });
+    }
+    return rows;
+  }, [permiteMei, receitaMei, crescimentoMei]);
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <UserCheck className="text-brand-600" size={22} />
-          Enquadramento Tributário
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Recomendação de regime tributário com base no perfil da empresa</p>
-      </div>
+      <PageHeader icon={UserCheck} title="Enquadramento Tributário" description="Recomendação de regime tributário com base no perfil da empresa" />
+      <DisclaimerBanner />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={UserCheck} label="Regime Recomendado" value={melhor?.nome || '-'} subvalue={`Score: ${melhor?.score || 0}/100`} color="brand" />
         <StatCard icon={CheckCircle2} label="Regimes Analisados" value={resultados.length} subvalue="opções comparadas" color="blue" />
-        <StatCard icon={AlertTriangle} label="Faturamento Anual" value={formatCurrency(receitaAnual)} color="purple" />
+        <StatCard icon={AlertTriangle} label="Receita Bruta (Faturamento) Anual" value={formatCurrency(receitaAnual)} color="purple" />
         <StatCard icon={ChevronRight} label="Margem de Lucro" value={`${margemLucro}%`} subvalue="estimada" color="green" />
       </div>
 
@@ -401,6 +433,81 @@ export default function Enquadramento() {
           })}
         </div>
       </div>
+
+      {/* MEI → Simples Transition Simulator */}
+      {permiteMei && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+              <AlertTriangle size={16} className="text-amber-500" />
+              Simulador de Transicao MEI &rarr; Simples Nacional
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Projete quando a empresa pode ultrapassar o limite do MEI (R$ 81.000/ano) e precisar migrar para o Simples Nacional.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InputField
+                label="Receita anual atual (MEI)"
+                value={receitaMei}
+                onChange={setReceitaMei}
+                prefix="R$"
+                step={5000}
+                help="Faturamento anual atual como MEI"
+              />
+              <InputField
+                label="Taxa de crescimento anual"
+                value={crescimentoMei}
+                onChange={setCrescimentoMei}
+                suffix="%"
+                step={5}
+                min={0}
+                max={200}
+                help="Estimativa de crescimento ao ano"
+              />
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Ano</th>
+                    <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Receita Projetada</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Regime Viavel</th>
+                    <th className="text-right py-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Simples Estimado</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Observacao</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {transicaoMei.map(row => {
+                    const isAlert = row.regime !== 'MEI';
+                    return (
+                      <tr key={row.ano} className={isAlert ? 'bg-amber-50/50 dark:bg-amber-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}>
+                        <td className="py-2 px-3 text-slate-700 dark:text-slate-300 font-medium">Ano {row.ano}</td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700 dark:text-slate-300">{formatCurrency(row.receitaProjetada)}</td>
+                        <td className="py-2 px-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            row.regime === 'MEI'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          }`}>
+                            {row.regime}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
+                          {row.estimativaSimplesAnual > 0 ? formatCurrency(row.estimativaSimplesAnual) + '/ano' : '\u2014'}
+                        </td>
+                        <td className="py-2 px-3 text-xs text-slate-500 dark:text-slate-400">{row.observacao}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 }

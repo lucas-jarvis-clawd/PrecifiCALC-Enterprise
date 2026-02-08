@@ -92,14 +92,21 @@ export function calcMEI(receitaMensal, atividade = 'servicos', isCaminhoneiro = 
   const limite = isCaminhoneiro ? mei.limiteAnualCaminhoneiro : mei.limiteAnual;
   const tipoAtividade = isCaminhoneiro ? 'caminhoneiro' : atividade;
   const receitaAnual = receitaMensal * 12;
-  
+
+  if (!mei.atividades[tipoAtividade]) {
+    return {
+      erro: true,
+      observacao: `Tipo de atividade "${tipoAtividade}" não reconhecido para MEI`,
+    };
+  }
+
   if (receitaAnual > limite) {
     return { 
       excedeLimite: true, 
       dasFixo: 0, 
       aliquotaEfetiva: 0,
       proximoRegime: 'Simples Nacional',
-      observacao: `Receita anual (R$ ${receitaAnual.toLocaleString()}) excede limite MEI`
+      observacao: `Receita Bruta (Faturamento) de R$ ${receitaAnual.toLocaleString('pt-BR')} excede o limite do MEI de R$ ${limite.toLocaleString('pt-BR')}/ano`
     };
   }
   
@@ -112,7 +119,7 @@ export function calcMEI(receitaMensal, atividade = 'servicos', isCaminhoneiro = 
     receitaMensal,
     receitaAnual,
     tipoMei: isCaminhoneiro ? 'MEI Caminhoneiro' : 'MEI Tradicional',
-    proximaRevisao: receitaAnual > (limite * 0.8) ? 'ATENÇÃO: Próximo ao limite!' : null
+    proximaRevisao: receitaAnual > (limite * 0.8) ? 'Atenção: próximo ao limite de faturamento.' : null
   };
 }
 
@@ -136,10 +143,15 @@ export const simplesNacional = {
         { de: 1800000.01, ate: 3600000, aliquota: 0.143, deducao: 87300 },
         { de: 3600000.01, ate: 4800000, aliquota: 0.19, deducao: 378000 },
       ],
-      distribuicao: {
-        IRPJ: 0.055, CSLL: 0.035, COFINS: 0.1286, PIS: 0.0279, 
-        CPP: 0.4170, ICMS: 0.34,
-      },
+      // LC 123/2006, Anexo I - Distribuição por faixa (LC 155/2016)
+      distribuicaoPorFaixa: [
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1274, PIS: 0.0276, CPP: 0.4150, ICMS: 0.3400 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1274, PIS: 0.0276, CPP: 0.4150, ICMS: 0.3400 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1274, PIS: 0.0276, CPP: 0.4200, ICMS: 0.3350 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1274, PIS: 0.0276, CPP: 0.4200, ICMS: 0.3350 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1274, PIS: 0.0276, CPP: 0.4200, ICMS: 0.3350 },
+        { IRPJ: 0.1350, CSLL: 0.1000, COFINS: 0.2827, PIS: 0.0613, CPP: 0.4210 },
+      ],
       atividadesPrincipais: ['Comércio varejista', 'Comércio atacadista', 'Indústria com revenda predominante']
     },
     
@@ -154,10 +166,15 @@ export const simplesNacional = {
         { de: 1800000.01, ate: 3600000, aliquota: 0.147, deducao: 85500 },
         { de: 3600000.01, ate: 4800000, aliquota: 0.30, deducao: 720000 },
       ],
-      distribuicao: {
-        IRPJ: 0.055, CSLL: 0.035, COFINS: 0.1286, PIS: 0.0279, 
-        CPP: 0.4170, IPI: 0.05, ICMS: 0.32,
-      },
+      // LC 123/2006, Anexo II - Distribuição por faixa (LC 155/2016)
+      distribuicaoPorFaixa: [
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1151, PIS: 0.0249, CPP: 0.3750, IPI: 0.0750, ICMS: 0.3200 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1151, PIS: 0.0249, CPP: 0.3750, IPI: 0.0750, ICMS: 0.3200 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1151, PIS: 0.0249, CPP: 0.3750, IPI: 0.0750, ICMS: 0.3200 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1151, PIS: 0.0249, CPP: 0.3750, IPI: 0.0750, ICMS: 0.3200 },
+        { IRPJ: 0.0550, CSLL: 0.0350, COFINS: 0.1151, PIS: 0.0249, CPP: 0.3750, IPI: 0.0750, ICMS: 0.3200 },
+        { IRPJ: 0.0850, CSLL: 0.0750, COFINS: 0.2096, PIS: 0.0454, CPP: 0.2350, IPI: 0.3500 },
+      ],
       atividadesPrincipais: ['Fabricação em geral', 'Produção industrial', 'Beneficiamento']
     },
     
@@ -172,10 +189,15 @@ export const simplesNacional = {
         { de: 1800000.01, ate: 3600000, aliquota: 0.21, deducao: 125640 },
         { de: 3600000.01, ate: 4800000, aliquota: 0.33, deducao: 648000 },
       ],
-      distribuicao: {
-        IRPJ: 0.04, CSLL: 0.035, COFINS: 0.1282, PIS: 0.0278, 
-        CPP: 0.4340, ISS: 0.335,
-      },
+      // LC 123/2006, Anexo III - Distribuição por faixa (LC 155/2016)
+      distribuicaoPorFaixa: [
+        { IRPJ: 0.0400, CSLL: 0.0350, COFINS: 0.1282, PIS: 0.0278, CPP: 0.4340, ISS: 0.3350 },
+        { IRPJ: 0.0400, CSLL: 0.0350, COFINS: 0.1405, PIS: 0.0305, CPP: 0.4340, ISS: 0.3200 },
+        { IRPJ: 0.0400, CSLL: 0.0350, COFINS: 0.1364, PIS: 0.0296, CPP: 0.4340, ISS: 0.3250 },
+        { IRPJ: 0.0400, CSLL: 0.0350, COFINS: 0.1364, PIS: 0.0296, CPP: 0.4340, ISS: 0.3250 },
+        { IRPJ: 0.0400, CSLL: 0.0350, COFINS: 0.1282, PIS: 0.0278, CPP: 0.4340, ISS: 0.3350 },
+        { IRPJ: 0.3500, CSLL: 0.1500, COFINS: 0.1603, PIS: 0.0347, CPP: 0.3050 },
+      ],
       atividadesPrincipais: ['Locação de bens móveis', 'Serviços diversos'],
       condicaoFatorR: 'Fator R ≥ 28% da receita bruta (folha de pagamento)'
     },
@@ -191,9 +213,15 @@ export const simplesNacional = {
         { de: 1800000.01, ate: 3600000, aliquota: 0.22, deducao: 183780 },
         { de: 3600000.01, ate: 4800000, aliquota: 0.33, deducao: 828000 },
       ],
-      distribuicao: {
-        IRPJ: 0.1850, CSLL: 0.15, COFINS: 0.2050, PIS: 0.0450, ISS: 0.415,
-      },
+      // LC 123/2006, Anexo IV - Distribuição por faixa (LC 155/2016)
+      distribuicaoPorFaixa: [
+        { IRPJ: 0.1880, CSLL: 0.1520, COFINS: 0.1767, PIS: 0.0383, ISS: 0.4450 },
+        { IRPJ: 0.1980, CSLL: 0.1520, COFINS: 0.2055, PIS: 0.0445, ISS: 0.4000 },
+        { IRPJ: 0.2080, CSLL: 0.1520, COFINS: 0.1973, PIS: 0.0427, ISS: 0.4000 },
+        { IRPJ: 0.1780, CSLL: 0.1920, COFINS: 0.1890, PIS: 0.0410, ISS: 0.4000 },
+        { IRPJ: 0.1880, CSLL: 0.1920, COFINS: 0.1808, PIS: 0.0392, ISS: 0.4000 },
+        { IRPJ: 0.5350, CSLL: 0.2150, COFINS: 0.2055, PIS: 0.0445 },
+      ],
       observacao: 'CPP não incluso - recolhido à parte via GPS (20% sobre folha)',
       atividadesPrincipais: ['Construção civil', 'Limpeza', 'Vigilância', 'Obras']
     },
@@ -209,10 +237,15 @@ export const simplesNacional = {
         { de: 1800000.01, ate: 3600000, aliquota: 0.23, deducao: 62100 },
         { de: 3600000.01, ate: 4800000, aliquota: 0.305, deducao: 540000 },
       ],
-      distribuicao: {
-        IRPJ: 0.14, CSLL: 0.12, COFINS: 0.1282, PIS: 0.0278, 
-        CPP: 0.2850, ISS: 0.14,
-      },
+      // LC 123/2006, Anexo V - Distribuição por faixa (LC 155/2016)
+      distribuicaoPorFaixa: [
+        { IRPJ: 0.2500, CSLL: 0.1500, COFINS: 0.1410, PIS: 0.0305, CPP: 0.2885, ISS: 0.1400 },
+        { IRPJ: 0.2300, CSLL: 0.1500, COFINS: 0.1410, PIS: 0.0305, CPP: 0.2785, ISS: 0.1700 },
+        { IRPJ: 0.2400, CSLL: 0.1500, COFINS: 0.1492, PIS: 0.0323, CPP: 0.2385, ISS: 0.1900 },
+        { IRPJ: 0.2100, CSLL: 0.1500, COFINS: 0.1574, PIS: 0.0341, CPP: 0.2385, ISS: 0.2100 },
+        { IRPJ: 0.2300, CSLL: 0.1250, COFINS: 0.1410, PIS: 0.0305, CPP: 0.2385, ISS: 0.2350 },
+        { IRPJ: 0.3500, CSLL: 0.1550, COFINS: 0.1644, PIS: 0.0356, CPP: 0.2950 },
+      ],
       observacao: 'Fator R ≥ 28% pode migrar para Anexo III (alíquotas menores)',
       atividadesPrincipais: ['TI e software', 'Engenharia', 'Publicidade', 'Auditoria', 'Consultoria'],
       condicaoFatorR: 'Fator R < 28% da receita bruta (folha de pagamento)'
@@ -246,7 +279,7 @@ export function calcSimplesTax(receitaBruta12m, anexo, fatorR = null) {
       aliquotaEfetiva: 0, 
       valorMensal: 0,
       proximoRegime: 'Lucro Presumido ou Real',
-      observacao: 'Receita excede limite do Simples Nacional'
+      observacao: `Receita Bruta (Faturamento) de R$ ${receitaBruta12m.toLocaleString('pt-BR')} excede o limite do Simples Nacional de R$ 4.800.000/ano`
     };
   }
 
@@ -265,12 +298,13 @@ export function calcSimplesTax(receitaBruta12m, anexo, fatorR = null) {
   const faixa = faixas.find(f => receitaBruta12m >= f.de && receitaBruta12m <= f.ate);
   if (!faixa) return { erro: 'Faixa não encontrada' };
 
+  const faixaIndex = faixas.indexOf(faixa);
   const aliquotaEfetiva = (receitaBruta12m * faixa.aliquota - faixa.deducao) / receitaBruta12m;
   const receitaMensal = receitaBruta12m / 12;
   const valorMensal = receitaMensal * aliquotaEfetiva;
 
   return {
-    faixa: faixas.indexOf(faixa) + 1,
+    faixa: faixaIndex + 1,
     anexo,
     aliquotaNominal: faixa.aliquota,
     deducao: faixa.deducao,
@@ -278,8 +312,8 @@ export function calcSimplesTax(receitaBruta12m, anexo, fatorR = null) {
     receitaMensal,
     valorMensal,
     valorAnual: valorMensal * 12,
-    distribuicaoTributos: simplesNacional.anexos[anexo].distribuicao,
-    proximaFaixa: faixas[faixas.indexOf(faixa) + 1] || null,
+    distribuicaoTributos: simplesNacional.anexos[anexo].distribuicaoPorFaixa[faixaIndex],
+    proximaFaixa: faixas[faixaIndex + 1] || null,
     fatorR
   };
 }
@@ -350,81 +384,89 @@ export const cprb = {
 
 export const irrf = {
   servicos: {
-    // Tabela progressiva para serviços prestados por pessoa jurídica
+    // IRRF - Imposto de Renda Retido na Fonte (Decreto 9.580/2018, Art. 714)
     '1.5%': {
-      atividades: ['Limpeza', 'Conservação', 'Manutenção', 'Segurança', 'Vigilância'],
+      atividades: ['Limpeza', 'Conservação', 'Manutenção', 'Segurança', 'Vigilância', 'Advocacia', 'Engenharia', 'Arquitetura', 'Auditoria', 'Consultoria', 'Medicina', 'Odontologia', 'Psicologia', 'Fisioterapia'],
       aliquota: 0.015,
-      isento_ate: 0
-    },
-    '3%': {
-      atividades: ['Advocacia', 'Engenharia', 'Arquitetura', 'Auditoria', 'Consultoria'],
-      aliquota: 0.03,
-      isento_ate: 0
-    },
-    '4.65%': {
-      atividades: ['Medicina', 'Odontologia', 'Psicologia', 'Fisioterapia'],
-      aliquota: 0.0465,
-      isento_ate: 0
+      tipo: 'IRRF',
+      base_legal: 'Decreto 9.580/2018, Art. 714'
     }
+  },
+
+  // CSRF - Contribuições Sociais Retidas na Fonte (Lei 10.833/2003, Art. 30)
+  // CSLL (1%) + PIS (0,65%) + COFINS (3%) = 4,65% — retida SEPARADAMENTE do IRRF
+  csrf: {
+    aliquota: 0.0465,
+    csll: 0.01,
+    pis: 0.0065,
+    cofins: 0.03,
+    base_legal: 'Lei 10.833/2003, Art. 30',
+    dispensaAte: 5000, // Dispensada para pagamentos até R$ 5.000 (IN RFB 1.234/2012)
   },
 
   pessoaFisica: {
-    // Tabela para pessoa física 2026
+    // Tabela progressiva mensal 2026 (Lei 15.270/2025)
     faixas: [
-      { de: 0, ate: 2112.00, aliquota: 0, deducao: 0 },
-      { de: 2112.01, ate: 2826.65, aliquota: 0.075, deducao: 158.40 },
-      { de: 2826.66, ate: 3751.05, aliquota: 0.15, deducao: 370.40 },
-      { de: 3751.06, ate: 4664.68, aliquota: 0.225, deducao: 651.73 },
-      { de: 4664.69, ate: 999999.99, aliquota: 0.275, deducao: 884.96 }
+      { de: 0, ate: 2259.20, aliquota: 0, deducao: 0 },
+      { de: 2259.21, ate: 2826.65, aliquota: 0.075, deducao: 169.44 },
+      { de: 2826.66, ate: 3751.05, aliquota: 0.15, deducao: 381.44 },
+      { de: 3751.06, ate: 4664.68, aliquota: 0.225, deducao: 662.77 },
+      { de: 4664.69, ate: 999999999, aliquota: 0.275, deducao: 896.00 }
     ],
-    dependentes: 189.59 // Por dependente
+    dependentes: 189.59,
+    // Lei 15.270/2025 - Sistema de redução progressiva
+    // Renda até R$ 5.000: imposto ZERO (isenção total)
+    // Renda R$ 5.000,01 a R$ 7.350: redução parcial via fórmula
+    // Renda acima R$ 7.350: tabela normal sem redução
+    reducaoLei15270: {
+      limiteIsencao: 5000.00,
+      limiteFaseout: 7350.00,
+      valorBase: 978.62,
+      fator: 0.133145
+    }
   },
 
   calcularServicos(valorServico, tipoServico) {
-    let configServico = null;
-    
-    // Busca o tipo de serviço
-    Object.keys(this.servicos).forEach(key => {
-      if (this.servicos[key].atividades.some(ativ => 
-        ativ.toLowerCase().includes(tipoServico.toLowerCase())
-      )) {
-        configServico = this.servicos[key];
-      }
-    });
+    // IRRF para serviços PJ: alíquota de 1,5% (Decreto 9.580/2018, Art. 714)
+    const aliquotaIRRF = 0.015;
+    const valorRetidoIRRF = valorServico * aliquotaIRRF;
 
-    if (!configServico) {
-      // Default para serviços não especificados
-      configServico = { aliquota: 0.015, atividades: ['Geral'] };
-    }
+    // CSRF (4,65%) aplicada separadamente quando pagamento > R$ 5.000
+    const aplicaCsrf = valorServico > this.csrf.dispensaAte;
+    const valorRetidoCsrf = aplicaCsrf ? valorServico * this.csrf.aliquota : 0;
 
-    const valorRetido = valorServico * configServico.aliquota;
-    
     return {
       valorServico,
-      aliquota: configServico.aliquota,
-      valorRetido,
-      valorLiquido: valorServico - valorRetido,
+      irrf: { aliquota: aliquotaIRRF, valor: valorRetidoIRRF },
+      csrf: { aliquota: aplicaCsrf ? this.csrf.aliquota : 0, valor: valorRetidoCsrf, aplicada: aplicaCsrf },
+      totalRetido: valorRetidoIRRF + valorRetidoCsrf,
+      valorLiquido: valorServico - valorRetidoIRRF - valorRetidoCsrf,
       tipoServico,
-      observacao: 'IRRF a recolher até o dia 20 do mês seguinte'
+      base_legal: 'IRRF: Decreto 9.580/2018, Art. 714 | CSRF: Lei 10.833/2003, Art. 30',
+      observacao: 'IRRF e CSRF são retenções distintas com vencimentos diferentes'
     };
   },
 
   calcularPF(rendimento, numDependentes = 0) {
-    // CORREÇÃO: Dedução de dependentes ANTES de encontrar a faixa
-    // Conforme Instrução Normativa RFB nº 1.500/2014 e legislação vigente,
-    // a base de cálculo é apurada após dedução de dependentes, e a faixa
-    // é determinada sobre essa base de cálculo (não sobre o rendimento bruto).
     const deducaoDependentes = numDependentes * this.pessoaFisica.dependentes;
     const baseCalculo = Math.max(0, rendimento - deducaoDependentes);
 
-    // Encontra a faixa sobre a BASE DE CÁLCULO (após deduções)
-    const faixa = this.pessoaFisica.faixas.find(f => 
+    const faixa = this.pessoaFisica.faixas.find(f =>
       baseCalculo >= f.de && baseCalculo <= f.ate
     );
-    
+
     if (!faixa) return { erro: 'Faixa não encontrada' };
 
-    const irDevido = Math.max(0, (baseCalculo * faixa.aliquota) - faixa.deducao);
+    let irDevido = Math.max(0, (baseCalculo * faixa.aliquota) - faixa.deducao);
+
+    // Lei 15.270/2025 - Redução progressiva (vigente a partir de 01/01/2026)
+    const red = this.pessoaFisica.reducaoLei15270;
+    if (baseCalculo <= red.limiteIsencao) {
+      irDevido = 0;
+    } else if (baseCalculo <= red.limiteFaseout) {
+      const desconto = red.valorBase - (red.fator * baseCalculo);
+      irDevido = Math.max(0, irDevido - Math.max(0, desconto));
+    }
 
     return {
       rendimento,
@@ -435,10 +477,49 @@ export const irrf = {
       deducaoFaixa: faixa.deducao,
       irDevido,
       aliquotaEfetiva: rendimento > 0 ? irDevido / rendimento : 0,
-      aliquotaEfetivaSobreBase: baseCalculo > 0 ? irDevido / baseCalculo : 0
+      aliquotaEfetivaSobreBase: baseCalculo > 0 ? irDevido / baseCalculo : 0,
+      leiAplicada: 'Lei 15.270/2025'
     };
   }
 };
+
+export function calcRetencoes(valorServico, tipoServico = 'servicos_pj') {
+  // IRRF: 1.5% (Decreto 9.580/2018, Art. 714)
+  const irrfAliquota = 0.015;
+  const irrfValor = valorServico * irrfAliquota;
+
+  // CSRF: 4.65% (Lei 10.833/2003, Art. 30) - dispensada até R$ 5.000
+  const csrfAplicavel = valorServico > 5000;
+  const csllRetido = csrfAplicavel ? valorServico * 0.01 : 0;
+  const pisRetido = csrfAplicavel ? valorServico * 0.0065 : 0;
+  const cofinsRetido = csrfAplicavel ? valorServico * 0.03 : 0;
+  const csrfTotal = csllRetido + pisRetido + cofinsRetido;
+
+  // ISS retido (quando serviço prestado fora do município do prestador)
+  // Alíquota depende do município - usar 5% como padrão
+  const issRetido = valorServico * 0.05;
+
+  const totalRetencoes = irrfValor + csrfTotal + issRetido;
+
+  return {
+    valorBruto: valorServico,
+    retencoes: {
+      irrf: { aliquota: irrfAliquota, valor: irrfValor, baseLegal: 'Decreto 9.580/2018, Art. 714' },
+      csrf: {
+        aplicavel: csrfAplicavel,
+        csll: csllRetido,
+        pis: pisRetido,
+        cofins: cofinsRetido,
+        total: csrfTotal,
+        baseLegal: 'Lei 10.833/2003, Art. 30'
+      },
+      issRetido: { valor: issRetido, baseLegal: 'LC 116/2003' },
+    },
+    totalRetencoes,
+    valorLiquido: valorServico - totalRetencoes,
+    observacao: !csrfAplicavel ? 'CSRF dispensada para pagamentos até R$ 5.000 (IN RFB 1.234/2012)' : null,
+  };
+}
 
 // ==============================================
 // SUBSTITUIÇÃO TRIBUTÁRIA
@@ -510,6 +591,86 @@ export const substituicaoTributaria = {
 };
 
 // ==============================================
+// ICMS INTERESTADUAL E DIFAL
+// ==============================================
+
+export const icmsInterestadual = {
+  // Alíquotas interestaduais (CONFAZ - Convênios ICMS)
+  sul_sudeste_para_sul_sudeste: 0.12,  // SP, RJ, MG, PR, SC, RS → SP, RJ, MG, PR, SC, RS
+  sul_sudeste_para_norte_nordeste_co_es: 0.07, // SP, RJ, MG, PR, SC, RS → N, NE, CO, ES
+  demais_para_qualquer: 0.12, // N, NE, CO, ES → qualquer estado
+  importados: 0.04, // Produtos importados (Resolução SF 13/2012)
+
+  estadosSulSudeste: ['SP', 'RJ', 'MG', 'PR', 'SC', 'RS'],
+
+  getAliquotaInterestadual(ufOrigem, ufDestino) {
+    if (ufOrigem === ufDestino) return null; // Operação interna
+    const isSulSudesteOrigem = this.estadosSulSudeste.includes(ufOrigem);
+    const isSulSudesteDestino = this.estadosSulSudeste.includes(ufDestino);
+    if (isSulSudesteOrigem && isSulSudesteDestino) return this.sul_sudeste_para_sul_sudeste;
+    if (isSulSudesteOrigem && !isSulSudesteDestino) return this.sul_sudeste_para_norte_nordeste_co_es;
+    return this.demais_para_qualquer;
+  }
+};
+
+// Alíquotas internas de ICMS por estado (2026)
+export const icmsInternoPorEstado = {
+  AC: 0.19, AL: 0.19, AM: 0.20, AP: 0.18, BA: 0.205,
+  CE: 0.20, DF: 0.20, ES: 0.17, GO: 0.19, MA: 0.22,
+  MG: 0.18, MS: 0.17, MT: 0.17, PA: 0.19, PB: 0.20,
+  PE: 0.205, PI: 0.21, PR: 0.195, RJ: 0.22, RN: 0.20,
+  RO: 0.195, RR: 0.20, RS: 0.17, SC: 0.17, SE: 0.19,
+  SP: 0.18, TO: 0.20,
+};
+
+export function calcDIFAL(valorOperacao, ufOrigem, ufDestino) {
+  if (ufOrigem === ufDestino) return { aplicavel: false, motivo: 'Operação interna' };
+
+  const aliqInterestadual = icmsInterestadual.getAliquotaInterestadual(ufOrigem, ufDestino);
+  const aliqInterna = icmsInternoPorEstado[ufDestino] || 0.18;
+
+  const icmsOrigem = valorOperacao * aliqInterestadual;
+  const icmsDestino = valorOperacao * aliqInterna;
+  const difal = Math.max(0, icmsDestino - icmsOrigem);
+
+  return {
+    aplicavel: true,
+    valorOperacao,
+    ufOrigem,
+    ufDestino,
+    aliquotaInterestadual: aliqInterestadual,
+    aliquotaInterna: aliqInterna,
+    icmsOrigem,
+    difal,
+    // EC 87/2015 + LC 190/2022: desde 2019, 100% do DIFAL vai para o destino
+    partidaDestino: difal,
+    baseLegal: 'EC 87/2015, LC 190/2022'
+  };
+}
+
+// ==============================================
+// PIS/COFINS MONOFÁSICO
+// ==============================================
+
+export const produtosMonofasicos = {
+  descricao: 'Produtos com tributação monofásica de PIS/COFINS - revendedores não pagam PIS/COFINS',
+  baseLegal: 'Lei 10.147/2000, Lei 10.485/2002, Lei 10.865/2004',
+  categorias: [
+    { nome: 'Combustíveis e lubrificantes', exemplos: ['Gasolina', 'Diesel', 'Etanol', 'GLP', 'Óleos lubrificantes'] },
+    { nome: 'Medicamentos e perfumaria', exemplos: ['Medicamentos', 'Cosméticos', 'Produtos de higiene pessoal'] },
+    { nome: 'Veículos e autopeças', exemplos: ['Veículos automotores', 'Autopeças', 'Pneus'] },
+    { nome: 'Bebidas frias', exemplos: ['Água mineral', 'Refrigerante', 'Cerveja', 'Energéticos'] },
+    { nome: 'Máquinas e equipamentos', exemplos: ['Máquinas agrícolas', 'Equipamentos industriais'] },
+  ],
+  verificarMonofasico(categoriaProduto) {
+    return this.categorias.some(c =>
+      c.nome.toLowerCase().includes(categoriaProduto.toLowerCase()) ||
+      c.exemplos.some(e => e.toLowerCase().includes(categoriaProduto.toLowerCase()))
+    );
+  },
+};
+
+// ==============================================
 // LUCRO PRESUMIDO - EXPANDIDO
 // ==============================================
 
@@ -520,13 +681,13 @@ export const lucroPresumido = {
     industria: { irpj: 0.08, csll: 0.12, descricao: 'Atividade industrial' },
     transporteCarga: { irpj: 0.08, csll: 0.12, descricao: 'Transporte de carga' },
     transportePassageiros: { irpj: 0.16, csll: 0.12, descricao: 'Transporte de passageiros' },
-    servHospitalares: { irpj: 0.08, csll: 0.12, descricao: 'Serviços hospitalares' },
+    servHospitalares: { irpj: 0.08, csll: 0.12, descricao: 'Serviços hospitalares (sociedade empresária com ANVISA - Lei 11.727/2008)', alerta: 'Presunção de 8% válida APENAS para sociedade empresária com registro ANVISA. PF e sociedade simples usam 32%.' },
     revendaCombustiveis: { irpj: 0.016, csll: 0.12, descricao: 'Revenda de combustíveis' },
     intermediacaoNegocios: { irpj: 0.32, csll: 0.32, descricao: 'Intermediação de negócios' },
     administracaoBens: { irpj: 0.32, csll: 0.32, descricao: 'Administração de bens' },
     locacaoMoveis: { irpj: 0.32, csll: 0.32, descricao: 'Locação de bens móveis' },
     construcaoCivil: { irpj: 0.32, csll: 0.32, descricao: 'Construção civil (serviços)' },
-    factoring: { irpj: 0.32, csll: 0.32, descricao: 'Factoring' }
+    // Factoring: NÃO pode optar pelo Lucro Presumido (Lei 9.718/1998, Art. 14, VI) - obrigatório Lucro Real
   },
   
   irpj: {
@@ -537,7 +698,7 @@ export const lucroPresumido = {
   
   csll: { 
     aliquota: 0.09,
-    // Alíquotas diferenciadas por atividade (Lei 10.637/2002)
+    // Alíquotas diferenciadas por atividade (Lei 7.689/1988, alterada por Lei 13.169/2015)
     aliquotasEspeciais: {
       instituicoesFinanceiras: 0.15,
       seguradoras: 0.15,
@@ -555,7 +716,8 @@ export const lucroPresumido = {
     'Receita bruta anual superior a R$ 78.000.000',
     'Atividades de bancos comerciais, de investimento e de desenvolvimento',
     'Caixas econômicas, sociedades de crédito',
-    'Empresas de arrendamento mercantil, factoring',
+    'Empresas de arrendamento mercantil',
+    'Factoring (obrigatório Lucro Real - Lei 9.718/98, Art. 14, VI)',
     'Seguradoras e entidades de previdência privada',
     'Empresas imobiliárias (quando compra para revenda)'
   ]
@@ -600,7 +762,9 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
   const cofinsMensal = receitaMensal * lucroPresumido.cofins.aliquota;
 
   // ISS
-  const issMensal = receitaMensal * issAliquota;
+  // ISS somente para serviços (LC 116/2003) - comércio/indústria pagam ICMS, não ISS
+  const isServico = ['servicos', 'servHospitalares', 'intermediacaoNegocios', 'administracaoBens', 'locacaoMoveis', 'construcaoCivil'].includes(tipoAtividade);
+  const issMensal = isServico ? receitaMensal * issAliquota : 0;
 
   // CPRB (se aplicável - substitui contrib. patronal)
   // Lei 14.973/2024: em 2026, aplica fator de 60% sobre a alíquota CPRB
@@ -635,7 +799,7 @@ export function calcLucroPresumido(receitaMensal, tipoAtividade = 'servicos', is
     totalAnual: totalMensal * 12,
     aliquotaEfetiva: totalMensal / receitaMensal,
     receitaMensal,
-    proximaRevisao: receitaAnual > 60000000 ? 'ATENÇÃO: Próximo ao limite!' : null
+    proximaRevisao: receitaAnual > 60000000 ? 'Atenção: próximo ao limite de faturamento.' : null
   };
 }
 
@@ -654,7 +818,7 @@ export const lucroReal = {
   csll: { 
     aliquota: 0.09,
     aliquotasEspeciais: {
-      instituicoesFinanceiras: 0.20, // Bancos, financeiras
+      instituicoesFinanceiras: 0.20, // Bancos - Lei 7.689/1989 (verificar prorrogações anuais)
       seguradoras: 0.15,
       factoring: 0.15,
       cooperativasCredito: 0.15
@@ -742,8 +906,9 @@ export function calcLucroReal(receitaMensal, despesasDedutiveis, creditosPisCofi
   const pisMensal = Math.max(0, pisBruto - creditoPis);
   const cofinsMensal = Math.max(0, cofinsBruto - creditoCofins);
 
-  // ISS
-  const issMensal = receitaMensal * issAliquota;
+  // ISS somente para serviços (LC 116/2003) - comércio/indústria pagam ICMS, não ISS
+  const isServico = !['comercio', 'industria', 'transporteCarga', 'revendaCombustiveis'].includes(tipoAtividade);
+  const issMensal = isServico ? receitaMensal * issAliquota : 0;
 
   const totalMensal = (irpjTrimestral / 3) + (csllTrimestral / 3) + pisMensal + cofinsMensal + issMensal;
 
@@ -797,7 +962,7 @@ export const issData = {
   aliquotasMinMaxNacional: { min: 0.02, max: 0.05 },
   
   municipiosPopulares: {
-    'São Paulo/SP': { aliquota: 0.02, obs: 'Maioria dos serviços' },
+    'São Paulo/SP': { aliquota: 0.05, obs: 'Padrão 5% (2% apenas para TI e setores específicos - Lei 13.701/2003)' },
     'Rio de Janeiro/RJ': { aliquota: 0.05, obs: 'Alíquota máxima' },
     'Brasília/DF': { aliquota: 0.05, obs: 'Alíquota máxima' },
     'Salvador/BA': { aliquota: 0.05, obs: 'Alíquota máxima' },
@@ -836,7 +1001,8 @@ export const issData = {
 export const encargosTrabalhistas = {
   clt: {
     inss_patronal: 0.20,
-    rat: 0.03, // Risk: 1% (baixo), 2% (médio), 3% (alto)
+    rat: { grau1: 0.01, grau2: 0.02, grau3: 0.03 },
+    ratDefault: 0.03,
     sistemaS: 0.058, // SESI/SENAI/SEBRAE/SENAT/SEST/SESCOOP/INCRA
     fgts: 0.08,
     salarioEducacao: 0.025,
@@ -868,12 +1034,25 @@ export const encargosTrabalhistas = {
   }
 };
 
-export function calcEncargoCLT(salarioBruto, ratClass = 3, comBeneficios = false) {
+export function calcRAT(grauRisco = 3, fap = 1.0) {
+  const ratBase = grauRisco === 1 ? 0.01 : grauRisco === 2 ? 0.02 : 0.03;
+  const ratAjustado = ratBase * fap;
+  return {
+    grauRisco,
+    fap,
+    ratBase,
+    ratAjustado: Math.min(Math.max(ratAjustado, 0.005), 0.06), // FAP limites: 0.5x a 2.0x
+    baseLegal: 'Lei 8.212/1991, Art. 22 + Decreto 6.957/2009',
+  };
+}
+
+export function calcEncargoCLT(salarioBruto, ratClass = 3, comBeneficios = false, fap = 1.0) {
   const enc = encargosTrabalhistas.clt;
   
   // Encargos básicos
   const inssPatronal = salarioBruto * enc.inss_patronal;
-  const rat = salarioBruto * (ratClass / 100); // 1%, 2% ou 3%
+  const ratInfo = calcRAT(ratClass, fap);
+  const rat = salarioBruto * ratInfo.ratAjustado;
   const sistemaS = salarioBruto * enc.sistemaS;
   const fgts = salarioBruto * enc.fgts;
   const salarioEducacao = salarioBruto * enc.salarioEducacao;
@@ -883,7 +1062,7 @@ export function calcEncargoCLT(salarioBruto, ratClass = 3, comBeneficios = false
   const provFerias = salarioBruto * enc.provisaoFerias;
   
   // Encargos sobre 13º e férias
-  const encargos13Ferias = (prov13 + provFerias) * (enc.inss_patronal + enc.fgts + ratClass/100 + enc.sistemaS);
+  const encargos13Ferias = (prov13 + provFerias) * (enc.inss_patronal + enc.fgts + ratInfo.ratAjustado + enc.sistemaS);
   
   const multaFGTS = fgts * 0.5 * 0.10; // estimativa de 10% de turnover
 
@@ -1245,6 +1424,28 @@ export function calcularFatorR(folhaAnual, receitaBrutaAnual) {
   return folhaAnual / receitaBrutaAnual;
 }
 
+export const fatorRComponentes = {
+  incluir: [
+    { item: 'Salários e remunerações', descricao: 'Salários brutos de todos os funcionários CLT' },
+    { item: '13º salário', descricao: 'Gratificação natalina paga ou provisionada' },
+    { item: 'Férias e 1/3 constitucional', descricao: 'Valor das férias mais adicional de 1/3' },
+    { item: 'Pró-labore', descricao: 'Retirada dos sócios com incidência de INSS' },
+    { item: 'INSS patronal (CPP)', descricao: '20% sobre a folha de pagamento' },
+    { item: 'FGTS', descricao: '8% sobre remunerações (inclusive 13º e férias)' },
+  ],
+  excluir: [
+    { item: 'Autônomos (RPA)', descricao: 'Pagamentos a trabalhadores autônomos sem vínculo' },
+    { item: 'Terceirizados', descricao: 'Serviços prestados por outras empresas' },
+    { item: 'Estagiários', descricao: 'Bolsa-auxílio de estagiários não entra na folha' },
+    { item: 'Distribuição de lucros', descricao: 'Lucros distribuídos não são folha de pagamento' },
+    { item: 'Verbas indenizatórias', descricao: 'Multa FGTS, aviso prévio indenizado, etc.' },
+  ],
+  formula: 'Fator R = Folha de Pagamento (12 meses) / Receita Bruta (12 meses)',
+  limiar: 0.28,
+  efeito: 'Fator R >= 28%: atividades do Anexo V migram para o Anexo III (alíquotas menores)',
+  baseLegal: 'LC 123/2006, Art. 18, §5º-J e §5º-M (alterado pela LC 155/2016)',
+};
+
 export function determinarAnexoSimples(tipoAtividade, fatorR = null, receitaComercio = 0, receitaTotal = 1) {
   const percComercio = receitaComercio / receitaTotal;
   
@@ -1384,8 +1585,12 @@ export function calcFatorR(folha12Meses, rbt12) {
   return folha12Meses / rbt12;
 }
 
-export function getAnexoPorFatorR(fatorR, anexoOriginal) {
+export function getAnexoPorFatorR(fatorR, anexoOriginal, atividadeSujeitaFatorR = false) {
+  // LC 123/2006, Art. 18, §5º-J e §5º-M
+  // Atividades do Anexo V com Fator R >= 28%: tributadas pelo Anexo III
   if (anexoOriginal === 'V' && fatorR >= 0.28) return 'III';
+  // Atividades sujeitas ao Fator R no Anexo III com FR < 28%: tributadas pelo Anexo V
+  if (anexoOriginal === 'III' && atividadeSujeitaFatorR && fatorR < 0.28) return 'V';
   return anexoOriginal;
 }
 

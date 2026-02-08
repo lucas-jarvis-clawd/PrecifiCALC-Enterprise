@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   FileDown, Mail, Calendar, Search, Download, Printer, AlertCircle,
-  CheckCircle2, FileSpreadsheet, Table2, Building2, Palette
+  CheckCircle2, FileSpreadsheet, Building2, Palette, Copy
 } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
+import PageHeader from '../components/PageHeader';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 
 // ─── Helpers ────────────────────────────────────────────────────
 function formatCurrencyLocal(value) {
@@ -115,52 +117,6 @@ const segmentTemplates = {
 };
 
 // ─── Export to CSV ──────────────────────────────────────────────
-function exportCSV(rows, filename) {
-  if (!rows || rows.length === 0) return;
-  const headers = Object.keys(rows[0]);
-  const csvContent = [
-    headers.join(';'),
-    ...rows.map(row => headers.map(h => {
-      const val = row[h];
-      if (typeof val === 'number') return val.toString().replace('.', ',');
-      return `"${(val || '').toString().replace(/"/g, '""')}"`;
-    }).join(';'))
-  ].join('\n');
-
-  // BOM for UTF-8
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${filename}_${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// ─── Export to Excel (XLSX) ─────────────────────────────────────
-async function exportXLSX(rows, filename, sheetName = 'Dados') {
-  if (!rows || rows.length === 0) return;
-  try {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    // Auto-width columns
-    const maxWidths = Object.keys(rows[0]).map(key => {
-      const maxLen = Math.max(key.length, ...rows.map(r => String(r[key] || '').length));
-      return { wch: Math.min(maxLen + 2, 40) };
-    });
-    ws['!cols'] = maxWidths;
-
-    XLSX.writeFile(wb, `${filename}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  } catch (err) {
-    console.error('Erro ao exportar Excel:', err);
-    alert('Erro ao exportar para Excel. Tente usar CSV.');
-  }
-}
 
 // ─── Build report data rows for export ──────────────────────────
 function buildReportRows(tipo) {
@@ -309,6 +265,165 @@ function gerarRelatorio(tipo) {
   win.document.close();
 }
 
+// ─── DEFIS / DASN-SIMEI Helper ──────────────────────────────────
+function DefisHelper() {
+  const [copied, setCopied] = useState(false);
+
+  const simulador = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('precificalc_simulador') || '{}'); } catch { return {}; }
+  }, []);
+  const custos = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('precificalc_custos') || '{}'); } catch { return {}; }
+  }, []);
+  const precificacao = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('precificalc_precificacao') || '{}'); } catch { return {}; }
+  }, []);
+
+  const regime = simulador.regime || getPerfil().regime || '';
+  const isMei = regime === 'mei';
+  const isSimples = regime === 'simples';
+
+  if (!isMei && !isSimples) {
+    return (
+      <Card>
+        <CardHeader>
+          <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+            <FileSpreadsheet size={16} className="text-violet-500" />
+            Auxiliar DEFIS / DASN-SIMEI
+          </h2>
+        </CardHeader>
+        <CardBody>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-3">
+            Disponivel para empresas do MEI (DASN-SIMEI) ou Simples Nacional (DEFIS).
+            Configure o regime no Simulador Tributario.
+          </p>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const receitaMensal = simulador.receitaMensal || simulador.receita || 0;
+  const receitaAnual = receitaMensal * 12;
+  const folhaMensal = custos.custoFolha || custos.folhaMensal || simulador.folhaMensal || 0;
+  const folhaAnual = folhaMensal * 12;
+  const numFuncionarios = simulador.numFuncionarios || custos.numFuncionarios || 0;
+
+  function buildSummaryText() {
+    const lines = [];
+    const ano = new Date().getFullYear();
+
+    if (isMei) {
+      lines.push(`=== DASN-SIMEI ${ano} ===`);
+      lines.push(`Receita Bruta Anual: ${formatCurrencyLocal(receitaAnual)}`);
+      lines.push(`Receita Mensal Media: ${formatCurrencyLocal(receitaMensal)}`);
+      lines.push(`Tipo de Atividade: ${simulador.tipoAtividade || 'Nao informado'}`);
+      lines.push(`Funcionario registrado: ${numFuncionarios > 0 ? 'Sim' : 'Nao'}`);
+    } else {
+      lines.push(`=== DEFIS ${ano} ===`);
+      lines.push(`Receita Bruta Anual: ${formatCurrencyLocal(receitaAnual)}`);
+      lines.push(`Receita Mensal Media: ${formatCurrencyLocal(receitaMensal)}`);
+      lines.push(`Folha de Pagamento Mensal: ${formatCurrencyLocal(folhaMensal)}`);
+      lines.push(`Folha de Pagamento Anual: ${formatCurrencyLocal(folhaAnual)}`);
+      lines.push(`Numero de Funcionarios: ${numFuncionarios}`);
+      lines.push(`Tipo de Atividade: ${simulador.tipoAtividade || 'Nao informado'}`);
+      lines.push(`Anexo: ${simulador.anexo || 'Nao definido'}`);
+      if (custos.totalGeral) {
+        lines.push(`Custos Operacionais Mensais: ${formatCurrencyLocal(custos.totalGeral)}`);
+      }
+    }
+
+    lines.push('');
+    lines.push('Gerado por PrecifiCALC Enterprise');
+    return lines.join('\n');
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(buildSummaryText()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <h2 className="text-slate-800 dark:text-slate-200 font-medium text-sm flex items-center gap-2">
+            <FileSpreadsheet size={16} className="text-violet-500" />
+            {isMei ? 'Auxiliar DASN-SIMEI' : 'Auxiliar DEFIS'}
+          </h2>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30 border border-violet-200 dark:border-violet-700 rounded-md hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors"
+          >
+            <Copy size={13} /> {copied ? 'Copiado!' : 'Copiar dados'}
+          </button>
+        </div>
+      </CardHeader>
+      <CardBody>
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 space-y-3 text-sm print:bg-white">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">
+              {isMei ? 'DASN-SIMEI' : 'DEFIS'} - Ano-calendario {new Date().getFullYear()}
+            </span>
+            <span className="text-xs text-slate-400">{new Date().toLocaleDateString('pt-BR')}</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Receita Bruta Anual:</span>
+              <span className="font-semibold text-slate-700 dark:text-slate-200 font-mono">{formatCurrencyLocal(receitaAnual)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Receita Mensal Media:</span>
+              <span className="font-mono text-slate-600 dark:text-slate-300">{formatCurrencyLocal(receitaMensal)}</span>
+            </div>
+
+            {isSimples && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Folha de Pagamento Mensal:</span>
+                  <span className="font-mono text-slate-600 dark:text-slate-300">{formatCurrencyLocal(folhaMensal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Folha Anual:</span>
+                  <span className="font-mono text-slate-600 dark:text-slate-300">{formatCurrencyLocal(folhaAnual)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">N. de Funcionarios:</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">{numFuncionarios}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Anexo:</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">{simulador.anexo || 'Nao definido'}</span>
+                </div>
+              </>
+            )}
+
+            {isMei && (
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Funcionario registrado:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">{numFuncionarios > 0 ? 'Sim' : 'Nao'}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Tipo de Atividade:</span>
+              <span className="text-slate-600 dark:text-slate-300">{simulador.tipoAtividade || 'Nao informado'}</span>
+            </div>
+          </div>
+
+          {receitaAnual === 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+              Nenhuma receita encontrada. Preencha o Simulador Tributario para gerar os dados.
+            </p>
+          )}
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────
 export default function Relatorios() {
   const [busca, setBusca] = useState('');
@@ -339,24 +454,8 @@ export default function Relatorios() {
   });
 
   const totalDisponiveis = Object.values(disponibilidade).filter(Boolean).length;
+  const nenhumDadoDisponivel = totalDisponiveis === 0;
 
-  function handleExport(tipo, formato) {
-    const rows = buildReportRows(tipo);
-    if (!rows) {
-      alert('Sem dados disponíveis. Preencha os módulos correspondentes primeiro.');
-      return;
-    }
-    const nameMap = {
-      tributario: 'analise_tributaria',
-      custos: 'custos_operacionais',
-      precificacao: 'precificacao',
-      viabilidade: 'viabilidade',
-      dre: 'dre_simplificado',
-    };
-    const filename = nameMap[tipo] || 'relatorio';
-    if (formato === 'csv') exportCSV(rows, filename);
-    else if (formato === 'xlsx') exportXLSX(rows, filename);
-  }
 
   function aplicarTemplate(templateKey) {
     const template = segmentTemplates[templateKey];
@@ -385,13 +484,8 @@ export default function Relatorios() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <FileDown className="text-brand-600" size={22} />
-          Relatórios
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">Gere relatórios profissionais, exporte em PDF, Excel ou CSV</p>
-      </div>
+      <PageHeader icon={FileDown} title="Relatórios" description="Gere relatórios profissionais e exporte em PDF" />
+      <DisclaimerBanner />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -400,6 +494,16 @@ export default function Relatorios() {
         <StatCard icon={Calendar} label="Data Atual" value={new Date().toLocaleDateString('pt-BR')} subvalue="Referência dos relatórios" color="purple" />
         <StatCard icon={Building2} label="Marca Branca" value="Ativo" subvalue="PDFs personalizados" color="amber" />
       </div>
+
+      {nenhumDadoDisponivel && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+          <AlertCircle size={24} className="text-amber-500 mx-auto mb-2" />
+          <h3 className="text-sm font-semibold text-amber-800">Nenhum dado disponível para gerar relatórios</h3>
+          <p className="text-xs text-amber-600 mt-1">
+            Preencha os módulos de <strong>Simulador Tributário</strong>, <strong>Custos Operacionais</strong> ou <strong>Precificação</strong> para que os relatórios sejam gerados com dados reais.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Left column: Quick actions + Templates */}
@@ -561,22 +665,6 @@ export default function Relatorios() {
                       >
                         <Download size={13} /> PDF
                       </button>
-                      {/* CSV */}
-                      <button
-                        onClick={() => handleExport(rel.tipo, 'csv')}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-                        title="Exportar CSV"
-                      >
-                        <Table2 size={12} /> CSV
-                      </button>
-                      {/* Excel */}
-                      <button
-                        onClick={() => handleExport(rel.tipo, 'xlsx')}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors"
-                        title="Exportar Excel"
-                      >
-                        <FileSpreadsheet size={12} /> Excel
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -591,6 +679,9 @@ export default function Relatorios() {
         </div>
       </div>
 
+      {/* DEFIS / DASN-SIMEI Helper */}
+      <DefisHelper />
+
       {/* Dica */}
       <Card>
         <CardBody>
@@ -600,8 +691,6 @@ export default function Relatorios() {
               <h3 className="text-slate-800 text-sm font-medium">Exportação e Marca Branca</h3>
               <p className="text-slate-500 text-xs mt-1">
                 <strong>PDF:</strong> Abre uma janela de impressão com seus dados da empresa (marca branca).{' '}
-                <strong>CSV:</strong> Abre em qualquer planilha, compatível com separador ponto-e-vírgula.{' '}
-                <strong>Excel:</strong> Arquivo .xlsx nativo com larguras automáticas.{' '}
                 Configure sua marca em <strong>Configurações → Dados da Empresa</strong>.
               </p>
             </div>

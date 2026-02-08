@@ -197,7 +197,7 @@ export function MonophasicProducts({
         </CardBody>
       </Card>
 
-      {/* Cálculo dos Impostos Monofásicos */}
+      {/* Cálculo dos Tributos Monofásicos */}
       {taxCalculation && (
         <Card>
           <CardHeader>
@@ -208,7 +208,7 @@ export function MonophasicProducts({
           </CardHeader>
           <CardBody>
             <div className="space-y-4">
-              {/* Breakdown dos impostos */}
+              {/* Breakdown dos tributos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                   <div className="flex justify-between items-center">

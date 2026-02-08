@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronLeft, ArrowRight, Building2, ClipboardList, Check } from 'lucide-react';
 
 export default function Onboarding({ onComplete }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -15,16 +15,16 @@ export default function Onboarding({ onComplete }) {
   });
 
   const steps = [
-    { id: 1, title: 'Dados iniciais', emoji: '' },
-    { id: 2, title: 'Dados da empresa', emoji: '' },
-    { id: 3, title: 'Pronto', emoji: '' },
+    { id: 1, title: 'Identificação', icon: Building2 },
+    { id: 2, title: 'Perfil tributário', icon: ClipboardList },
+    { id: 3, title: 'Confirmação', icon: Check },
   ];
 
   const regimes = [
-    { id: 'mei', label: 'MEI', desc: 'Fatura até R$ 81 mil/ano', tip: 'Começando ou fatura pouco' },
-    { id: 'simples', label: 'Simples Nacional', desc: 'Fatura até R$ 4,8 milhões/ano', tip: 'Maioria dos pequenos negócios' },
-    { id: 'presumido', label: 'Lucro Presumido', desc: 'Fatura até R$ 78 milhões/ano', tip: 'Empresa média-grande' },
-    { id: 'real', label: 'Lucro Real', desc: 'Sem limite', tip: 'Grande empresa ou margem apertada' },
+    { id: 'mei', label: 'MEI', desc: 'Receita Bruta (Faturamento) até R$ 81 mil/ano', tip: 'Microempreendedor individual' },
+    { id: 'simples', label: 'Simples Nacional', desc: 'Receita Bruta (Faturamento) até R$ 4,8 milhões/ano', tip: 'Micro e pequenas empresas' },
+    { id: 'presumido', label: 'Lucro Presumido', desc: 'Receita Bruta (Faturamento) até R$ 78 milhões/ano', tip: 'Empresas de médio e grande porte' },
+    { id: 'real', label: 'Lucro Real', desc: 'Sem limite de faturamento', tip: 'Grandes empresas ou margens reduzidas' },
   ];
 
   const atividades = [
@@ -74,218 +74,293 @@ export default function Onboarding({ onComplete }) {
     setEmpresaData(prev => ({ ...prev, [field]: value }));
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-emerald-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-brand-600 to-brand-700 p-8 text-white text-center">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">{steps[currentStep - 1].emoji}</span>
-          </div>
-          <h1 className="text-2xl font-bold">
-            {currentStep === 1 && 'Bem-vindo ao PrecifiCALC'}
-            {currentStep === 2 && 'Dados da empresa'}
-            {currentStep === 3 && 'Configuração concluída'}
-          </h1>
-          <p className="text-brand-100 mt-2 text-sm">
-            {currentStep === 1 && 'Vamos calcular o preço ideal para os produtos da empresa'}
-            {currentStep === 2 && 'Para calcular os impostos corretamente'}
-            {currentStep === 3 && 'Agora vamos descobrir o preço certo dos produtos.'}
-          </p>
+  function formatCnpj(raw) {
+    const digits = raw.replace(/\D/g, '').slice(0, 14);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+    if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+  }
 
-          {/* Progress */}
-          <div className="flex items-center justify-center gap-2 mt-6">
-            {steps.map((step) => (
-              <div
-                key={step.id}
-                className={`h-2 rounded-full transition-all ${
-                  currentStep >= step.id ? 'w-12 bg-white' : 'w-8 bg-white/30'
-                }`}
-              />
-            ))}
+  function handleCnpjChange(e) {
+    updateEmpresa('cnpj', formatCnpj(e.target.value));
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        {/* Brand header */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="w-9 h-9 rounded-xl bg-[#001a2d] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
+          </div>
+          <div>
+            <span className="text-lg font-bold tracking-tight text-slate-900">PrecifiCALC</span>
+            <span className="text-[10px] text-slate-400 font-medium block -mt-1 tracking-wider uppercase">Enterprise</span>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8">
-          {currentStep === 1 && (
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Nome da empresa (ou do empresário)
-                </label>
-                <input
-                  type="text"
-                  value={empresaData.nomeEmpresa}
-                  onChange={(e) => updateEmpresa('nomeEmpresa', e.target.value)}
-                  className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-lg"
-                  placeholder="Ex: Maria's Bolos, João Consultor..."
-                  autoFocus
-                />
+        {/* Step indicator */}
+        <div className="flex items-center justify-center gap-1 mb-8">
+          {steps.map((step, i) => {
+            const StepIcon = step.icon;
+            const isActive = currentStep === step.id;
+            const isDone = currentStep > step.id;
+            return (
+              <div key={step.id} className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    isDone ? 'bg-[#001a2d] text-white' :
+                    isActive ? 'bg-[#001a2d] text-white' :
+                    'bg-slate-200 text-slate-400'
+                  }`}>
+                    {isDone ? <CheckCircle size={16} /> : <StepIcon size={14} />}
+                  </div>
+                  <span className={`text-xs font-medium hidden sm:block ${
+                    isActive ? 'text-slate-900' : isDone ? 'text-slate-600' : 'text-slate-400'
+                  }`}>{step.title}</span>
+                </div>
+                {i < steps.length - 1 && (
+                  <div className={`w-12 h-px mx-3 ${isDone ? 'bg-[#001a2d]' : 'bg-slate-200'}`} />
+                )}
               </div>
+            );
+          })}
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Card header */}
+          <div className="px-8 pt-8 pb-2">
+            <h1 className="text-xl font-bold text-slate-900">
+              {currentStep === 1 && 'Identificação da empresa'}
+              {currentStep === 2 && 'Perfil tributário'}
+              {currentStep === 3 && 'Confirme os dados'}
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {currentStep === 1 && 'Informe os dados básicos para personalizar os cálculos.'}
+              {currentStep === 2 && 'Defina o regime tributário e a atividade para cálculos precisos.'}
+              {currentStep === 3 && 'Verifique as informações antes de prosseguir.'}
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="mx-8 my-4 h-px bg-slate-100" />
+
+          {/* Content */}
+          <div className="px-8 pb-2">
+            {currentStep === 1 && (
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Cidade (opcional)
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Nome da empresa ou razão social <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={empresaData.cidade}
-                    onChange={(e) => updateEmpresa('cidade', e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                    placeholder="Ex: São Paulo"
+                    value={empresaData.nomeEmpresa}
+                    onChange={(e) => updateEmpresa('nomeEmpresa', e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001a2d]/20 focus:border-[#001a2d] text-sm"
+                    placeholder="Ex: Empresa Exemplo Ltda."
+                    autoFocus
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    CNPJ (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={empresaData.cnpj}
-                    onChange={(e) => updateEmpresa('cnpj', e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                    placeholder="00.000.000/0001-00"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
-          {currentStep === 2 && (
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-3">
-                  Tipo da empresa (regime tributário):
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {regimes.map((regime) => (
-                    <div
-                      key={regime.id}
-                      onClick={() => updateEmpresa('regime', regime.id)}
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        empresaData.regime === regime.id
-                          ? 'border-brand-500 bg-brand-50 shadow-md'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="font-semibold text-slate-800">{regime.label}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{regime.desc}</div>
-                      <div className="text-xs text-brand-600 font-medium mt-1">{regime.tip}</div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-400 mt-2">Não sabe? Provavelmente é Simples Nacional.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Atividade principal da empresa
-                  </label>
-                  <select
-                    value={empresaData.atividade}
-                    onChange={(e) => updateEmpresa('atividade', e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  >
-                    <option value="">Selecione...</option>
-                    {atividades.map((ativ) => (
-                      <option key={ativ} value={ativ}>{ativ}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Faturamento mensal (aproximado)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Cidade <span className="text-slate-400 font-normal">(opcional)</span>
+                    </label>
                     <input
-                      type="number"
-                      value={empresaData.receitaAnual ? Math.round(empresaData.receitaAnual / 12) : ''}
-                      onChange={(e) => updateEmpresa('receitaAnual', (parseFloat(e.target.value) || 0) * 12)}
-                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                      placeholder="30.000"
+                      type="text"
+                      value={empresaData.cidade}
+                      onChange={(e) => updateEmpresa('cidade', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001a2d]/20 focus:border-[#001a2d] text-sm"
+                      placeholder="Ex: São Paulo"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      CNPJ <span className="text-slate-400 font-normal">(opcional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={empresaData.cnpj}
+                      onChange={handleCnpjChange}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001a2d]/20 focus:border-[#001a2d] text-sm"
+                      placeholder="00.000.000/0001-00"
+                      maxLength={18}
                     />
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="space-y-5">
-              <div className="text-center">
-                <div className="text-6xl mb-4"></div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Resumo da configuração</h3>
-                <p className="text-slate-500">Agora vamos calcular o preço ideal dos produtos da empresa</p>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-5 space-y-2">
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-slate-400">Empresa:</span> <span className="font-medium">{empresaData.nomeEmpresa}</span></div>
-                  <div><span className="text-slate-400">Tipo:</span> <span className="font-medium">{regimes.find(r => r.id === empresaData.regime)?.label}</span></div>
-                  <div><span className="text-slate-400">Atividade:</span> <span className="font-medium">{empresaData.atividade}</span></div>
-                  {empresaData.cidade && <div><span className="text-slate-400">Cidade:</span> <span className="font-medium">{empresaData.cidade}</span></div>}
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-brand-50 to-emerald-50 border border-brand-200 rounded-xl p-5">
-                <h4 className="font-bold text-brand-800 mb-3">O que fazer primeiro:</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-                    <span className="text-brand-700">Clique em <strong>"Calcular Preço"</strong> para descobrir o preço ideal dos produtos</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-7 h-7 rounded-full bg-brand-400 text-white flex items-center justify-center text-xs font-bold">2</span>
-                    <span className="text-brand-700">Veja <strong>"Comparar Impostos"</strong> para descobrir se a empresa está no regime certo</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-7 h-7 rounded-full bg-brand-300 text-white flex items-center justify-center text-xs font-bold">3</span>
-                    <span className="text-brand-700">Use <strong>"Se eu crescer..."</strong> para planejar o futuro</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-8 pb-8">
-          <div className="flex justify-between">
-            {currentStep > 1 ? (
-              <button
-                onClick={handleBack}
-                className="flex items-center px-6 py-3 text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Voltar
-              </button>
-            ) : (
-              <div />
             )}
 
-            <button
-              onClick={handleNext}
-              disabled={!isStepValid()}
-              className="flex items-center px-8 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-xl font-semibold hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md"
-            >
-              {currentStep === 3 ? (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Calcular preço ideal
-                </>
+            {currentStep === 2 && (
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2.5">
+                    Regime tributário <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {regimes.map((regime) => (
+                      <div
+                        key={regime.id}
+                        onClick={() => updateEmpresa('regime', regime.id)}
+                        className={`p-3.5 border rounded-lg cursor-pointer transition-all ${
+                          empresaData.regime === regime.id
+                            ? 'border-[#001a2d] bg-slate-50 ring-1 ring-[#001a2d]'
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-sm text-slate-800">{regime.label}</span>
+                          {empresaData.regime === regime.id && (
+                            <CheckCircle size={16} className="text-[#001a2d]" />
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">{regime.desc}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">{regime.tip}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">Em caso de dúvida, selecione Simples Nacional.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Atividade principal <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={empresaData.atividade}
+                      onChange={(e) => updateEmpresa('atividade', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001a2d]/20 focus:border-[#001a2d] text-sm"
+                    >
+                      <option value="">Selecione...</option>
+                      {atividades.map((ativ) => (
+                        <option key={ativ} value={ativ}>{ativ}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Receita Bruta (Faturamento) mensal <span className="text-slate-400 font-normal">(aproximado)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+                      <input
+                        type="number"
+                        value={empresaData.receitaAnual ? Math.round(empresaData.receitaAnual / 12) : ''}
+                        onChange={(e) => updateEmpresa('receitaAnual', (parseFloat(e.target.value) || 0) * 12)}
+                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001a2d]/20 focus:border-[#001a2d] text-sm"
+                        placeholder="30.000"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-5">
+                <div className="bg-slate-50 rounded-lg border border-slate-100 p-5">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Dados cadastrados</h4>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
+                    <div>
+                      <span className="text-slate-400 text-xs">Empresa</span>
+                      <p className="font-medium text-slate-800">{empresaData.nomeEmpresa}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-xs">Regime</span>
+                      <p className="font-medium text-slate-800">{regimes.find(r => r.id === empresaData.regime)?.label}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-xs">Atividade</span>
+                      <p className="font-medium text-slate-800">{empresaData.atividade}</p>
+                    </div>
+                    {empresaData.cidade && (
+                      <div>
+                        <span className="text-slate-400 text-xs">Cidade</span>
+                        <p className="font-medium text-slate-800">{empresaData.cidade}</p>
+                      </div>
+                    )}
+                    {empresaData.cnpj && (
+                      <div>
+                        <span className="text-slate-400 text-xs">CNPJ</span>
+                        <p className="font-medium text-slate-800">{empresaData.cnpj}</p>
+                      </div>
+                    )}
+                    {empresaData.receitaAnual > 0 && (
+                      <div>
+                        <span className="text-slate-400 text-xs">Receita Bruta (Faturamento) mensal</span>
+                        <p className="font-medium text-slate-800">R$ {Math.round(empresaData.receitaAnual / 12).toLocaleString('pt-BR')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-lg border border-slate-100 p-5">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Próximos passos</h4>
+                  <div className="space-y-2.5">
+                    <div className="flex items-start gap-3 text-sm">
+                      <span className="w-5 h-5 rounded bg-[#001a2d] text-white flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0">1</span>
+                      <span className="text-slate-600">Utilize o módulo <strong className="text-slate-800">Precificação</strong> para calcular o preço de venda</span>
+                    </div>
+                    <div className="flex items-start gap-3 text-sm">
+                      <span className="w-5 h-5 rounded bg-slate-300 text-white flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0">2</span>
+                      <span className="text-slate-600">Compare regimes tributários em <strong className="text-slate-800">Comparativo</strong></span>
+                    </div>
+                    <div className="flex items-start gap-3 text-sm">
+                      <span className="w-5 h-5 rounded bg-slate-300 text-white flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0">3</span>
+                      <span className="text-slate-600">Projete cenários futuros em <strong className="text-slate-800">Projeção de Crescimento</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-8 py-6">
+            <div className="flex items-center justify-between">
+              {currentStep > 1 ? (
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-slate-500 hover:text-slate-800 transition-colors rounded-lg hover:bg-slate-50"
+                >
+                  <ChevronLeft size={16} />
+                  Voltar
+                </button>
               ) : (
-                <>
-                  Continuar
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </>
+                <div />
               )}
-            </button>
+
+              <button
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#001a2d] text-white rounded-lg text-sm font-medium hover:bg-[#002a45] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                {currentStep === 3 ? (
+                  <>
+                    Acessar sistema
+                    <ArrowRight size={16} />
+                  </>
+                ) : (
+                  <>
+                    Continuar
+                    <ChevronRight size={16} />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Footer text */}
+        <p className="text-center text-xs text-slate-400 mt-6">
+          Seus dados ficam armazenados localmente no navegador. Nenhuma informação é enviada a servidores externos.
+        </p>
       </div>
     </div>
   );

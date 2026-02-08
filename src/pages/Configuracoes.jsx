@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info, Download, Upload, Trash2, Sun, Moon, Palette } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Zap, AlertTriangle, CheckCircle, Info, Download, Upload, Trash2, Palette } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
+import PageHeader from '../components/PageHeader';
 import ThemeToggle from '../components/ThemeToggle';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -155,13 +156,7 @@ export default function Configuracoes() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="border-b border-slate-200 dark:border-slate-700 pb-4">
-        <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Settings className="text-brand-600 dark:text-brand-400" size={22} />
-          Configurações
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Personalize o sistema conforme suas necessidades</p>
-      </div>
+      <PageHeader icon={Settings} title="Configurações" description="Personalize o sistema conforme suas necessidades" />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

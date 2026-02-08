@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Calculator, AlertTriangle, Info, BookOpen, HelpCircle } from 'lucide-react';
+import { Calculator, AlertTriangle, Info, BookOpen, HelpCircle, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { InfoTip } from '../components/Tooltip';
 import PageHeader from '../components/PageHeader';
 import DisclaimerBanner from '../components/DisclaimerBanner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import {
   formatCurrency, formatPercent,
   calcSimplesTax, calcLucroPresumido, calcLucroReal, calcMEI,
@@ -59,6 +60,9 @@ export default function SimuladorTributario() {
   // Sublimite UF (for Simples)
   const [estadoEmpresa, setEstadoEmpresa] = useState(saved?.estadoEmpresa || '');
 
+  // Comparação de regimes (collapsible section)
+  const [mostrarComparacao, setMostrarComparacao] = useState(saved?.mostrarComparacao ?? false);
+
   // Sync folha12Meses when usarFolha12Auto is on
   useEffect(() => {
     if (usarFolha12Auto) {
@@ -73,14 +77,14 @@ export default function SimuladorTributario() {
       issAliquota, despesasDedutiveis, creditosPisCofins, despesasOperacionais,
       folhaMensal, folha12Meses, usarFolha12Auto, adicoesLalur, exclusoesLalur,
       vendaInterestadual, ufOrigem, ufDestino, estadoEmpresa,
-      apuracaoMensal, prejuizoFiscal,
+      apuracaoMensal, prejuizoFiscal, mostrarComparacao,
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }, [regime, receitaMensal, rbt12, anexo, atividadeMEI, tipoAtividade, issAliquota,
     despesasDedutiveis, creditosPisCofins, despesasOperacionais, folhaMensal,
     folha12Meses, usarFolha12Auto, adicoesLalur, exclusoesLalur,
     vendaInterestadual, ufOrigem, ufDestino, estadoEmpresa,
-    apuracaoMensal, prejuizoFiscal]);
+    apuracaoMensal, prejuizoFiscal, mostrarComparacao]);
 
   useEffect(() => { persistState(); }, [persistState]);
 
@@ -245,6 +249,90 @@ export default function SimuladorTributario() {
   const lucroLiquido = receitaMensalEfetiva - impostoMensal - despesasOperacionais;
 
   const showFatorRInfo = regime === 'simples' && anexo === 'V' && fatorR >= 0.28;
+
+  // One-time cleanup of old PlanejamentoTributario localStorage
+  useEffect(() => {
+    localStorage.removeItem('precificalc_planejamento_tributario');
+  }, []);
+
+  // Comparação entre todos os regimes (only calculated when section is open)
+  const comparacaoRegimes = useMemo(() => {
+    if (!mostrarComparacao) return null;
+
+    const rm = regime === 'simples' ? rbt12 / 12 : receitaMensal;
+    const receitaAnual = rm * 12;
+    const results = [];
+
+    // MEI
+    if (receitaAnual <= mei.limiteAnual) {
+      const meiResult = calcMEI(rm, atividadeMEI);
+      if (meiResult && !meiResult.excedeLimite) {
+        results.push({
+          regime: 'MEI',
+          regimeKey: 'mei',
+          tributoMensal: meiResult.dasFixo,
+          tributoAnual: meiResult.dasFixo * 12,
+          aliquotaEfetiva: meiResult.aliquotaEfetiva,
+        });
+      }
+    }
+
+    // Simples Nacional
+    if (receitaAnual <= simplesNacional.limiteAnual) {
+      const simplesResult = calcSimplesTax(receitaAnual, anexoEfetivo);
+      if (simplesResult && !simplesResult.excedeLimite && !simplesResult.migracao) {
+        let totalMensal = simplesResult.valorMensal;
+        // Add CPP for Anexo IV
+        if (anexoEfetivo === 'IV') {
+          totalMensal += calcCPPAnexoIV(folhaMensal);
+        }
+        results.push({
+          regime: `Simples (${simplesNacional.anexos[anexoEfetivo].nome})`,
+          regimeKey: 'simples',
+          tributoMensal: totalMensal,
+          tributoAnual: totalMensal * 12,
+          aliquotaEfetiva: rm > 0 ? totalMensal / rm : 0,
+        });
+      }
+    }
+
+    // Lucro Presumido
+    const lpResult = calcLucroPresumido(rm, tipoAtividade, issAliquota / 100);
+    if (lpResult && !lpResult.erro) {
+      results.push({
+        regime: 'Lucro Presumido',
+        regimeKey: 'presumido',
+        tributoMensal: lpResult.totalMensal,
+        tributoAnual: lpResult.totalMensal * 12,
+        aliquotaEfetiva: lpResult.aliquotaEfetiva,
+      });
+    }
+
+    // Lucro Real (fallback 40% despesas, 20% créditos when zero)
+    const despLR = despesasDedutiveis > 0 ? despesasDedutiveis : rm * 0.4;
+    const credLR = creditosPisCofins > 0 ? creditosPisCofins : rm * 0.2;
+    const lrResult = calcLucroReal(rm, despLR, credLR, issAliquota / 100);
+    if (lrResult && !lrResult.erro) {
+      results.push({
+        regime: 'Lucro Real',
+        regimeKey: 'real',
+        tributoMensal: lrResult.totalMensal,
+        tributoAnual: lrResult.totalMensal * 12,
+        aliquotaEfetiva: lrResult.aliquotaEfetiva,
+      });
+    }
+
+    results.sort((a, b) => a.tributoAnual - b.tributoAnual);
+
+    const regimeAtualData = results.find(r => r.regimeKey === regime);
+    const melhor = results[0];
+    const economiaAnual = regimeAtualData && melhor
+      ? regimeAtualData.tributoAnual - melhor.tributoAnual
+      : 0;
+
+    return { results, regimeAtualData, melhor, economiaAnual };
+  }, [mostrarComparacao, regime, rbt12, receitaMensal, anexoEfetivo, atividadeMEI,
+    tipoAtividade, issAliquota, despesasDedutiveis, creditosPisCofins, folhaMensal]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -453,7 +541,9 @@ export default function SimuladorTributario() {
                   { value: 'transportePassageiros', label: 'Transporte de Passageiros' },
                   { value: 'servHospitalares', label: 'Serviços Hospitalares' },
                 ]} />
-                <InputField label="Alíquota ISS do Município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia de 2% a 5% conforme o município da empresa" />
+                {!['comercio', 'industria', 'transporteCarga'].includes(tipoAtividade) && (
+                  <InputField label="Alíquota ISS do Município (%)" value={issAliquota} onChange={setIssAliquota} suffix="%" min={2} max={5} step={0.5} help="Varia de 2% a 5% conforme o município da empresa" />
+                )}
               </>
             )}
 
@@ -788,6 +878,146 @@ export default function SimuladorTributario() {
           )}
         </div>
       </div>
+
+      {/* Comparar Todos os Regimes - collapsible section */}
+      <Card>
+        <button
+          onClick={() => setMostrarComparacao(!mostrarComparacao)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors rounded-lg"
+        >
+          <div className="flex items-center gap-2">
+            <DollarSign size={18} className="text-brand-500" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Comparar Todos os Regimes</span>
+          </div>
+          {mostrarComparacao ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+        </button>
+
+        {mostrarComparacao && comparacaoRegimes && comparacaoRegimes.results.length > 0 && (
+          <CardBody className="pt-0 space-y-4">
+            {/* Bar chart */}
+            <div role="img" aria-label="Gráfico: tributo anual estimado por regime tributário">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={comparacaoRegimes.results.map(r => ({
+                    regime: r.regime.length > 18 ? r.regime.substring(0, 18) + '...' : r.regime,
+                    tributoAnual: r.tributoAnual,
+                    isMelhor: r === comparacaoRegimes.melhor,
+                    isAtual: r.regimeKey === regime,
+                  }))}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="regime" tick={{ fill: '#64748b', fontSize: 10 }} />
+                  <YAxis
+                    tick={{ fill: '#64748b', fontSize: 11 }}
+                    tickFormatter={(v) => {
+                      if (v >= 1000000) return `R$${(v / 1000000).toFixed(1)}M`;
+                      if (v >= 1000) return `R$${(v / 1000).toFixed(0)}k`;
+                      return `R$${v.toFixed(0)}`;
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,.1)' }}
+                    formatter={(v) => [formatCurrency(v), 'Tributo anual']}
+                  />
+                  <Bar dataKey="tributoAnual" radius={[4, 4, 0, 0]}>
+                    {comparacaoRegimes.results.map((entry, i) => {
+                      let fill = '#cbd5e1';
+                      if (entry === comparacaoRegimes.melhor) fill = '#10b981';
+                      else if (entry.regimeKey === regime) fill = '#4f46e5';
+                      return <Cell key={i} fill={fill} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-sm" /> Melhor</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#4f46e5] rounded-sm" /> Atual</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-slate-300 rounded-sm" /> Outros</span>
+            </div>
+
+            {/* Comparison table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Regime</th>
+                    <th className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Tributo/mês</th>
+                    <th className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Tributo/ano</th>
+                    <th className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Alíq. efetiva</th>
+                    <th className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Economia vs. atual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {comparacaoRegimes.results.map((s) => {
+                    const economiaVsAtual = comparacaoRegimes.regimeAtualData
+                      ? comparacaoRegimes.regimeAtualData.tributoAnual - s.tributoAnual
+                      : 0;
+                    return (
+                      <tr
+                        key={s.regimeKey}
+                        className={s.regimeKey === regime
+                          ? 'bg-brand-50 dark:bg-brand-950/20'
+                          : s === comparacaoRegimes.melhor
+                            ? 'bg-emerald-50 dark:bg-emerald-950/20'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}
+                      >
+                        <td className="py-2.5 px-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">{s.regime}</span>
+                            {s.regimeKey === regime && (
+                              <span className="text-[10px] bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 px-1.5 py-0.5 rounded-full font-medium">atual</span>
+                            )}
+                            {s === comparacaoRegimes.melhor && (
+                              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-medium">melhor</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-mono text-slate-700 dark:text-slate-300">
+                          {formatCurrency(s.tributoMensal)}
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-mono font-medium text-slate-800 dark:text-slate-200">
+                          {formatCurrency(s.tributoAnual)}
+                        </td>
+                        <td className="py-2.5 px-2 text-right font-mono text-slate-700 dark:text-slate-300">
+                          {formatPercent(s.aliquotaEfetiva)}
+                        </td>
+                        <td className={`py-2.5 px-2 text-right font-mono font-medium ${economiaVsAtual > 0 ? 'text-emerald-600 dark:text-emerald-400' : economiaVsAtual < 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400'}`}>
+                          {economiaVsAtual > 0 ? '+' : ''}{formatCurrency(economiaVsAtual)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Savings banner */}
+            {comparacaoRegimes.economiaAnual > 0 && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-300 dark:border-emerald-800 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign size={24} className="text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">Oportunidade de economia</span>
+                </div>
+                <p className="text-emerald-700 dark:text-emerald-400">
+                  Ao migrar para <strong>{comparacaoRegimes.melhor.regime}</strong>, a empresa economizaria{' '}
+                  <strong>{formatCurrency(comparacaoRegimes.economiaAnual)}/ano</strong> ({formatCurrency(comparacaoRegimes.economiaAnual / 12)}/mês) em tributos.
+                </p>
+              </div>
+            )}
+
+            {/* Legal notice */}
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-3">
+              <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={16} />
+              <div className="text-xs text-amber-700 dark:text-amber-400 space-y-1">
+                <p><strong>Mudança de regime:</strong> A troca de regime tributário só pode ser feita em janeiro de cada ano (Art. 16, Lei 8.981/1995 para LR/LP; Art. 30, LC 123/2006 para Simples).</p>
+                <p>Os valores acima são estimativas. Consulte um contador para análise detalhada antes de decidir.</p>
+              </div>
+            </div>
+          </CardBody>
+        )}
+      </Card>
     </div>
   );
 }

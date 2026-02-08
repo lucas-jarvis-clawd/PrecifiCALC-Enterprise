@@ -3,12 +3,11 @@ import { Target, Calculator, DollarSign, Clock, AlertCircle, CheckCircle, AlertT
 import { Card, CardBody, CardHeader, StatCard } from '../components/Card';
 import InputField, { SelectField } from '../components/InputField';
 import { calcMEI, calcSimplesTax, calcLucroPresumido, calcLucroReal, formatCurrency, formatPercent } from '../data/taxData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
-
-const COLORS = ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981'];
-
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { calcCPPAnexoIV, calcFatorR, getAnexoPorFatorR, checkSublimiteSimples } from '../data/taxHelpers';
 import PageHeader from '../components/PageHeader';
+import CostBreakdownChart from '../components/CostBreakdownChart';
+import DisclaimerBanner from '../components/DisclaimerBanner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // Seasonality multipliers
@@ -65,19 +64,62 @@ export default function AnaliseViabilidade() {
     if (receita <= 0) return;
 
     let impostos = 0;
+    let taxDetail = [];
     const receitaAnual = dados.regime === 'simples' ? (parseFloat(dados.rbt12) || receita * 12) : receita * 12;
 
     switch (dados.regime) {
-      case 'mei': { const r = calcMEI(receita, dados.atividade); impostos = r && !r.excedeLimite ? r.dasFixo : 0; break; }
-      case 'simples': { const r = calcSimplesTax(receitaAnual, anexoEfetivo); impostos = r && !r.excedeLimite ? r.valorMensal : 0; break; }
-      case 'presumido': { const r = calcLucroPresumido(receita, dados.atividade, (parseFloat(dados.issAliquota) || 5) / 100); impostos = r && !r.erro ? r.totalMensal : 0; break; }
-      case 'real': { const r = calcLucroReal(receita, parseFloat(dados.despesasDedutiveis) || custoFixo, parseFloat(dados.creditosPisCofins) || 0, (parseFloat(dados.issAliquota) || 5) / 100); impostos = r && !r.erro ? r.totalMensal : 0; break; }
+      case 'mei': {
+        const r = calcMEI(receita, dados.atividade);
+        impostos = r && !r.excedeLimite ? r.dasFixo : 0;
+        if (impostos > 0) taxDetail = [{ name: 'DAS MEI', value: impostos }];
+        break;
+      }
+      case 'simples': {
+        const r = calcSimplesTax(receitaAnual, anexoEfetivo);
+        if (r && !r.excedeLimite) {
+          impostos = r.valorMensal;
+          const dist = r.distribuicaoTributos || {};
+          taxDetail = Object.entries(dist).map(([name, pct]) => ({
+            name, value: r.valorMensal * pct, percent: (r.aliquotaEfetiva * pct * 100),
+          }));
+        }
+        break;
+      }
+      case 'presumido': {
+        const r = calcLucroPresumido(receita, dados.atividade, (parseFloat(dados.issAliquota) || 5) / 100);
+        if (r && !r.erro) {
+          impostos = r.totalMensal;
+          taxDetail = [
+            { name: 'IRPJ', value: r.irpj.valorMensal },
+            { name: 'CSLL', value: r.csll.valorMensal },
+            { name: 'PIS', value: r.pis.valorMensal },
+            { name: 'COFINS', value: r.cofins.valorMensal },
+            { name: 'ISS', value: r.iss.valorMensal },
+          ].filter(t => t.value > 0);
+        }
+        break;
+      }
+      case 'real': {
+        const r = calcLucroReal(receita, parseFloat(dados.despesasDedutiveis) || custoFixo, parseFloat(dados.creditosPisCofins) || 0, (parseFloat(dados.issAliquota) || 5) / 100);
+        if (r && !r.erro) {
+          impostos = r.totalMensal;
+          taxDetail = [
+            { name: 'IRPJ', value: r.irpj.valorMensal },
+            { name: 'CSLL', value: r.csll.valorMensal },
+            { name: 'PIS', value: r.pis.valorMensal },
+            { name: 'COFINS', value: r.cofins.valorMensal },
+            { name: 'ISS', value: r.iss.valorMensal },
+          ].filter(t => t.value > 0);
+        }
+        break;
+      }
     }
 
     // Add CPP for Anexo IV
     impostos += cppAnexoIV;
 
-    const custoTotal = custoFixo + custoVariavel + impostos;
+    const custoBase = custoFixo + custoVariavel; // Without taxes (applied separately in projection)
+    const custoTotal = custoBase + impostos; // For display/summary only
     const lucroMensal = receita - custoTotal;
     const margemLucro = receita > 0 ? (lucroMensal / receita) * 100 : 0;
     const payback = lucroMensal > 0 && investimento > 0 ? investimento / lucroMensal : 0;
@@ -91,7 +133,8 @@ export default function AnaliseViabilidade() {
       const mult = sazonalMults[i];
       const crescimento = Math.pow(1 + taxaCrescimento / 100, i);
       const receitaMes = receita * crescimento * mult;
-      const custoMes = custoTotal * crescimento * mult;
+      // Fixed costs don't scale with seasonality; only variable costs do
+      const custoMes = custoFixo + (custoVariavel * crescimento * mult);
       const impostoMes = receitaMes * aliquotaEfetiva;
       const lucroMes = receitaMes - custoMes - impostoMes;
       const fatorDesconto = Math.pow(1 + (taxaDesconto / 100 / 12), -(i + 1));
@@ -107,10 +150,10 @@ export default function AnaliseViabilidade() {
     const vpl = projecao.reduce((sum, p) => sum + p.lucroDescontado, 0) - investimento;
 
     const distribuicao = [
-      { name: 'Custos Fixos', value: custoFixo, color: COLORS[0] },
-      { name: 'Custos Variaveis', value: custoVariavel, color: COLORS[1] },
-      { name: 'Tributos', value: impostos, color: COLORS[2] },
-      { name: 'Lucro', value: Math.max(0, lucroMensal), color: COLORS[3] },
+      { name: 'Custos Fixos', value: custoFixo },
+      { name: 'Custos Variaveis', value: custoVariavel },
+      { name: 'Tributos', value: impostos },
+      { name: 'Lucro', value: Math.max(0, lucroMensal) },
     ];
 
     // Viability based on segment thresholds
@@ -128,18 +171,19 @@ export default function AnaliseViabilidade() {
 
     setResultado({
       lucroMensal, margemLucro, payback, pontoEquilibrio, impostos, aliquotaEfetiva, custoTotal,
-      projecao, distribuicao, viabilidade, vpl,
+      projecao, distribuicao, viabilidade, vpl, taxDetail,
     });
   };
 
   const viabTexto = { excelente: 'Excelente', boa: 'Boa', limitada: 'Limitada', inviavel: 'Inviavel' };
   const viabColor = { excelente: 'green', boa: 'blue', limitada: 'amber', inviavel: 'red' };
   const update = (field, value) => setDados({ ...dados, [field]: value });
-  const tt = { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,.1)' };
+  const tt = { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,.1)' }; // Used by LineChart Tooltip
 
   return (
     <div className="space-y-6 animate-fadeIn">
       <PageHeader icon={Target} title="Analise de Viabilidade" description="Avalie a viabilidade do negocio com calculos tributarios reais" />
+      <DisclaimerBanner />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <Card>
@@ -194,7 +238,7 @@ export default function AnaliseViabilidade() {
                 {migrouAnexo && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Info size={12} className="text-emerald-600 flex-shrink-0" />
-                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (imposto menor)</p>
+                    <p className="text-xs text-emerald-600">Fator R ≥ 28% — migrou pro Anexo III (tributo menor)</p>
                   </div>
                 )}
               </div>
@@ -305,22 +349,27 @@ export default function AnaliseViabilidade() {
                 <Card>
                   <CardHeader><h3 className="font-medium text-slate-800 text-sm">Distribuicao de Custos</h3></CardHeader>
                   <CardBody>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <PieChart>
-                        <Pie data={resultado.distribuicao} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={2}>
-                          {resultado.distribuicao.map((e, i) => <Cell key={i} fill={e.color} />)}
-                        </Pie>
-                        <Tooltip contentStyle={tt} formatter={(v) => formatCurrency(v)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="grid grid-cols-2 gap-1 mt-2">
-                      {resultado.distribuicao.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: item.color }} />
-                          <span className="text-slate-500">{item.name}</span>
+                    <CostBreakdownChart
+                      items={resultado.distribuicao.map(d => ({ label: d.name, value: d.value }))}
+                      total={parseFloat(dados.receitaMensal) || 0}
+                    />
+                    {resultado.taxDetail && resultado.taxDetail.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Detalhamento dos Tributos</p>
+                        <div className="space-y-1">
+                          {resultado.taxDetail.map((t, i) => (
+                            <div key={i} className="flex justify-between text-xs">
+                              <span className="text-slate-600 dark:text-slate-400">{t.name}</span>
+                              <span className="text-slate-700 dark:text-slate-300 font-mono">{formatCurrency(t.value)}</span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between text-xs font-medium border-t border-slate-100 dark:border-slate-700 pt-1 mt-1">
+                            <span className="text-slate-700 dark:text-slate-300">Total Tributos</span>
+                            <span className="text-violet-600 dark:text-violet-400 font-mono">{formatCurrency(resultado.impostos)}</span>
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </CardBody>
                 </Card>
               </div>

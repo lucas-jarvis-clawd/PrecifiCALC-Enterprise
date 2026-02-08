@@ -35,7 +35,7 @@ const Relatorios = lazy(() => import('../pages/Relatorios.jsx'));
 const Enquadramento = lazy(() => import('../pages/Enquadramento.jsx'));
 const CalendarioFiscal = lazy(() => import('../pages/CalendarioFiscal.jsx'));
 const Configuracoes = lazy(() => import('../pages/Configuracoes.jsx'));
-
+const OtimizadorProLabore = lazy(() => import('../pages/OtimizadorProLabore.jsx'));
 // Wrapped exports with Suspense
 export const LazyDashboard = withSuspense(Dashboard);
 export const LazySimuladorTributario = withSuspense(SimuladorTributario);
@@ -51,5 +51,6 @@ export const LazyRelatorios = withSuspense(Relatorios);
 export const LazyEnquadramento = withSuspense(Enquadramento);
 export const LazyCalendarioFiscal = withSuspense(CalendarioFiscal);
 export const LazyConfiguracoes = withSuspense(Configuracoes);
+export const LazyOtimizadorProLabore = withSuspense(OtimizadorProLabore);
 
 export const initializeSmartPreloading = () => {};
