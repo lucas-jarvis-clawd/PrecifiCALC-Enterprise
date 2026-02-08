@@ -42,7 +42,7 @@ export default class ErrorBoundary extends Component {
       localStorage.setItem('precificalc_error_log', JSON.stringify(logs));
       
       // Console detalhado para desenvolvedores
-      console.error('[PrecifiCALC Error Boundary]', error, errorInfo);
+      console.error('[Vértice Error Boundary]', error, errorInfo);
     } catch { /* ignore logging errors */ }
   }
 
@@ -56,7 +56,7 @@ export default class ErrorBoundary extends Component {
   };
 
   handleCopyError = () => {
-    const errorText = `PrecifiCALC Error Report\n\nError: ${this.state.error?.message}\n\nStack: ${this.state.error?.stack?.slice(0, 500)}\n\nComponent: ${this.state.errorInfo?.componentStack?.slice(0, 300)}`;
+    const errorText = `Vértice Error Report\n\nError: ${this.state.error?.message}\n\nStack: ${this.state.error?.stack?.slice(0, 500)}\n\nComponent: ${this.state.errorInfo?.componentStack?.slice(0, 300)}`;
     navigator.clipboard.writeText(errorText).then(() => {
       this.setState({ copied: true });
       setTimeout(() => this.setState({ copied: false }), 2000);

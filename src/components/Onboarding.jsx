@@ -93,11 +93,11 @@ export default function Onboarding({ onComplete }) {
         {/* Brand header */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-9 h-9 rounded-xl bg-[#001a2d] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
+            <span className="text-white font-bold text-sm">V</span>
           </div>
           <div>
-            <span className="text-lg font-bold tracking-tight text-slate-900">PrecifiCALC</span>
-            <span className="text-[10px] text-slate-400 font-medium block -mt-1 tracking-wider uppercase">Enterprise</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">Vértice</span>
+            <span className="text-[10px] text-slate-400 font-medium block -mt-1 tracking-wider uppercase">Gestão & Precificação</span>
           </div>
         </div>
 

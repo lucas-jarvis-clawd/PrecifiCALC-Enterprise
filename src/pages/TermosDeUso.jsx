@@ -18,7 +18,7 @@ export default function TermosDeUso({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">1. Aceitação dos Termos</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              Ao acessar e utilizar o PrecifiCALC ("Ferramenta"), você concorda com estes Termos de Uso. 
+              Ao acessar e utilizar o Vértice ("Ferramenta"), você concorda com estes Termos de Uso. 
               Se não concordar, não utilize a Ferramenta.
             </p>
           </section>
@@ -26,7 +26,7 @@ export default function TermosDeUso({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">2. Descrição do Serviço</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              O PrecifiCALC é uma ferramenta de apoio à decisão para precificação de produtos e serviços. 
+              O Vértice é uma ferramenta de apoio à decisão para precificação de produtos e serviços. 
               Fornece cálculos baseados em dados tributários oficiais brasileiros, incluindo tabelas do 
               Simples Nacional, Lucro Presumido, Lucro Real e MEI.
             </p>
@@ -35,7 +35,7 @@ export default function TermosDeUso({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">3. Limitações e Isenção de Responsabilidade</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              <strong>IMPORTANTE:</strong> O PrecifiCALC é uma ferramenta de apoio e simulação. Os cálculos 
+              <strong>IMPORTANTE:</strong> O Vértice é uma ferramenta de apoio e simulação. Os cálculos 
               apresentados são estimativas baseadas nas informações fornecidas pelo usuário e nas tabelas 
               tributárias vigentes.
             </p>
@@ -76,7 +76,7 @@ export default function TermosDeUso({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">6. Propriedade Intelectual</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              O PrecifiCALC, incluindo sua interface, código, design e conteúdo, é protegido por leis de 
+              O Vértice, incluindo sua interface, código, design e conteúdo, é protegido por leis de 
               propriedade intelectual. Todos os direitos são reservados aos seus criadores.
             </p>
           </section>

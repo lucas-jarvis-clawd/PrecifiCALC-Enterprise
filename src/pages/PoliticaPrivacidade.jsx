@@ -44,7 +44,7 @@ export default function PoliticaPrivacidade({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">1. Introdução</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              Esta Política de Privacidade descreve como o PrecifiCALC ("nós", "nosso") lida com 
+              Esta Política de Privacidade descreve como o Vértice ("nós", "nosso") lida com 
               as informações quando você utiliza nossa ferramenta de precificação. Respeitamos sua 
               privacidade e estamos comprometidos com a proteção dos seus dados pessoais, em 
               conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
@@ -54,7 +54,7 @@ export default function PoliticaPrivacidade({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">2. Dados que Você Fornece</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              Ao utilizar o PrecifiCALC, você pode fornecer informações como:
+              Ao utilizar o Vértice, você pode fornecer informações como:
             </p>
             <ul className="list-disc pl-5 text-slate-600 dark:text-slate-400 space-y-1 mt-2">
               <li>Nome da empresa</li>
@@ -96,7 +96,7 @@ export default function PoliticaPrivacidade({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">5. Cookies e Tecnologias de Rastreamento</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              O PrecifiCALC utiliza apenas localStorage para salvar suas preferências e dados de cálculo. 
+              O Vértice utiliza apenas localStorage para salvar suas preferências e dados de cálculo. 
               Não utilizamos cookies de rastreamento, pixels de tracking ou ferramentas de análise de 
               terceiros que coletem dados pessoais.
             </p>
@@ -133,7 +133,7 @@ export default function PoliticaPrivacidade({ onBack }) {
           <section>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">8. Menores de Idade</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              O PrecifiCALC é destinado a empresários e profissionais. Não direcionamos nossos serviços 
+              O Vértice é destinado a empresários e profissionais. Não direcionamos nossos serviços 
               a menores de 18 anos.
             </p>
           </section>

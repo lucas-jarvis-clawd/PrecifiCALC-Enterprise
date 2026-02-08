@@ -74,12 +74,12 @@ export default function Sidebar({ isOpen, onToggle, isMobile, mobileOpen, onMobi
       {/* Header */}
       <div className="flex items-center gap-3 px-4 h-14 border-b border-white/10 flex-shrink-0">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-500/20">
-          <span className="text-white font-bold text-sm">P</span>
+          <span className="text-white font-bold text-sm">V</span>
         </div>
         {(isOpen || isMobile) && (
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-white tracking-tight">PrecifiCALC</h1>
-            <p className="text-[10px] text-slate-400 -mt-0.5">Enterprise</p>
+            <h1 className="text-sm font-bold text-white tracking-tight">Vértice</h1>
+            <p className="text-[10px] text-slate-400 -mt-0.5">Gestão & Precificação</p>
           </div>
         )}
         {isMobile && (

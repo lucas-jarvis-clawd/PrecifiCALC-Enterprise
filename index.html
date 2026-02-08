@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
 
-    <title>PrecifiCALC Enterprise</title>
+    <title>Vértice — Gestão & Precificação</title>
     <meta name="description" content="Sistema profissional de precificação, simulação tributária e gestão financeira para empresários e contadores." />
 
     <link rel="icon" type="image/svg+xml" href="/icons/icon-svg.svg" />
@@ -30,7 +30,7 @@
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        transition: opacity 0.5s ease, visibility 0.5s ease;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
       }
 
@@ -44,40 +44,44 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 28px;
+        gap: 32px;
+        animation: loader-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
 
-      .loader-icon {
+      @keyframes loader-enter {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Geometric V mark */
+      .loader-v-mark {
+        width: 64px;
+        height: 64px;
         position: relative;
-        width: 72px;
-        height: 72px;
       }
 
-      .loader-icon-bg {
-        width: 72px;
-        height: 72px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #0a2540, #1e3a5f);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 0 40px rgba(10, 37, 64, 0.4), 0 0 80px rgba(10, 37, 64, 0.15);
+      .loader-v-mark svg {
+        width: 100%;
+        height: 100%;
       }
 
-      .loader-icon-bg span {
-        color: #fff;
-        font-size: 32px;
-        font-weight: 800;
-        letter-spacing: -1px;
+      .loader-v-path {
+        stroke-dasharray: 400;
+        stroke-dashoffset: 400;
+        animation: draw-v 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
       }
 
-      .loader-icon-bg {
-        animation: pulse-icon 2s ease-in-out infinite;
+      @keyframes draw-v {
+        to { stroke-dashoffset: 0; }
       }
 
-      @keyframes pulse-icon {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.9; }
+      .loader-v-fill {
+        opacity: 0;
+        animation: fill-v 0.4s ease 1.3s forwards;
+      }
+
+      @keyframes fill-v {
+        to { opacity: 1; }
       }
 
       .loader-text {
@@ -85,66 +89,51 @@
       }
 
       .loader-title {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 700;
         color: #f1f5f9;
-        letter-spacing: -0.5px;
-        margin-bottom: 6px;
-      }
-
-      .loader-subtitle {
-        font-size: 13px;
-        font-weight: 400;
-        color: #64748b;
-        letter-spacing: 0.5px;
+        letter-spacing: 4px;
         text-transform: uppercase;
       }
 
-      .loader-bar-track {
-        width: 200px;
-        height: 3px;
-        background: #1e293b;
-        border-radius: 3px;
+      .loader-subtitle {
+        font-size: 11px;
+        font-weight: 500;
+        color: #475569;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+
+      /* Progress line */
+      .loader-progress {
+        width: 120px;
+        height: 2px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 2px;
         overflow: hidden;
-        margin-top: 8px;
-      }
-
-      .loader-bar-fill {
-        width: 40%;
-        height: 100%;
-        background: linear-gradient(90deg, #1e3a5f, #3d62a1);
-        border-radius: 3px;
-        animation: loading-bar 1.2s ease-in-out infinite;
-      }
-
-      @keyframes loading-bar {
-        0%   { transform: translateX(-100%); opacity: 0.6; }
-        50%  { transform: translateX(150%); opacity: 1; }
-        100% { transform: translateX(400%); opacity: 0.6; }
-      }
-
-      .loader-loading-text {
-        font-size: 12px;
-        color: #64748b;
-        letter-spacing: 0.3px;
         margin-top: 4px;
       }
 
-      .loader-version {
-        position: absolute;
-        bottom: 32px;
-        font-size: 11px;
-        color: #334155;
-        letter-spacing: 0.3px;
+      .loader-progress-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #3d8ec9, transparent);
+        animation: progress-sweep 1.4s ease-in-out infinite;
+      }
+
+      @keyframes progress-sweep {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
       }
 
       @media (prefers-color-scheme: light) {
-        #app-loader { background: #f8f9fb; }
+        #app-loader { background: #f8fafc; }
         .loader-title { color: #001a2d; }
-        .loader-subtitle { color: #64748b; }
-        .loader-bar-track { background: #e2e8f0; }
-        .loader-version { color: #cbd5e1; }
-        .loader-icon-bg { box-shadow: 0 0 40px rgba(10, 37, 64, 0.15), 0 8px 24px rgba(0,0,0,0.08); }
+        .loader-subtitle { color: #94a3b8; }
+        .loader-progress { background: rgba(0,0,0,0.04); }
+        .loader-v-path { stroke: #001a2d; }
+        .loader-v-fill { fill: #001a2d; }
       }
     </style>
   </head>

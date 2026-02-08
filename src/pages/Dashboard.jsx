@@ -149,7 +149,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
 
       <PageHeader
         icon={LayoutDashboard}
-        title={nomeEmpresa ? `Olá, ${nomeEmpresa}` : 'Bem-vindo ao PrecifiCALC'}
+        title={nomeEmpresa ? `Olá, ${nomeEmpresa}` : 'Bem-vindo ao Vértice'}
         description="Ferramenta completa para precificar produtos e serviços da empresa"
       />
 
@@ -185,7 +185,7 @@ export default function Dashboard({ onNavigate, perfilEmpresa }) {
           >
             {action.highlight && (
               <div className="absolute -top-2 -right-2 bg-[#001a2d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                Começar aqui
+                Comece aqui
               </div>
             )}
             <span className="text-3xl block mb-2">{action.emoji}</span>

@@ -66,7 +66,16 @@ export default function QuantoSobraCard({ perfilEmpresa, onNavigate }) {
       }
 
       if (!hasData) {
-        setDados(null);
+        setDados({
+          faturamentoMensal: 0,
+          custosFixos: 0,
+          custosVariaveis: 0,
+          impostos: 0,
+          lucroMensal: 0,
+          lucroAnual: 0,
+          margemReal: 0,
+          hasData: true,
+        });
         return;
       }
 
@@ -113,6 +122,7 @@ export default function QuantoSobraCard({ perfilEmpresa, onNavigate }) {
     );
   }
 
+  const isZero = dados.faturamentoMensal === 0 && dados.lucroMensal === 0;
   const isPositive = dados.lucroMensal > 0;
   const isGood = dados.margemReal >= 20;
   const isOk = dados.margemReal >= 10;
@@ -145,32 +155,33 @@ export default function QuantoSobraCard({ perfilEmpresa, onNavigate }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <p className="text-xs text-slate-500">Por mês</p>
-          <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
+          <p className={`text-3xl font-black ${isZero ? 'text-slate-400' : isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
             {formatCurrency(dados.lucroMensal)}
           </p>
         </div>
         <div>
           <p className="text-xs text-slate-500">Por ano</p>
-          <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
+          <p className={`text-3xl font-black ${isZero ? 'text-slate-400' : isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
             {formatCurrency(dados.lucroAnual)}
           </p>
         </div>
         <div>
           <p className="text-xs text-slate-500">Margem real</p>
           <div className="flex items-center gap-2">
-            <p className={`text-3xl font-black ${isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
+            <p className={`text-3xl font-black ${isZero ? 'text-slate-400' : isPositive ? 'text-[#1a2332]' : 'text-red-600'}`}>
               {dados.margemReal.toFixed(1)}%
             </p>
-            {isPositive ? (
+            {!isZero && (isPositive ? (
               <TrendingUp className="text-slate-400" size={24} />
             ) : (
               <TrendingDown className="text-red-500" size={24} />
-            )}
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Breakdown bar */}
+      {/* Breakdown bar — only when there's real data */}
+      {dados.faturamentoMensal > 0 && (
       <div className="mt-4 pt-4 border-t border-slate-200">
         <div className="flex items-center gap-1 text-xs mb-2">
           <span className="text-slate-600 font-medium">De cada {formatCurrency(dados.faturamentoMensal)} que entra:</span>
@@ -213,9 +224,10 @@ export default function QuantoSobraCard({ perfilEmpresa, onNavigate }) {
           </span>
         </div>
       </div>
+      )}
 
-      {/* Emotional feedback */}
-      {!isPositive && (
+      {/* Emotional feedback — only when there's real data */}
+      {dados.faturamentoMensal > 0 && !isPositive && (
         <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
           <p className="text-sm font-bold text-red-700">Atenção: a empresa está no prejuízo.</p>
           <p className="text-xs text-red-600 mt-1">É preciso revisar os preços de venda ou reduzir os custos operacionais.</p>

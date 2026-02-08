@@ -23,11 +23,18 @@ export default function InputField({
   const isCurrency = prefix === 'R$';
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [editText, setEditText] = useState('');
   const inputRef = useRef(null);
 
   let displayValue = value;
-  if (isCurrency && !focused && value !== '' && value !== undefined) {
-    displayValue = formatThousands(value);
+  if (isCurrency) {
+    if (focused) {
+      displayValue = editText;
+    } else if (value !== '' && value !== undefined && value !== null && value !== 0) {
+      displayValue = formatThousands(value);
+    } else {
+      displayValue = '';
+    }
   }
 
   // Real-time validation
@@ -65,8 +72,47 @@ export default function InputField({
     if (type === 'text') {
       onChange(raw);
     } else if (isCurrency) {
-      const parsed = parseFormatted(raw);
+      const cursorPos = e.target.selectionStart;
+
+      // Strip everything except digits and comma
+      let clean = raw.replace(/[^\d,]/g, '');
+      // Allow at most one comma
+      const commaIdx = clean.indexOf(',');
+      if (commaIdx !== -1) {
+        clean = clean.substring(0, commaIdx + 1) + clean.substring(commaIdx + 1).replace(/,/g, '');
+        // Limit to 2 decimal places
+        const afterComma = clean.substring(commaIdx + 1);
+        if (afterComma.length > 2) {
+          clean = clean.substring(0, commaIdx + 3);
+        }
+      }
+      // Remove leading zeros (but keep "0" alone or "0,...")
+      const parts = clean.split(',');
+      let intPart = parts[0].replace(/^0+(?=\d)/, '');
+      if (intPart === '') intPart = parts.length > 1 ? '0' : '';
+      // Add thousand separators to integer part
+      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const formatted = parts.length > 1 ? formattedInt + ',' + parts[1] : formattedInt;
+
+      setEditText(formatted);
+
+      // Parse and propagate numeric value to parent
+      const parsed = parseFormatted(formatted);
       onChange(parsed);
+
+      // Restore cursor: count significant chars (digits + comma) before cursor in raw
+      const sigBefore = raw.substring(0, cursorPos).replace(/[^\d,]/g, '').length;
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          let count = 0;
+          let newPos = formatted.length;
+          for (let i = 0; i < formatted.length; i++) {
+            if (/[\d,]/.test(formatted[i])) count++;
+            if (count >= sigBefore) { newPos = i + 1; break; }
+          }
+          inputRef.current.setSelectionRange(newPos, newPos);
+        }
+      });
     } else {
       onChange(parseFloat(raw) || 0);
     }
@@ -98,7 +144,12 @@ export default function InputField({
           inputMode={isCurrency ? 'decimal' : (type === 'text' ? 'text' : 'numeric')}
           value={displayValue}
           onChange={handleChange}
-          onFocus={() => setFocused(true)}
+          onFocus={() => {
+            setFocused(true);
+            if (isCurrency) {
+              setEditText(value && value !== 0 ? formatThousands(value) : '');
+            }
+          }}
           onBlur={() => { setFocused(false); setTouched(true); }}
           min={!isCurrency ? min : undefined}
           max={!isCurrency ? max : undefined}

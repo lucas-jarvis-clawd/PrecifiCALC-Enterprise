@@ -1,4 +1,4 @@
-// PrecifiCALC Enterprise App - Performance Optimized
+// Vértice - Performance Optimized
 import { useState, useEffect, useCallback, memo, useMemo, StrictMode } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
@@ -198,7 +198,7 @@ const App = memo(() => {
         <div className="text-center animate-fadeIn">
           <div className="relative mb-6">
             <div className="w-16 h-16 rounded-2xl bg-[#001a2d] flex items-center justify-center mx-auto shadow-xl shadow-[#001a2d]/25">
-              <span className="text-white font-bold text-2xl">P</span>
+              <span className="text-white font-bold text-2xl">V</span>
             </div>
 
             <div className="absolute -inset-2">
@@ -207,7 +207,7 @@ const App = memo(() => {
           </div>
 
           <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">
-            PrecifiCALC Enterprise
+            Vértice
           </h2>
 
           <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse">
@@ -255,10 +255,10 @@ const App = memo(() => {
 
               <div className="flex items-center gap-2 flex-1">
                 <div className="w-7 h-7 rounded-lg bg-[#001a2d] flex items-center justify-center shadow-sm">
-                  <span className="text-white font-bold text-xs">P</span>
+                  <span className="text-white font-bold text-xs">V</span>
                 </div>
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  PrecifiCALC
+                  Vértice
                 </span>
               </div>
 
@@ -412,6 +412,6 @@ const App = memo(() => {
   );
 });
 
-App.displayName = 'PrecifiCALC App';
+App.displayName = 'Vértice App';
 
 export default App;

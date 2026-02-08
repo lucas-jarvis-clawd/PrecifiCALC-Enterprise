@@ -431,7 +431,7 @@ export default function Propostas() {
           </div>
 
           <div className="footer">
-            <p>Proposta gerada por PrecifiCALC | {dataFormatada} | Válida até {validadeFormatada}</p>
+            <p>Proposta gerada por Vértice | {dataFormatada} | Válida até {validadeFormatada}</p>
           </div>
         </div>
       </div>

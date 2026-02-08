@@ -110,7 +110,7 @@ export default function FeedbackWidget() {
           <p className="text-brand-200 text-xs mt-0.5">
             {step === 'type' && 'Seu feedback nos ajuda a melhorar'}
             {step === 'form' && 'Descreva com detalhes'}
-            {step === 'rating' && 'De 1 a 5, como foi usar o PrecifiCALC?'}
+            {step === 'rating' && 'De 1 a 5, como foi usar o Vértice?'}
             {step === 'done' && 'Seu feedback foi registrado'}
           </p>
         </div>
@@ -261,7 +261,7 @@ export default function FeedbackWidget() {
               </div>
               <h4 className="font-bold text-slate-800 dark:text-slate-200">Feedback registrado</h4>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Obrigado por ajudar a melhorar o PrecifiCALC. 
+                Obrigado por ajudar a melhorar o Vértice. 
                 {email && ' Responderemos pelo email informado.'}
               </p>
               <button

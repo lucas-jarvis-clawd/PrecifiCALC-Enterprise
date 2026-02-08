@@ -1,4 +1,4 @@
-// Lazy-loaded Pages - Code splitting for PrecifiCALC modules
+// Lazy-loaded Pages - Code splitting for Vértice modules
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 

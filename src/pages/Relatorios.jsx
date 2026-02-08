@@ -38,7 +38,7 @@ function getEmpresaInfo() {
   const config = getConfig();
   const perfil = getPerfil();
   return {
-    nome: config.nomeEmpresa || perfil.nomeEmpresa || 'PrecifiCALC Enterprise',
+    nome: config.nomeEmpresa || perfil.nomeEmpresa || 'Vértice',
     cnpj: config.cnpj || perfil.cnpj || '',
     endereco: config.endereco || '',
     telefone: config.telefone || '',
@@ -257,7 +257,7 @@ function gerarRelatorio(tipo) {
         </table>
       </div>
       <div class="footer">
-        Gerado por ${empresa.nome} • Powered by PrecifiCALC Enterprise
+        Gerado por ${empresa.nome} • Powered by Vértice
       </div>
       <script>window.print();</script>
     </body></html>
@@ -333,7 +333,7 @@ function DefisHelper() {
     }
 
     lines.push('');
-    lines.push('Gerado por PrecifiCALC Enterprise');
+    lines.push('Gerado por Vértice');
     return lines.join('\n');
   }
 
